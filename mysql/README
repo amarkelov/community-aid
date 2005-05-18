@@ -1,0 +1,13 @@
+The directory has backups of MySQL database for GoodMorning
+project and file tables.sql with tables structure only.
+
+All the files named in according to the following convention:
+mysql.database_name.backup.date
+
+To restore a backup of particular date use:
+
+mysql -u <mysql_user_name> -p mysql < mysql.gmpDb.backup.<date>
+
+or, if MySQL server is a remote one:
+
+mysql -h <hostname> -u <mysql_user_name> -p mysql < mysql.gmpDb.backup.<date>
