@@ -4,76 +4,94 @@
 
 // global $db, $clientid, $list, $done  ;
 
- if (!$list )  {$list="white" ; }
+if (!$list )  {$list="white" ; }
 
-$db = $HTTP_HOST . "Db";
-$dbConnect = mysql_connect("localhost", "root");
+$db = "gmpDb";
+//$db = $HTTP_HOST . "Db";
+$dbConnect = mysql_connect("localhost", "root", "old290174");
+if(!$dbConnect) {
+	die('Could not connect: ' . mysql_error());
+}
 
 mysql_select_db($db,$dbConnect);
 
 if ($submit and $clientid) {
 
-	$sql = "UPDATE clients SET timeslot='$timeslot', done='$done' WHERE clientid=$clientid";
-	  $result = mysql_query($sql);
-	$sql = "INSERT INTO calls (clientid,chat,class) VALUES ('$clientid', '$chat', '$callclass') ";
-	  $result = mysql_query($sql);
-         unset($clientid);
- }
+	$sql  = "UPDATE clients SET timeslot='$timeslot',";
+	$sql .= " done='$done' WHERE clientid=$clientid";
+	$result = mysql_query($sql);
+	if (!$result) {
+		$message  = 'Invalid query: ' . mysql_error() . "\n";
+		$message .= 'Whole query: ' . $query;
+		die($message);
+	}
 
+	$sql  = "INSERT INTO calls (clientid,chat,class) ";
+	$sql .= "VALUES ('$clientid', '$chat', '$callclass') ";
+	$result = mysql_query($sql);
+	if (!$result) {
+		$message  = 'Invalid query: ' . mysql_error() . "\n";
+		$message .= 'Whole query: ' . $query;
+		die($message);
+	}
+	unset($clientid);
+}
 
+if ($clientid and !$submit) {
 
-  if ($clientid and !$submit) {
+	$sql = "SELECT * FROM clients WHERE (clients.clientid=$clientid)";
+	$result = mysql_query($sql);
+	if (!$result) {
+		$message  = 'Invalid query: ' . mysql_error() . "\n";
+		$message .= 'Whole query: ' . $query;
+		die($message);
+	}
 
-    $sql = "SELECT * FROM clients WHERE (clients.clientid=$clientid)";
-      $result = mysql_query($sql);
-    $myrow = mysql_fetch_array($result);
+	$myrow = mysql_fetch_array($result);
 
 //    $sql = "UPDATE clients SET done='true' WHERE clientid=$clientid";
 //      $result = mysql_query($sql);
 
-
-$clientid = $myrow["clientid"];
-$firstname=stripslashes($myrow["firstname"]);
-$lastname=stripslashes($myrow["lastname"]);
-$initials=$myrow["initials"];
-$title=$myrow["title"];
-$houseno=$myrow["houseno"];
-$postcode=$myrow["postcode"];
-$street=$myrow["street"];
-$phone1=$myrow["phone1"];
-$phone2=$myrow["phone2"];
-$housetype=$myrow["housetype"];
-$dob=$myrow["dob"];
-$startdate=$myrow["startdate"];
-$leavedate=$myrow["leavedate"];
-$alone=$myrow["alone"];
-$ailments=$myrow["ailments"];
-$contact1name=stripslashes($myrow["contact1name"]);
-$contact1relationship=$myrow["contact1relationship"];
-$contact1address=$myrow["contact1address"];
-$contact1phone1=$myrow["contact1phone1"];
-$contact1phone2=$myrow["contact1phone2"];
-$contact2name=stripslashes($myrow["contact2name"]);
-$contact2relationship=$myrow["contact2relationship"];
-$contact2address=$myrow["contact2address"];
-$contact2phone1=$myrow["contact2phone1"];
-$contact2phone2=$myrow["contact2phone2"];
-$gpname=stripslashes($myrow["gpname"]);
-$referrer=$myrow["referrer"];
-$housing=$myrow["housing"];
-$timeslot=$myrow["timeslot"];
-$list=$myrow["list"];
-$note=$myrow["note"];
-$description1=$myrow["description1"];
-$description2=$myrow["description2"];
-$done=$myrow["done"];
-
-  }
-
+	$clientid = $myrow["clientid"];
+	$firstname=stripslashes($myrow["firstname"]);
+	$lastname=stripslashes($myrow["lastname"]);
+	$initials=$myrow["initials"];
+	$title=$myrow["title"];
+	$houseno=$myrow["houseno"];
+	$postcode=$myrow["postcode"];
+	$street=$myrow["street"];
+	$phone1=$myrow["phone1"];
+	$phone2=$myrow["phone2"];
+	$housetype=$myrow["housetype"];
+	$dob=$myrow["dob"];
+	$startdate=$myrow["startdate"];
+	$leavedate=$myrow["leavedate"];
+	$alone=$myrow["alone"];
+	$ailments=$myrow["ailments"];
+	$contact1name=stripslashes($myrow["contact1name"]);
+	$contact1relationship=$myrow["contact1relationship"];
+	$contact1address=$myrow["contact1address"];
+	$contact1phone1=$myrow["contact1phone1"];
+	$contact1phone2=$myrow["contact1phone2"];
+	$contact2name=stripslashes($myrow["contact2name"]);
+	$contact2relationship=$myrow["contact2relationship"];
+	$contact2address=$myrow["contact2address"];
+	$contact2phone1=$myrow["contact2phone1"];
+	$contact2phone2=$myrow["contact2phone2"];
+	$gpname=stripslashes($myrow["gpname"]);
+	$referrer=$myrow["referrer"];
+	$housing=$myrow["housing"];
+	$timeslot=$myrow["timeslot"];
+	$list=$myrow["list"];
+	$note=$myrow["note"];
+	$description1=$myrow["description1"];
+	$description2=$myrow["description2"];
+	$done=$myrow["done"];
+}
 
 ?>
 
-<TITLE>Check <?php echo $list ?> List -- GoodMorningNorthGlasgow/Eng-IntLtd</TITLE>
+<TITLE>Check <?php echo $list ?> List -- Good Morning Blanchardstown</TITLE>
 <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
 <meta http-equiv="expires" content="-1">
 <meta http-equiv="Cache-Control" content="no-cache">
@@ -113,16 +131,12 @@ function displayStatusMsg(msgStr) { //v1.0
 
       </div>
     </td>
-    <TD width="75%" height="33">
-      <P align="center">
-
-      <form method="post" action="<?php echo ($PHP_SELF . "?list=" . $list) ?>" >
-
+<TD width="75%" height="33">
+<P align="center">
+<form method="post" action="<?php echo ($PHP_SELF . "?list=" . $list) ?>" >
 
 
-
- <?php
-
+<?php
 	print('<font size="4">');
 	print("<b>");
 	printf ($firstname);
@@ -130,7 +144,6 @@ function displayStatusMsg(msgStr) { //v1.0
 	printf ($lastname);
 	print(" </b>");
 	print("</font>");
-
 ?> 
 
 <font color="#CC9999">-</font>
@@ -141,24 +154,46 @@ function displayStatusMsg(msgStr) { //v1.0
       <BR />
       <?php
 
-    // print the list 
+// print the list 
 if  ($list != "white")  {
-   $result = mysql_query("SELECT * FROM clients where (clients.list = '$list' ) order by timeslot, firstname",$dbConnect);
-    }  else  {
-   $result = mysql_query("SELECT * FROM clients WHERE (list != 'black') order by lastname, firstname",$dbConnect);
+	$sql  = "SELECT * FROM clients where (clients.list = '$list' )";
+	$sql .= " order by timeslot, firstname";
+	$result = mysql_query( $sql, $dbConnect);
+	if (!$result) {
+		$message  = 'Invalid query: ' . mysql_error() . "\n";
+		$message .= 'Whole query: ' . $query;
+		die($message);
+	}
+}
+else {
+	$sql  = "SELECT * FROM clients WHERE (list != 'black') ";
+	$sql .= "order by lastname, firstname";
+	$result = mysql_query( $sql, $dbConnect);
+	if (!$result) {
+		$message  = 'Invalid query: ' . mysql_error() . "\n";
+		$message .= 'Whole query: ' . $query;
+		die($message);
+	}
 }  
-    while ($myrow = mysql_fetch_array($result)) {
 
-$tmp_done = $myrow["done"]; $tmp_clientid = $myrow["clientid"];
-$tmp_firstname = $myrow["firstname"]; $tmp_lastname = stripslashes($myrow["lastname"]);
-    print ("<a href=\"$PHP_SELF?clientid=$tmp_clientid\">$tmp_firstname  $tmp_lastname</a> \n");
-	print ("<br><div align=right>");
-// print($done);
+while ($myrow = mysql_fetch_array($result)) {
+
+	$tmp_done = $myrow["done"]; 
+	$tmp_clientid = $myrow["clientid"];
+	$tmp_firstname = $myrow["firstname"]; 
+	$tmp_lastname = stripslashes($myrow["lastname"]);
+
+	$out  = "<a href=\"$PHP_SELF?clientid=$tmp_clientid\">";
+	$out .= "$tmp_firstname  $tmp_lastname</a> \n";
+	$out .= "<br><div align=right>";
+	print( $out);
+	// print($done);
+
 	if ( $tmp_done != "true")
-      print ($myrow["timeslot"]);
-	print ("</div>");
+		print ($myrow["timeslot"]);
 
-    }
+	print ("</div>");
+}
 
 ?> </FONT> </TD>
     <TD width="75%" valign="top" align="center" height="120" > <FONT face="Verdana, Arial, Helvetica, sans-serif" size="2"> 
@@ -210,39 +245,48 @@ $tmp_firstname = $myrow["firstname"]; $tmp_lastname = stripslashes($myrow["lastn
 $last_dow = 6;
 
 if($clientid) {
-  $result = mysql_query("SELECT time,chat,class FROM calls WHERE (clientid= '$clientid') ORDER BY callid DESC ",$dbConnect);
+	$sql  = "SELECT time,chat,class FROM calls WHERE";
+	$sql .= " (clientid= '$clientid') ORDER BY callid DESC ";
+	$result = mysql_query( $sql, $dbConnect);
+	if (!$result) {
+		$message  = 'Invalid query: ' . mysql_error() . "\n";
+		$message .= 'Whole query: ' . $query;
+		die($message);
+	}
 
-   while ($myrow = mysql_fetch_array($result)) {
+	while ($myrow = mysql_fetch_array($result)) {
 		$time=$myrow["time"];
 
-	print ('<font color="#FF0000">');
+		print ('<font color="#FF0000">');
 
-if ( ereg( "([0-9]{4})([0-9]{2})([0-9]{2})([0-9]{2})([0-9]{2})([0-9]{2})", $time, $regs ) ) {
+		if ( ereg( "([0-9]{4})([0-9]{2})([0-9]{2})([0-9]{2})([0-9]{2})([0-9]{2})", $time, $regs ) ) {
 
-       $this_dow = date("w",mktime(0,0,0,$regs[2],$regs[3],$regs[1]));
-        if ($this_dow > $last_dow)   {
-          print ('<hr />');
-         }
-          $last_dow = $this_dow;
-    print "$regs[3]/$regs[2]/$regs[1] $regs[4]:$regs[5]";
-} else {
-    print "Invalid date format: $time";
-}
+			$this_dow = date("w",mktime(0,0,0,$regs[2],$regs[3],$regs[1]));
+			if ($this_dow > $last_dow) {
+				print ('<hr />');
+			}
 
+			$last_dow = $this_dow;
+			print "$regs[3]/$regs[2]/$regs[1] $regs[4]:$regs[5]";
+		}
+		else {
+			print "Invalid date format: $time";
+		}
 
-	print(" | ");
-	print('</font>');
+		print(" | ");
+		print('</font>');
 
-        print ('<font color="#0000FF">');
-        print ($myrow["class"]);
-        print(" | ");
-        print('</font>');
+		print ('<font color="#0000FF">');
+		print ($myrow["class"]);
+		print(" | ");
+		print('</font>');
  
-	print($myrow["chat"] );
-	print ("<br>");
+		print($myrow["chat"] );
+		print ("<br>");
 
-    }
-}
+	} // while
+} // if($clientid)
+
 ?> 
       <P>&nbsp;</P>
       </font> </TD>

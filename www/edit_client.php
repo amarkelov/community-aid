@@ -1,86 +1,104 @@
 <html>
 <head>
-<title>Edit Client List -- GoodMorningNorthGlasgow/Eng-IntLtd</title> 
+<title>Edit Client List -- Good Morning Blanchardstown</title> 
 <meta http-equiv="expires" content="-1">
 <meta http-equiv="Cache-Control" content="no-cache">
 </head>
 <body bgcolor="#99CCCC">
 <font face="Verdana, Arial, Helvetica, sans-serif" > 
-<p align="right"><i><b><font size="5" color="#FF9999">Good Morning Project</font></b></i> 
+
+<p align="right">
+<i><b><font size="5" color="#FF9999">
+Good Morning Blanchardstown Project
+</font></b></i> 
 </p>
+
 <p align="left">&nbsp; </p>
 <?php
 
-$db = $HTTP_HOST . "Db";
-$dbConnect = mysql_connect("localhost", "root");
+$db = "gmpDb";
+//$db = $HTTP_HOST . "Db";
+$dbConnect = mysql_connect("localhost", "root", "old290174");
+if (!$dbConnect) {
+	die('Could not connect: ' . mysql_error());
+}
 
 mysql_select_db($db,$dbConnect);
 
 if ($submit) {
 
-  // here if no ID then editing  else adding 
+	// here if no ID then editing  else adding 
+	if ($clientid) {
 
-  if ($clientid) {
-
-	$sql = "UPDATE clients SET firstname='$firstname',lastname='$lastname',title='$title',houseno='$houseno',postcode='$postcode',street='$street',phone1='$phone1',phone2='$phone2',dob='$dob',gpname='$gpname',housing='$housing',housetype='$housetype',referrer='$referrer',alone='$alone',ailments='$ailments',note='$note',description1='$description1',description2='$description2',contact1name='$contact1name',contact1relationship='$contact1relationship',contact1address='$contact1address',contact1phone1='$contact1phone1',contact2name='$contact2name',contact2relationship='$contact2relationship',contact2address='$contact2address',contact2phone1='$contact2phone1',list='$list',timeslot='$timeslot'  
+		$sql = "UPDATE clients SET firstname='$firstname',lastname='$lastname',title='$title',houseno='$houseno',postcode='$postcode',street='$street',phone1='$phone1',phone2='$phone2',dob='$dob',gpname='$gpname',housing='$housing',housetype='$housetype',referrer='$referrer',alone='$alone',ailments='$ailments',note='$note',description1='$description1',description2='$description2',contact1name='$contact1name',contact1relationship='$contact1relationship',contact1address='$contact1address',contact1phone1='$contact1phone1',contact2name='$contact2name',contact2relationship='$contact2relationship',contact2address='$contact2address',contact2phone1='$contact2phone1',list='$list',timeslot='$timeslot'  
 WHERE clientid=$clientid";
 
- } 
+	} 
+	else {
 
-else {
-
-  $sql = "INSERT INTO clients (firstname,lastname,title,houseno,postcode,street,phone1,phone2,housetype,dob,alone, ailments,contact1name,contact1relationship,contact1address,contact1phone1,contact2name,contact2relationship, contact2address,contact2phone1,gpname,referrer,housing,note,description1,description2,list,timeslot) 
+		$sql = "INSERT INTO clients (firstname,lastname,title,houseno,postcode,street,phone1,phone2,housetype,dob,alone, ailments,contact1name,contact1relationship,contact1address,contact1phone1,contact2name,contact2relationship, contact2address,contact2phone1,gpname,referrer,housing,note,description1,description2,list,timeslot) 
 	VALUES ('$firstname', '$lastname','$title', '$houseno', '$postcode', '$street', '$phone1', '$phone2', '$housetype', '$dob', '$alone', '$ailments', '$contact1name', '$contact1relationship', '$contact1address', '$contact1phone1',' $contact2name', '$contact2relationship', '$contact2address', '$contact2phone1','$gpname', '$referrer', '$housing', '$note', '$description1', '$description2', '$list', '$timeslot')";
 
+	}
 
-  }
+	// run SQL against the DB
+	$result = mysql_query($sql);
+	if (!$result) {
+		die('Invalid query: ' . mysql_error());
+	}
 
-  // run SQL against the DB
+	// log entry
+	$logstr = "*** CLIENT RECORD AMENDED *** \n" . $reason;
+	$callclass = "ADMIN";
+	$sql  = "INSERT INTO calls (clientid, chat, class) ";
+	$sql .= "VALUES ('$clientid', '$logstr', '$callclass')";
+	$result = mysql_query($sql);
+	if (!$result) {
+		die('Invalid query: ' . mysql_error());
+	}
 
-  $result = mysql_query($sql);
+	echo "Record updated/edited!<p>";
+	print  "<a href=\" $PHP_SELF \">ADD/Select a RECORD</a><p>"; 
 
-// log entry
+} // if ($submit)
+elseif ($delete) {
 
-$logstr = "*** CLIENT RECORD AMENDED *** \n" . $reason;
-$callclass = "ADMIN";
-$sql = "INSERT INTO calls (clientid, chat, class) VALUES ('$clientid', '$logstr', '$callclass')";
-  $result = mysql_query($sql);
+// delete a record - actually move to black list
 
-  echo "Record updated/edited!<p>";
-print  "<a href=\" $PHP_SELF \">ADD/Select a RECORD</a><p>"; 
+	$sql = "UPDATE clients SET list='black' WHERE clientid=$clientid";
+	$result = mysql_query($sql);
+	if (!$result) {
+		die('Invalid query: ' . mysql_error());
+	}
 
+	echo "Client inactivated!p>";
+	print  "<a href=\" $PHP_SELF \">ADD/Select a RECORD</a><p>"; 
+
+} 
+else {
+
+	// this part happens if we don't press submit
+	if (!$clientid) {
+
+	// print the list if there is not editing
+	$result = mysql_query("SELECT * FROM clients ORDER BY lastname",$dbConnect);
+	if (!$result) {
+		die('Invalid query: ' . mysql_error());
+	}
+
+
+	print("<table>");
+	while ($myrow = mysql_fetch_array($result)) {
+		$out =  "<tr><td><img src=\"images/";
+		$out .= $myrow["list"];
+		$out .= ".png\" width=\"16\" height=\"16\" border=\"0\"></td>";
+		$out .= sprintf("<td><a href=\"%s?clientid=%s\">%s, %s</a></td>", $PHP_SELF, $myrow["clientid"], $myrow["lastname"],$myrow["firstname"]);
+		$out .= sprintf("<td><a href=\"%s?clientid=%s&delete=yes\">(Remove)</a></td></tr>", $PHP_SELF, $myrow["clientid"]);
+
+		print( $out);
+	}
+	print("</table>");
 }
-
- elseif ($delete) {
-
-	// delete a record - actually move to black list
-
-    $sql = "UPDATE clients SET list='black'
-WHERE clientid=$clientid";
-    $result = mysql_query($sql);
-
-    echo "Client inactivated!p>";
-print  "<a href=\" $PHP_SELF \">ADD/Select a RECORD</a><p>"; 
-
-} else {
-
-  // this part happens if we don't press submit
-
-  if (!$clientid) {
-
-    // print the list if there is not editing
-
-    $result = mysql_query("SELECT * FROM clients ORDER BY lastname",$dbConnect);
-
-    while ($myrow = mysql_fetch_array($result)) {
-    print("<img src=\"images/" . $myrow["list"] . ".png\" width=\"16\" height=\"16\" border=\"0\">");
-    printf("<a href=\"%s?clientid=%s\">%s %s</a> \n", $PHP_SELF, $myrow["clientid"], $myrow["firstname"],$myrow["lastname"]);
-	print  ("..........");
-     printf("<a href=\"%s?clientid=%s&delete=yes\">(Remove)</a><br>", $PHP_SELF, $myrow["clientid"]);
-
-    }
-
-  }
 
  ?>
 <div align="right"><i><b></b></i></div>
@@ -92,61 +110,60 @@ print  "<a href=\" $PHP_SELF \">ADD/Select a RECORD</a><p>";
 
 
 
-  if ($clientid) {
+if ($clientid) {
 
-    // editing so select a record
+	// editing so select a record
+	$sql = "SELECT * FROM clients WHERE clientid=$clientid";
 
-    $sql = "SELECT * FROM clients WHERE clientid=$clientid";
+	$result = mysql_query($sql);
+	if (!$result) {
+		die('Invalid query: ' . mysql_error());
+	}
 
-    $result = mysql_query($sql);
+	$myrow = mysql_fetch_array($result);
 
-    $myrow = mysql_fetch_array($result);
-
-    $clientid = $myrow["clientid"];
-
-$firstname=$myrow["firstname"];
-$lastname=$myrow["lastname"];
-$initials=$myrow["initials"];
-$title=$myrow["title"];
-$houseno=$myrow["houseno"];
-$postcode=$myrow["postcode"];
-$street=$myrow["street"];
-$phone1=$myrow["phone1"];
-$phone2=$myrow["phone2"];
-$housetype=$myrow["housetype"];
-$dob=$myrow["dob"];
-$startdate=$myrow["startdate"];
-$leavedate=$myrow["leavedate"];
-$alone=$myrow["alone"];
-$ailments=$myrow["ailments"];
-$contact1name=$myrow["contact1name"];
-$contact1relationship=$myrow["contact1relationship"];
-$contact1address=$myrow["contact1address"];
-$contact1phone1=$myrow["contact1phone1"];
-$contact1phone2=$myrow["contact1phone2"];
-$contact2name=$myrow["contact2name"];
-$contact2relationship=$myrow["contact2relationship"];
-$contact2address=$myrow["contact2address"];
-$contact2phone1=$myrow["contact2phone1"];
-$contact2phone2=$myrow["contact2phone2"];
-$gpname=$myrow["gpname"];
-$referrer=$myrow["referrer"];
-$housing=$myrow["housing"];
-$timeslot=$myrow["timeslot"];
-$list=$myrow["list"];
-$note=$myrow["note"];
-$description1=$myrow["description1"];
-$description2=$myrow["description2"];
+	$clientid = $myrow["clientid"];
+	$firstname=$myrow["firstname"];
+	$lastname=$myrow["lastname"];
+	$initials=$myrow["initials"];
+	$title=$myrow["title"];
+	$houseno=$myrow["houseno"];
+	$postcode=$myrow["postcode"];
+	$street=$myrow["street"];
+	$phone1=$myrow["phone1"];
+	$phone2=$myrow["phone2"];
+	$housetype=$myrow["housetype"];
+	$dob=$myrow["dob"];
+	$startdate=$myrow["startdate"];
+	$leavedate=$myrow["leavedate"];
+	$alone=$myrow["alone"];
+	$ailments=$myrow["ailments"];
+	$contact1name=$myrow["contact1name"];
+	$contact1relationship=$myrow["contact1relationship"];
+	$contact1address=$myrow["contact1address"];
+	$contact1phone1=$myrow["contact1phone1"];
+	$contact1phone2=$myrow["contact1phone2"];
+	$contact2name=$myrow["contact2name"];
+	$contact2relationship=$myrow["contact2relationship"];
+	$contact2address=$myrow["contact2address"];
+	$contact2phone1=$myrow["contact2phone1"];
+	$contact2phone2=$myrow["contact2phone2"];
+	$gpname=$myrow["gpname"];
+	$referrer=$myrow["referrer"];
+	$housing=$myrow["housing"];
+	$timeslot=$myrow["timeslot"];
+	$list=$myrow["list"];
+	$note=$myrow["note"];
+	$description1=$myrow["description1"];
+	$description2=$myrow["description2"];
 
     // print the clientid for editing
-
-
 
     ?> 
   <input type=hidden name="clientid" value="<?php echo $clientid ?>">
   <?php
 
-  }
+} // if ($clientid)
 
 
 
