@@ -8,7 +8,7 @@
 
 //$db = $HTTP_HOST . "Db";
 $db = "gmpDb";
-$dbConnect = mysql_connect("localhost", "root", "old290174");
+$dbConnect = mysql_connect("localhost", "gmadmin", "old290174");
 if (!$dbConnect) {
 	die('Could not connect: ' . mysql_error());
 }
