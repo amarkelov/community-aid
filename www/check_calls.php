@@ -2,13 +2,15 @@
 <HEAD>
 <?php
 
+require 'functions.inc';
+
 // global $db, $clientid, $list, $done  ;
 
 if (!$list )  {$list="white" ; }
 
 $db = "gmpDb";
 //$db = $HTTP_HOST . "Db";
-$dbConnect = mysql_connect("localhost", "root", "old290174");
+$dbConnect = mysql_connect("localhost", "gmadmin", "old290174");
 if(!$dbConnect) {
 	die('Could not connect: ' . mysql_error());
 }
@@ -107,7 +109,7 @@ function displayStatusMsg(msgStr) { //v1.0
 </HEAD>
 
 
-<BODY bgcolor="#DDAAAA" link="#0000FF" vlink="#0000FF" alink="#0000FF">
+<BODY bgcolor="#BEC8FD" link="#0000FF" vlink="#0000FF" alink="#0000FF">
 <FONT face="Verdana, Arial, Helvetica, sans-serif" size="2">
 
 <TABLE width="100%" border="0" cellpadding="5" > 
@@ -152,7 +154,67 @@ function displayStatusMsg(msgStr) { //v1.0
   <tr> 
     <TD rowspan="3" width="25%" valign="top"> <FONT face="Verdana, Arial, Helvetica, sans-serif" size="2"> 
       <BR />
-      <?php
+<?php
+    draw_clients_list($dbConnect, $list, $clientid);
+?>
+ </FONT> </TD>
+    <TD width="75%" valign="top" align="center" height="120" > <FONT face="Verdana, Arial, Helvetica, sans-serif" size="2"> 
+      </font>
+        <div align="right"><font face="Verdana, Arial, Helvetica, sans-serif" size="2"> 
+          <img src="images/new/home.png" alt="<?php echo "$houseno  $street  $postcode  -- $housing" ?>"onClick="displayStatusMsg('<?php echo  "$houseno  $street  $postcode  -- $housing" ?>');return document.returnValue"> 
+          <img src="images/new/doctor.png" alt="<?php echo $gpname  ?>" onClick="displayStatusMsg('<?php echo "$gpname" ?>');return document.returnValue"> 
+          <img src="images/new/phone1.png" alt="<?php echo "$contact1name, $contact1relationship  -- $contact1phone1" ?>"onClick="displayStatusMsg('<?php echo "$contact1name, $contact1relationship  -- $contact1phone1" ?>');return document.returnValue"> 
+          <img src="images/new/phone2.png" alt="<?php echo "$contact2name, $contact2relationship  -- $contact2phone1" ?>" onClick="displayStatusMsg('<?php echo "$contact2name, $contact2relationship  -- $contact2phone1" ?>');return document.returnValue"> 
+          <br>
+          <br>
+          <br>
+          </font> </div>
+        
+      <div align="left"><font face="Verdana, Arial, Helvetica, sans-serif" size="2"> 
+<b>Client Details:</b><br>
+<?php
+draw_client_details($clientid, $dbConnect);
+?>
+	<br>
+        <b>Next Call at: </b>
+        <?php 
+	    ereg("([0-9]{2}):([0-9]{2}):([0-9]{2})", $timeslot, $regs);
+	    print "$regs[1]:$regs[2]";
+	    //echo $timeslot  
+	?>
+        </font></div>
+
+       <input type="hidden" name="clientid" value="<?php echo $clientid ?>">
+       <input type="hidden" name="list" value="<?php echo $list ?>">
+       <input type="hidden" name="done" value="<?php echo $done ?>" />
+
+      </FORM> </TD>
+  </TR>
+  <TR > </TR>
+  <TR>
+    <TD width="75%"  valign="top" align="left" height="100"><font size ="1"> 
+
+<?php
+
+$last_dow = 6;
+
+if($clientid) {
+    draw_calls( $dbConnect, $clientid);
+} // if($clientid)
+
+?> 
+      <P>&nbsp;</P>
+      </font> </TD>
+  </TR>
+</TABLE>
+</FONT>
+</BODY>
+
+</HTML>
+
+<?php
+function nothing()
+{
 
 // print the list 
 if  ($list != "white")  {
@@ -177,127 +239,24 @@ else {
 }  
 
 while ($myrow = mysql_fetch_array($result)) {
+    $tmp_done = $myrow["done"]; 
+    $tmp_clientid = $myrow["clientid"];
+    $tmp_firstname = $myrow["firstname"]; 
+    $tmp_lastname = stripslashes($myrow["lastname"]);
 
-	$tmp_done = $myrow["done"]; 
-	$tmp_clientid = $myrow["clientid"];
-	$tmp_firstname = $myrow["firstname"]; 
-	$tmp_lastname = stripslashes($myrow["lastname"]);
-
-	$out  = "<a href=\"$PHP_SELF?clientid=$tmp_clientid\">";
-	$out .= "$tmp_firstname  $tmp_lastname</a> \n";
-	$out .= "<br><div align=right>";
-	print( $out);
-	// print($done);
-
-	if ( $tmp_done != "true")
-		print ($myrow["timeslot"]);
-
-	print ("</div>");
+    $out  = "<a href=\"$PHP_SELF?clientid=$tmp_clientid\">";
+    $out .= "$tmp_firstname  $tmp_lastname</a> \n";
+    $out .= "<br><div align=right>";
+    print( $out);
+    // print($done);
+    
+    if ( $tmp_done != "true") {
+	ereg("([0-9]{2}):([0-9]{2}):([0-9]{2})", $myrow["timeslot"], $regs);
+	print "$regs[1]:$regs[2]";
+//	print ($myrow["timeslot"]);
+    }
+    
+    print ("</div>");
 }
-
-?> </FONT> </TD>
-    <TD width="75%" valign="top" align="center" height="120" > <FONT face="Verdana, Arial, Helvetica, sans-serif" size="2"> 
-      </font>
-        <div align="right"><font face="Verdana, Arial, Helvetica, sans-serif" size="2"> 
-          <font color="#CC9999">-</font><img src="images/house.png" width="30" height="30" alt="<?php echo "$houseno  $street  $postcode  -- $housing" ?>"onClick="displayStatusMsg('<?php echo  "$houseno  $street  $postcode  -- $housing" ?>');return document.returnValue"> 
-          <font color="#CC9999">--</font><img src="images/medicine.png" width="30" height="30" alt="<?php echo $gpname  ?>" onClick="displayStatusMsg('<?php echo "$gpname" ?>');return document.returnValue"> 
-          <font color="#CC9999">--</font><img src="images/telephon.png" width="30" height="30" alt="<?php echo "$contact1name, $contact1relationship  -- $contact1phone1" ?>"onClick="displayStatusMsg('<?php echo "$contact1name, $contact1relationship  -- $contact1phone1" ?>');return document.returnValue"> 
-          <font color="#CC9999">--</font><img src="images/telephon.png" width="30" height="30" alt="<?php echo "$contact2name, $contact2relationship  -- $contact2phone1" ?>" onClick="displayStatusMsg('<?php echo "$contact2name, $contact2relationship  -- $contact2phone1" ?>');return document.returnValue"> 
-          <br>
-          <br>
-          <br>
-          </font> </div>
-        
-      <div align="left"><font face="Verdana, Arial, Helvetica, sans-serif" size="2"> 
-        Phone 1: <b>
-<!--       <?php echo $phone1 ?>
--->       </b> <FONT color="#CC9999">----</FONT>
-        Phone 2: <b>
-<!--        <?php echo $phone2 ?>
--->        </b> <FONT color="#CC9999">--------</FONT>
-        D.o.b: <?php
-	if ( ereg( "([0-9]{4})-([0-9]{1,2})-([0-9]{1,2})", $dob, $regs ) ) {
-	echo "$regs[3]-$regs[2]-$regs[1]";
-		}
-		?> <br>
-        Ailments: <?php echo $ailments ?><br>
-        Notes: <b><?php echo $note ?></b><br>
-        Report: 
-        <br />
-        Next Call: 
-        <?php echo $timeslot  ?>
-        <font color="#CC9999">-------</FONT>
-        <font color="#CC9999">--------</font>
-        </font></div>
-
-       <input type="hidden" name="clientid" value="<?php echo $clientid ?>">
-       <input type="hidden" name="list" value="<?php echo $list ?>">
-       <input type="hidden" name="done" value="<?php echo $done ?>" />
-
-      </FORM> </TD>
-  </TR>
-  <TR > </TR>
-  <TR>
-    <TD width="75%" bgcolor="#dddddd" valign="top" align="left" height="100"><font size ="1"> 
-
-<?php
-
-$last_dow = 6;
-
-if($clientid) {
-	$sql  = "SELECT time,chat,class FROM calls WHERE";
-	$sql .= " (clientid= '$clientid') ORDER BY callid DESC ";
-	$result = mysql_query( $sql, $dbConnect);
-	if (!$result) {
-		$message  = 'Invalid query: ' . mysql_error() . "\n";
-		$message .= 'Whole query: ' . $query;
-		die($message);
-	}
-
-	while ($myrow = mysql_fetch_array($result)) {
-		$time=$myrow["time"];
-
-		print ('<font color="#FF0000">');
-
-		if ( ereg( "([0-9]{4})([0-9]{2})([0-9]{2})([0-9]{2})([0-9]{2})([0-9]{2})", $time, $regs ) ) {
-
-			$this_dow = date("w",mktime(0,0,0,$regs[2],$regs[3],$regs[1]));
-			if ($this_dow > $last_dow) {
-				print ('<hr />');
-			}
-
-			$last_dow = $this_dow;
-			print "$regs[3]/$regs[2]/$regs[1] $regs[4]:$regs[5]";
-		}
-		else {
-			print "Invalid date format: $time";
-		}
-
-		print(" | ");
-		print('</font>');
-
-		print ('<font color="#0000FF">');
-		print ($myrow["class"]);
-		print(" | ");
-		print('</font>');
- 
-		print($myrow["chat"] );
-		print ("<br>");
-
-	} // while
-} // if($clientid)
-
-?> 
-      <P>&nbsp;</P>
-      </font> </TD>
-  </TR>
-  <TR> 
-    <TD width="25%">&nbsp;</TD>
-    <TD width="75%"><font face="Verdana, Arial, Helvetica, sans-serif"> </font></TD>
-  </TR>
-</TABLE>
-</FONT>
-</BODY>
-
-</HTML>
-
+}
+?>
