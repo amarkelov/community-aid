@@ -128,15 +128,15 @@ function displayStatusMsg(msgStr) { //v1.0
       <div align="right">
 <?php   if (!$clientid)  {
   echo("
-<a href=\"$PHP_SELF?list=magenta\"><img src=\"images/magenta.png\" width=\"16\" height=\"20\" border=\"0\"></a> \n
-<a href=\"$PHP_SELF?list=red\"><img src=\"images/red.png\" width=\"16\" height=\"20\" border=\"0\"></a> \n
-<a href=\"$PHP_SELF?list=yellow\"><img src=\"images/yellow.png\" width=\"16\" height=\"20\"  border=\"0\"></a> \n
-<a href=\"$PHP_SELF?list=green\"><img src=\"images/green.png\" width=\"16\" height=\"20\"  border=\"0\"></a> \n
-<a href=\"$PHP_SELF?list=olive\"><img src=\"images/olive.png\" width=\"16\" height=\"20\"  border =\"0\"></a> \n
-<a href=\"$PHP_SELF?list=cyan\"><img src=\"images/cyan.png\" width=\"16\" height=\"20\"  border =\"0\"></a> \n
-<a href=\"$PHP_SELF?list=blue\"><img src=\"images/blue.png\" width=\"16\" height=\"20\"  border=\"0\"></a> \n
-<a href=\"$PHP_SELF?list=grey\"><img src=\"images/grey.png\" width=\"16\" height=\"20\" border=\"0\"></a> \n
-<a href=\"$PHP_SELF?list=white\"><img src=\"images/white.png\" width=\"16\" height=\"20\"  border=\"0\"></a> \n
+<a href=\"$PHP_SELF?list=magenta\"><img src=\"/images/magenta.png\" width=\"16\" height=\"20\" border=\"0\"></a> \n
+<a href=\"$PHP_SELF?list=red\"><img src=\"/images/red.png\" width=\"16\" height=\"20\" border=\"0\"></a> \n
+<a href=\"$PHP_SELF?list=yellow\"><img src=\"/images/yellow.png\" width=\"16\" height=\"20\"  border=\"0\"></a> \n
+<a href=\"$PHP_SELF?list=green\"><img src=\"/images/green.png\" width=\"16\" height=\"20\"  border=\"0\"></a> \n
+<a href=\"$PHP_SELF?list=olive\"><img src=\"/images/olive.png\" width=\"16\" height=\"20\"  border =\"0\"></a> \n
+<a href=\"$PHP_SELF?list=cyan\"><img src=\"/images/cyan.png\" width=\"16\" height=\"20\"  border =\"0\"></a> \n
+<a href=\"$PHP_SELF?list=blue\"><img src=\"/images/blue.png\" width=\"16\" height=\"20\"  border=\"0\"></a> \n
+<a href=\"$PHP_SELF?list=grey\"><img src=\"/images/grey.png\" width=\"16\" height=\"20\" border=\"0\"></a> \n
+<a href=\"$PHP_SELF?list=white\"><img src=\"/images/white.png\" width=\"16\" height=\"20\"  border=\"0\"></a> \n
   ");
 }
 ?>

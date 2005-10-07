@@ -1,6 +1,6 @@
 <html>
 <head>
-<title>Edit Client List -- Good Morning Blanchardstown</title> 
+<title>Edit Client List -- Good Morning Blanchardstown</title>
 <meta http-equiv="expires" content="-1">
 <meta http-equiv="Cache-Control" content="no-cache">
 </head>
@@ -21,8 +21,14 @@ if (!$dbConnect) {
 mysql_select_db($db,$dbConnect);
 
 if ($submit) {
+    // fix DOB
+    if( $dob) {
+	if( ereg("([0-9]{2})/([0-1]{1}[0-9]{1})/([1-2]{1}[0-9]{3})", $dob, $reg)) {
+	    $dob="$reg[3]-$reg[2]-$reg[1]";
+	}
+    }
 
-	// here if no ID then editing  else adding 
+	// here if no ID then editing  else adding
 	if ($clientid) {
 	    // convert on or off into 1 or 0
 	    if(strtoupper($alone) == 'ON') {
@@ -31,7 +37,7 @@ if ($submit) {
 	    else {
 		$alone = 0;
 	    }
-	    
+
 	    $sql  = "UPDATE clients SET firstname='$firstname',";
 	    $sql .= "lastname='$lastname',title='$title',houseno='$houseno',";
 	    $sql .= "postcode='$postcode',street='$street',phone1='$phone1',";
@@ -48,10 +54,10 @@ if ($submit) {
 	    $sql .= "contact2phone1='$contact2phone1',list='$list',";
 	    $sql .= "timeslot='$timeslot' WHERE clientid=$clientid";
 
-	} 
+	}
 	else {
 
-		$sql = "INSERT INTO clients (firstname,lastname,title,houseno,postcode,street,phone1,phone2,housetype,dob,alone, ailments,contact1name,contact1relationship,contact1address,contact1phone1,contact2name,contact2relationship, contact2address,contact2phone1,gpname,referrer,housing,note,description1,description2,list,timeslot) 
+		$sql = "INSERT INTO clients (firstname,lastname,title,houseno,postcode,street,phone1,phone2,housetype,dob,alone, ailments,contact1name,contact1relationship,contact1address,contact1phone1,contact2name,contact2relationship, contact2address,contact2phone1,gpname,referrer,housing,note,description1,description2,list,timeslot)
 	VALUES ('$firstname', '$lastname','$title', '$houseno', '$postcode', '$street', '$phone1', '$phone2', '$housetype', '$dob', '$alone', '$ailments', '$contact1name', '$contact1relationship', '$contact1address', '$contact1phone1',' $contact2name', '$contact2relationship', '$contact2address', '$contact2phone1','$gpname', '$referrer', '$housing', '$note', '$description1', '$description2', '$list', '$timeslot')";
 
 	}
@@ -73,7 +79,7 @@ if ($submit) {
 	}
 
 	echo "Record updated/edited!<p>";
-	print  "<a href=\" $PHP_SELF \">ADD/Select a RECORD</a><p>"; 
+	print  "<a href=\" $PHP_SELF \">ADD/Select a RECORD</a><p>";
 
 } // if ($submit)
 elseif ($delete) {
@@ -87,9 +93,9 @@ elseif ($delete) {
 	}
 
 	echo "Client inactivated!p>";
-	print  "<a href=\" $PHP_SELF \">ADD/Select a RECORD</a><p>"; 
+	print  "<a href=\" $PHP_SELF \">ADD/Select a RECORD</a><p>";
 
-} 
+}
 else {
 
 	// this part happens if we don't press submit
@@ -117,9 +123,9 @@ else {
 
  ?>
 <p>
-<font face="Verdana, Arial, Helvetica, sans-serif" > 
+<font face="Verdana, Arial, Helvetica, sans-serif" >
 <a href="<?php echo $PHP_SELF?>">ADD/SELECT ANOTHER RECORD</a> <br>
-</font> 
+</font>
 
 <form method="post" action="<?php echo $PHP_SELF?>">
 <font face="Verdana, Arial, Helvetica, sans-serif">
@@ -175,218 +181,370 @@ if ($clientid) {
 	$description2=$myrow["description2"];
     // print the clientid for editing
 
-    ?> 
+    ?>
   <input type=hidden name="clientid" value="<?php echo $clientid ?>">
   <?php
 
 } // if ($clientid)
 
+//<!------------------->
+//<!----HTML LAYOUT---->
+//<!------------------->
 
 
-  ?> </font> 
+    ?> </font>
 
-<table width="100%" border="0" cellpadding="2" height="621">
-    <tr> 
-      <td> 
-	First name:<br>
-          <input type="Text" name="firstname" value="<?php echo $firstname ?>" size="20" maxlength="30">
-      </td>
-      <td> 
-	Last name:<br>
-          <input type="Text" name="lastname" value="<?php echo $lastname ?>" size="20" maxlength="30">
-      </td>
-      <td> 
-      </td>
-    </tr>
-    <tr> 
-      <td> 
-	House #:<br> 
-        <input type="Text" name="houseno" value="<?php echo $houseno ?>" size="11">
-      </td>
-      <td> 
-	Street:<br>
-          <input type="Text" name="street" value="<?php echo $street ?>" size="30">
-      </td>
-      <td> 
-      Post Code:<br>
-          <input type="Text" name="postcode" value="<?php echo $postcode ?>" size="6">
-      </td>
-    </tr>
-    <tr> 
-      <td> 
-      </td>
-      <td> 
-      Phone 1:<br>
-          <input type="Text" name="phone1" value="<?php echo $phone1 ?>" size="14">
-      </td>
-      <td> 
-	Phone 2:<br>
-          <input type="text" name="phone2" size="14" value="<?php echo $phone2 ?>">
-      </td>
-    </tr>
-    <tr> 
-      <td height="7"> 
-	D.o.B.:<br>
-          <input type="Text" name="dob" value="<?php echo $dob ?>" size="11">
-          <br><br>
-        Alone: 
-          <input type="checkbox" name="alone" size="5" maxlength="5" 
-	  <?php 
-	  if($alone) {
-	    print(" checked");
-	  }
-	  ?>
-      </td>
-      <td height="7"> 
-          Note:<br>
-          <textarea name="note" cols="40" rows="5" >  <?php echo $note ?> </textarea>
-      </td>
-      <td height="7"> 
-          Landlord:<br>
-          <select name="housing">
-            <option value="FCC">FCC</option>
-            <option value="Owner Occupier">Owner Occupier</option>
-            <option value="HA">HA - add note</option>
-            <option value="other">Other</option>
-            <option value="<?php echo $housing ?>" selected><?php echo $housing ?></option>
-          </select>
-          <br>
-          House Type:<br>
-          <select name="housetype">
-            <option value="terraced">terraced</option>
-            <option value="semi-detached">semi-detached</option>
-            <option value="detached">detached</option>
-            <option value="high rise">high rise</option>
-            <option value="deck access flat">deck access flat</option>
-            <option value="cottage flat">cottage flat</option>
-            <option value="tenement">tenement</option>
-            <option value="sheltered">sheltered</option>
-            <option value="other">other</option>
+ <table width="100%" border="0" cellspacing="4" cellpadding="2">
+<tr><td bgcolor="#EEEEEE" colspan="2"><font face="verdana, arial, helvetica" size="-1"><b>Edit Personal Details</b></font><br></td></tr>
+<br>
+<br>
 
-            <option value="<?php echo $housetype ?>" selected><?php echo $housetype ?></option>
-          </select>
-      </td>
-    </tr>
-    <tr> 
-      <td colspan="3" height="20"> 
-          <hr noshade>
-      </td>
-    </tr>
-    <tr> 
-      <td height="97"> 
-            Referrer:<br>
-            <select name="referrer">
-              <option value="Health Board">Health Board</option>
-              <option value="Social Work">Social Work</option>
-              <option value="Private">Private</option>
-              <option value="Voluntary Group">Voluntary Group</option>
-              <option value="Self-Referred">Self Referred</option>
-              <option selected value="<?php echo $referrer ?>"><?php echo $referrer ?></option>
-            </select>
-	    <br>
-            Other:<br>
-            <input type="text" name="description2" size="25" value="<?php echo $description2  ?>" maxlength="40">
-      </td>
-      <td colspan="2" height="97"> 
-	  GP name:<br>
-            <input type="text" name="gpname" maxlength="30" size="30" value="<?php echo $gpname ?>">
-	  <br>
-	  Ailments:<br>
-            <input type="text" name="ailments" size="72" value="<?php echo $ailments?>" maxlength="250">
-      </td>
-    </tr>
-    <tr> 
-      <td colspan="3" height="14"> 
-          <hr noshade>
-      </td>
-    </tr>
-    <tr> 
-      <td colspan="2"> 
-	Contact name 1:<br>
-          <input type="text" name="contact1name" value="<?php echo $contact1name  ?>" size="30" maxlength="30">
-          <br>
-        Address:<br>
-          <input type="text" name="contact1address" size="50" maxlength="50" value="<?php echo $contact1address ?>">
-          </font></div>
-      </td>
-      <td> 
-          Phone:<br>
-          <input type="text" name="contact1phone1" size="15" maxlength="15" value="<?php echo $contact1phone1 ?>">
-          <br>
-          Relationship:<br>
-          <input type="text" name="contact1relationship" size="20" value="<?php echo $contact1relationship ?>">
-      </td>
-    </tr>
-    <tr> 
-      <td colspan="2" height="13">&nbsp;</td>
-      <td height="13">&nbsp;</td>
-    </tr>
-    <tr> 
-      <td colspan="2"> 
-	Contact name 2:<br>
-          <input type="text" name="contact2name" value="<?php echo $contact2name  ?>" size="30" maxlength="30">
-          <br>
-        Address:<br>
-          <input type="text" name="contact2address" size="50" maxlength="50" value="<?php echo $contact2address ?>">
-      </td>
-      <td> 
-          Phone:<br>
-          <input type="text" name="contact2phone1" size="15" maxlength="15" value="<?php echo $contact2phone1?>">
-          Relationship:<br>
-          <input type="text" name="contact2relationship" size="20" value="<?php echo $contact2relationship ?>">
-      </td>
-    </tr>
-    <tr> 
-      <td colspan="3"> 
-        <div align="right"> 
-          <hr noshade>
-      </td>
-    </tr>
-    <tr> 
-      <td> 
-      </td>
-      <td> 
-          Timeslot:<br>
-          <input type="text" name="timeslot" value="<?php echo $timeslot  ?>" size="6" maxlenght="5">
-	  <b><font size="1" color="#FF0000">24 hour format (HH:MM)</font></b>
-      </td>
-      <td> 
-          List:<br>
-          <select name="list">
-            <option value="<?php echo $list ?>" selected><?php echo $list  ?></option>
-            <option value="magenta">magenta</option>
-            <option value="red">red</option>
-            <option value="yellow">yellow</option>
-            <option value="green">green</option>
-            <option value="olive">olive</option>
-            <option value="cyan">cyan</option>
-            <option value="blue">blue</option>
-            <option value="grey">grey</option>
-            <option value="black">black</option>
+<TABLE BORDER=0 WIDTH=100%>
+<tr>
+<td ALIGN="right" width="15%" VALIGN="top">
+</td>
+<td ALIGN="right" width="30%" VALIGN="top">
+<font face="verdana, arial, helvetica" size="-1"><b>First name:</b></font><input type="Text" name="firstname" value="<?php echo $firstname ?>" size="30" maxlength="30">
+</td>
+<td ALIGN="right" width="10%" VALIGN="top">
+</td>
 
-          </select>
-      </td>
-    </tr>
-    <tr> 
-      <td height="12">
-      Give Reason for Change and your initials;<br>
-      e.g. &quot;New Contact - zz&quot;.
-      <br>
-      </td>
-      <td height="12"> 
-        <input type="text" name="reason" size="50" maxlength="50">
-      </td>
-      <td height="12"> </td>
-    </tr>
-</table>
 
-<div align="center"><font face="Verdana, Arial, Helvetica, sans-serif">
-<input type="Submit" name="submit" value="Enter information">
+<td ALIGN="left" width="30%" VALIGN="top">
+<font face="verdana, arial, helvetica" size="-1"><b>Date of Birth:</b></font>
+            <input type="Text" name="dob" value="<?php
+  	  if($dob) {
+                if( ereg( "([1-2]{1}[0-9]{3})-([0-1]{1}[0-9]{1})-([0-9]{2})", $dob, $reg)) {
+                  print("$reg[3]/$reg[2]/$reg[1]");
+                }
+                else {
+  		print("bad dob");
+  	      }
+  	  }
+  	  ?>" size="11">
+</td>
+<td ALIGN="right" width="15%"  VALIGN="top"></td>
+</TABLE>
 
-</font></div>
-</form> 
-<?php
-}
+
+
+<TABLE BORDER=0 WIDTH=100%>
+<tr>
+<td ALIGN="right" width="15%" VALIGN="top">
+</td>
+<td ALIGN="right" width="30%" VALIGN="top">
+<font face="verdana, arial, helvetica" size="-1"><b>Last name:</b></font><input type="Text" name="lastname" value="<?php echo $lastname ?>" size="30" maxlength="30">
+</td>
+<td ALIGN="right" width="10%" VALIGN="top">
+</td>
+<td ALIGN="left" width="30%"  VALIGN="top">
+<font face="verdana, arial, helvetica" size="-1"><b>Alone: </b></font>
+           <input type="checkbox" name="alone" size="5" maxlength="5"
+		     	  <?php
+		     	  if($alone) {
+		     	    print(" checked");
+  	  }
 ?>
-</body>
-</html>
+
+</td>
+<td ALIGN="left" width="15%"  VALIGN="top"></td>
+</TABLE>
+
+
+<TABLE BORDER=0 WIDTH=100%>
+<tr>
+<td ALIGN="right" width="15%" VALIGN="top">
+</td>
+<td ALIGN="right"  width="30%" VALIGN="top">
+<font face="verdana, arial, helvetica" size="-1"><b>House #:</b></font><input type="Text" name="houseno" value="<?php echo $houseno ?>" size="30" maxlength="30">
+</td>
+<td ALIGN="right" width="10%" VALIGN="top">
+</td>
+<td ALIGN="left" width="30%"  VALIGN="top"><font face="verdana, arial, helvetica" size="-1"><b>Note:</b></font>
+           <textarea name="note" cols="27" rows="4" ><?php echo $note ?> </textarea>
+  </td>
+<td ALIGN="left" width="15%"  VALIGN="top"></td>
+</tr>
+</TABLE>
+
+
+
+<TABLE BORDER=0 WIDTH=100%>
+<tr>
+<td ALIGN="right" width="15%" VALIGN="top">
+</td>
+<td ALIGN="right"  width="30%" VALIGN="top">
+<font face="verdana, arial, helvetica" size="-1"><b>Street:</b></font><input type="Text" name="street" value="<?php echo $street ?>" size="30">
+</td>
+<td ALIGN="right" width="10%" VALIGN="top">
+</td>
+<td ALIGN="left" width="30%"  VALIGN="top"><font face="verdana, arial, helvetica" size="-1"><b>Landlord:</b></font>
+           <select name="housing">
+		                 <option value="FCC">FCC</option>
+		                 <option value="Owner Occupier">Owner Occupier</option>
+		                 <option value="HA">HA - add note</option>
+		                 <option value="other">Other</option>
+		                 <option value="<?php echo $housing ?>" selected><?php echo $housing ?></option>
+            </select>
+  </td>
+<td ALIGN="left" width="15%"  VALIGN="top"></td>
+</tr>
+</TABLE>
+
+
+
+<TABLE BORDER=0 WIDTH=100%>
+<tr>
+<td ALIGN="right" width="15%" VALIGN="top">
+</td>
+<td ALIGN="right"  width="30%" VALIGN="top">
+<font face="verdana, arial, helvetica" size="-1"><b>Post Code:</b></font> <input type="Text" name="postcode" value="<?php echo $postcode ?>" size="20">
+</td>
+<td ALIGN="right" width="10%" VALIGN="top">
+</td>
+<td ALIGN="left" width="30%"  VALIGN="top"><font face="verdana, arial, helvetica" size="-1"><b>House Type:</b></font>
+            <select name="housetype">
+              <option value="apartment">Apartment</option>
+              <option value="bungalow">Bungalow</option>
+              <option value="cottage flat">Country House / Cottage</option>
+              <option value="detached">Detached House</option>
+              <option value="farm">Farm</option>
+              <option value="holiday">Holiday Home</option>
+              <option value="other">Other</option>
+              <option value="semi-detached">Semi-Detached House</option>
+              <option value="terraced">Terraced House</option>
+              <option value="<?php echo $housetype ?>" selected><?php echo $housetype ?></option>
+            </select>
+  </td>
+<td ALIGN="left" width="15%"  VALIGN="top"></td>
+</tr>
+</TABLE>
+
+
+
+<TABLE BORDER=0 WIDTH=100%>
+<tr>
+<td ALIGN="right" width="15%" VALIGN="top">
+</td>
+<td ALIGN="right"  width="30%" VALIGN="top">
+<font face="verdana, arial, helvetica" size="-1"><b>Phone Number 1:</b></font><input type="Text" name="phone1" value="<?php echo $phone1 ?>" size="15">
+</td>
+<td ALIGN="right" width="10%" VALIGN="top">
+</td>
+<td ALIGN="left" width="30%"  VALIGN="top">
+<font face="verdana, arial, helvetica" size="-1"><b>Phone Number 2:</b></font><input type="text" name="phone2" size="14" value="<?php echo $phone2 ?>">
+  </td>
+<td ALIGN="left" width="15%"  VALIGN="top"></td>
+</tr>
+</TABLE>
+
+<table width="100%" border="0" cellspacing="4" cellpadding="2">
+<tr><td bgcolor="#EEEEEE" colspan="2"><font face="verdana, arial, helvetica" size="-1"><b>Edit Medical Details</b></font><br></td></tr>
+
+
+
+<TABLE BORDER=0 WIDTH=100%>
+<tr>
+<td ALIGN="right" width="15%" VALIGN="top">
+</td>
+<td ALIGN="right"  width="30%" VALIGN="top">
+<font face="verdana, arial, helvetica" size="-1"><b>Referrer:</b></font>
+<select name="referrer">
+                <option value="Health Board">Health Board</option>
+                <option value="Social Work">Social Work</option>
+                <option value="Private">Private</option>
+                <option value="Voluntary Group">Voluntary Group</option>
+                <option value="Self-Referred">Self Referred</option>
+                <option selected value="<?php echo $referrer ?>"><?php echo $referrer ?></option>
+              </select>
+</td>
+<td ALIGN="right" width="10%" VALIGN="top">
+</td>
+<td ALIGN="left" width="30%"  VALIGN="top">
+<font face="verdana, arial, helvetica" size="-1"><b>GP name:</b></font><input type="text" name="gpname" maxlength="30" size="30" value="<?php echo $gpname ?>">
+  </td>
+<td ALIGN="left" width="15%"  VALIGN="top"></td>
+</tr>
+</TABLE>
+
+
+
+<TABLE BORDER=0 WIDTH=100%>
+<tr>
+<td ALIGN="right" width="15%" VALIGN="top">
+</td>
+<td ALIGN="right"  width="30%" VALIGN="top">
+<font face="verdana, arial, helvetica" size="-1"><b>Other:</b></font><input type="text" name="description2" size="25" value="<?php echo $description2  ?>" maxlength="40">
+
+</td>
+<td ALIGN="right" width="10%" VALIGN="top">
+</td>
+<td ALIGN="left" width="30%"  VALIGN="top">
+<font face="verdana, arial, helvetica" size="-1"><b>Ailments:</b></font><input type="text" name="ailments" size="30" value="<?php echo $ailments?>" maxlength="150">
+</td>
+  </td>
+<td ALIGN="left" width="15%"  VALIGN="top"></td>
+</tr>
+</TABLE>
+
+
+
+<table width="100%" border="0" cellspacing="4" cellpadding="2">
+<tr><td bgcolor="#EEEEEE" colspan="2"><font face="verdana, arial, helvetica" size="-1"><b>Edit Home Help Details</b></font><br></td></tr>
+
+
+
+
+<TABLE BORDER=0 WIDTH=100%>
+<tr>
+<td ALIGN="right" width="15%" VALIGN="top">
+</td>
+<td ALIGN="right"  width="30%" VALIGN="top">
+<font face="verdana, arial, helvetica" size="-1"><b>Contact name 1:</b></font><input type="text" name="contact1name" value="<?php echo $contact1name  ?>" size="22" maxlength="30">
+
+</td>
+<td ALIGN="right" width="10%" VALIGN="top">
+</td>
+<td ALIGN="left" width="30%"  VALIGN="top">
+<font face="verdana, arial, helvetica" size="-1"><b>Phone:</b></font><input type="text" name="contact1phone1" size="15" maxlength="15" value="<?php echo $contact1phone1 ?>">
+</td>
+  </td>
+<td ALIGN="left" width="15%"  VALIGN="top"></td>
+</tr>
+</TABLE>
+
+
+<TABLE BORDER=0 WIDTH=100%>
+<tr>
+<td ALIGN="right" width="15%" VALIGN="top">
+</td>
+<td ALIGN="right"  width="30%" VALIGN="top">
+<font face="verdana, arial, helvetica" size="-1"><b>Address:</b></font><input type="text" name="contact1address" size="32" maxlength="50" value="<?php echo $contact1address ?>">
+
+</td>
+<td ALIGN="right" width="10%" VALIGN="top">
+</td>
+<td ALIGN="left" width="30%"  VALIGN="top">
+<font face="verdana, arial, helvetica" size="-1"><b>Relationship:</b></font><input type="text" name="contact1relationship" size="20" value="<?php echo $contact1relationship ?>">
+</td>
+  </td>
+<td ALIGN="left" width="15%"  VALIGN="top"></td>
+</tr>
+</TABLE>
+
+
+
+
+<TABLE BORDER=0 WIDTH=100%>
+<tr>
+<td ALIGN="right" width="15%" VALIGN="top">
+</td>
+<td ALIGN="right"  width="30%" VALIGN="top">
+<font face="verdana, arial, helvetica" size="-1"><b>Contact name 2:</b></font><input type="text" name="contact2name" value="<?php echo $contact2name  ?>" size="22" maxlength="30">
+
+</td>
+<td ALIGN="right" width="10%" VALIGN="top">
+</td>
+<td ALIGN="left" width="30%"  VALIGN="top">
+<font face="verdana, arial, helvetica" size="-1"><b>Phone:</b></font><input type="text" name="contact2phone1" size="15" maxlength="15" value="<?php echo $contact2phone1?>">
+</td>
+  </td>
+<td ALIGN="left" width="15%"  VALIGN="top"></td>
+</tr>
+</TABLE>
+
+
+<TABLE BORDER=0 WIDTH=100%>
+<tr>
+<td ALIGN="right" width="15%" VALIGN="top">
+</td>
+<td ALIGN="right"  width="30%" VALIGN="top">
+<font face="verdana, arial, helvetica" size="-1"><b>Address:</b></font><input type="text" name="contact2address" size="32" maxlength="50" value="<?php echo $contact2address ?>">
+
+</td>
+<td ALIGN="right" width="10%" VALIGN="top">
+</td>
+<td ALIGN="left" width="30%"  VALIGN="top">
+<font face="verdana, arial, helvetica" size="-1"><b>Relationship:</b></font><input type="text" name="contact2relationship" size="20" value="<?php echo $contact2relationship ?>">
+</td>
+  </td>
+<td ALIGN="left" width="15%"  VALIGN="top"></td>
+</tr>
+</TABLE>
+
+
+
+<table width="100%" border="0" cellspacing="4" cellpadding="2">
+<tr><td bgcolor="#EEEEEE" colspan="2"><font face="verdana, arial, helvetica" size="-1"><b>Enter Change Details</b></font><br></td></tr>
+
+
+<TABLE BORDER=0 WIDTH=100%>
+<tr>
+<td ALIGN="right" width="15%" VALIGN="top">
+</td>
+<td ALIGN="right"  width="30%" VALIGN="top">
+<font face="verdana, arial, helvetica" size="-1"><b>Timeslot:</b></font>
+<input type="text" name="timeslot" value="<?php
+  	  if($timeslot) {
+  	  	if(ereg("([0-9){2}):([0-9]{2}):([0-9]{2})", $timeslot, $reg)) {
+  			print("$reg[1]:$reg[2]");
+  		}
+  	  }?>" size="6" maxlength="5">
+  	  <b><font size="1" color="#FF0000">24 hour format (HH:MM)</font></b>
+
+</td>
+<td ALIGN="right" width="10%" VALIGN="top">
+</td>
+<td ALIGN="left" width="30%"  VALIGN="top">
+<font face="verdana, arial, helvetica" size="-1"><b>Colour:</b></font>
+<select name="list">
+              <option value="<?php echo $list ?>" selected><?php echo $list  ?></option>
+              <option value="black">black</option>
+              <option value="blue">blue</option>
+              <option value="cyan">cyan</option>
+              <option value="green">green</option>
+              <option value="grey">grey</option>
+              <option value="magenta">magenta</option>
+              <option value="olive">olive</option>
+              <option value="red">red</option>
+              <option value="yellow">yellow</option>
+              </select>
+</td>
+  </td>
+<td ALIGN="left" width="15%"  VALIGN="top"></td>
+</tr>
+</TABLE>
+
+
+<TABLE BORDER=0 WIDTH=100%>
+<tr>
+<td ALIGN="right" width="10%" VALIGN="top">
+</td>
+<td ALIGN="center"  width="90%" VALIGN="top">
+<font face="verdana, arial, helvetica" size="-1"><b>Give Reason for Change and your initials: (e.g. &quot;New Contact - zz&quot;)</b></font><input type="text" name="reason" size="50" maxlength="50">
+
+</td>
+<td ALIGN="right" width="10%" VALIGN="top">
+</td>
+<td ALIGN="left" width="30%"  VALIGN="top">
+<font face="verdana, arial, helvetica" size="-1">
+</td>
+  </td>
+<td ALIGN="left" width="15%"  VALIGN="top"></td>
+</tr>
+</TABLE>
+
+
+<br>
+
+
+  <div align="center"><font face="Verdana, Arial, Helvetica, sans-serif">
+  <input type="Submit" name="submit" value="Enter information">
+
+  </font></div>
+  </form>
+  <?php
+  }
+  ?>
+  </body>
+  </html>
