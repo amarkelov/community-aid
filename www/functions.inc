@@ -96,6 +96,39 @@ function draw_classification($dbConnect)
     }
 }
 
+function draw_area($dbConnect)
+{
+    $sql = "SELECT id,codename FROM postcode"; // ORDER BY codename";
+    
+    $result = mysql_query($sql, $dbConnect);
+    if (!$result) {
+	$message  = 'Invalid query: ' . mysql_error() . "\n";
+	$message .= 'Whole query: ' . $query;
+	die($message);
+    }
+    while( $area = mysql_fetch_array($result)) {
+	printf("<option value=\"%d\">%s</option>",$area[id],$area[codename]);
+    }
+}
+
+// this is for drop-down list of clients
+function draw_clients($dbConnect)
+{
+    $sql = "SELECT clientid,lastname,firstname FROM clients ORDER BY lastname";
+    
+    $result = mysql_query($sql, $dbConnect);
+    if (!$result) {
+	$message  = 'Invalid query: ' . mysql_error() . "\n";
+	$message .= 'Whole query: ' . $query;
+	die($message);
+    }
+    while( $client = mysql_fetch_array($result)) {
+	printf("<option value=\"%d\">%s, %s (%d)</option>",
+	    $client[clientid],strtoupper($client[lastname]),
+	    strtoupper($client[firstname]),$client[clientid]);
+    }
+}
+
 function draw_client_details($clientid,$dbConnect)
 {
     $fs = 1; // font size
@@ -233,5 +266,22 @@ while ($myrow = mysql_fetch_array($result)) {
 
 print("</table>");
 }
+
+//function draw_calendar() {
+//<table>
+//<td>
+//<input type="text" name="day" size="2"></input><br>
+//DD
+//</td>
+//<td>
+//<input type="text" name="month" size="2"></input><br>
+//MM
+//</td>
+//<td>
+//<input type="text" name="year" size="4"></input><br>
+//YYYY
+//</td>
+//</table>
+//}
 
 ?>
