@@ -5,24 +5,17 @@ Classification. Full and short names.
 </title>
 </head>
 
-<?php
-$db = "gmpDb";
-//$db = $HTTP_HOST . "Db";
-$dbConnect = mysql_connect("localhost", "gmadmin", "old290174");
-?>
-
 <body>
 
 <?php
+require 'functions.inc';
+
+$dbConnect = dbconnect();
+
 if (!$dbConnect) {
     die('Could not connect: ' . mysql_error());
 }
 
-mysql_select_db($db, $dbConnect);
-
-?>
-
-<?php
 $sql  = "select mc.mclass_name,sc.sclass_name,";
 $sql .= "sc.sclass_sname from call_mclass as mc, ";
 $sql .= "call_sclass as sc where mc.mclass_id = sc.mclass_id";
