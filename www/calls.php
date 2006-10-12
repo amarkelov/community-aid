@@ -7,6 +7,8 @@ require 'functions.inc';
 $clean = array();
 $mysql = array();
 
+$settings = get_gmp_settings();
+
 /*
  * Cleaning the input data
  */
@@ -177,7 +179,7 @@ if (!$clean['clientid'] and $clean['list'] != 'white' and $clean['list'] != 'bla
 
 ?>
 
-<title> Call <?php print $clean['list'] ?>  List -- Good Morning Blanchardstown</TITLE>
+<title> Call <?php print $clean['list'] ?>  List -- Good Morning <?php echo $settings['location'] ?></TITLE>
 <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
 
 
@@ -215,7 +217,7 @@ function vtslot(s)
   <tr> 
     <td   bgcolor="<?php if (($clean['list'] != 'Grey') and ($clean['list']!='grey')) {print $clean['list']; } else {echo 'gray'; } ?>" height="33">
       <div align="right">
-<?php   if (!$clientid)  {
+<?php   if (!$clean['clientid'])  {
   echo("
 <a href=\"$PHP_SELF?list=magenta\"><img src=\"/images/magenta.png\" width=\"16\" height=\"20\" border=\"0\"></a> \n
 <a href=\"$PHP_SELF?list=red\"><img src=\"/images/red.png\" width=\"16\" height=\"20\" border=\"0\"></a> \n
