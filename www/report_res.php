@@ -1,141 +1,230 @@
-<html>
-<head>
-<title> Report -- Good Morning Blanchardstown</TITLE>
-<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-</head>
-
-
-<body bgcolor="#BEC8FD" link="#0000FF" vlink="#0000FF" alink="#0000FF">
-<font face="Verdana" size="2">
-
-<h1>Report</h1>
-
-<p>
-
 <?php
+
 require 'functions.inc';
 
-// global $db, $clientid, $list, $done  ;
-// if (!$list )  {$list="Grey" ; }
+$clean = array();
+$mysql = array();
 
-$db = "gmpDb";
-//$db = $HTTP_HOST . "Db";
-$dbConnect = mysql_connect("localhost", "gmadmin", "old290174");
-if (!$dbConnect) {
-	die('Could not connect: ' . mysql_error());
+$settings = get_gmp_settings();
+
+// if debug flag is set, print the following info
+if($settings['debug'] == 1){
+	print "<b>\$_POST:</b><br>";
+	print_r( $_POST);
+	print "<p>";
+
+	print "<b>\$settings:</b><br>";
+	print_r( $settings);
+	print "<p>";
+
 }
 
-mysql_select_db($db, $dbConnect);
+/*
+ * Cleaning the input data
+ */
+ 
+if(isset($_POST['report'])) {
+	$clean['report'] = $_POST['report'];
+}
 
-if ($submit) {
+
+
+$dbConnect = dbconnect();
+
+if (isset($clean['report'])) {
     // flag for multiple selection
     $multi = 0;
     $rowclr = 0;
+    $fs = 2; // to change font size in the output
+    $sql = ""; // string for sql query
+    $big_report = 0; // flag for output bigger than 100 lines
     
-    $sql = "SELECT callid,clientid,time,chat FROM calls where ";
+    $sql_norm = "SELECT callid,clientid,DATE_FORMAT(time,'%d/%m/%Y %H:%i'),chat FROM calls where ";
+    $sql_count = "SELECT count(*) FROM calls where ";
     
     // check what fields are selected
     // (1) classification
-    if($class_cb) {
-	$multi = 1;
-	$sql .= "class=$class ";
+    if(isset($_POST['class_cb'])) {
+		$multi = 1;
+		$sql .= "class= " . $_POST['class'];
     }
     // (2) date
-    if($date_cb) {
-	if($multi) {
-	    $sql .= "AND ";
-	}
-	else {
-	    $multi = 1;
-	}
-
-	switch($when) {
-	    case "year":
-		$sql .= "YEAR(time) = $year ";
-		break;
-	    case "dates":
-		if(ereg("([0-9]{2})/([0-9]{2})/([0-9]{4})", $date_from, $regs)) {
-		    $df = "$regs[3]-$regs[2]-$regs[1] 00:00:00";
+    if(isset($_POST['date_cb'])) {
+		if($multi) {
+		    $sql .= " AND ";
 		}
-		if(ereg("([0-9]{2})/([0-9]{2})/([0-9]{4})", $date_to, $regs)) {
-		    $dt = "$regs[3]-$regs[2]-$regs[1] 23:59:59";
+		else {
+		    $multi = 1;
 		}
-
-		$sql .= "(time <= '$dt' AND time >= '$df') ";
-		break;
-	}
+	
+		switch($_POST['when']) {
+		    case "year":
+				$sql .= "YEAR(time) = " . $_POST['year'];
+				break;
+		    case "dates":
+				if(ereg("([0-9]{2})/([0-9]{2})/([0-9]{4})", $_POST['date_from'], $regs)) {
+				    $df = "$regs[3]-$regs[2]-$regs[1] 00:00:00";
+				}
+				if(ereg("([0-9]{2})/([0-9]{2})/([0-9]{4})", $_POST['date_to'], $regs)) {
+				    $dt = "$regs[3]-$regs[2]-$regs[1] 23:59:59";
+				}
+		
+				$sql .= "(time <= '$dt' AND time >= '$df') ";
+				break;
+		}
     }
     // (3) area
-    if($area_cb) {
-	if($multi) {
-	    $sql .= "AND ";
-	}
-	else {
-	    $multi = 1;
-	}
-
-	$sql .= "clientid in (select clientid FROM clients where postcode=";
-	$sql .= "(select id FROM postcode where id='$area')) ";
+    if(isset($_POST['area_cb'])) {
+		if($multi) {
+		    $sql .= " AND ";
+		}
+		else {
+		    $multi = 1;
+		}
+	
+		$sql .= "clientid in (select clientid FROM clients where postcode=";
+		$sql .= "(select id FROM postcode where id='$area')) ";
     }
     // (4) client name
-    if($client_cb) {
-	if($multi) {
-	    $sql .= "AND ";
-	}
-	else {
-	    $multi = 1;
-	}
-
-	$sql .= "clientid=$client ";
+    if(isset( $_POST['client_cb'])) {
+		if($multi) {
+		    $sql .= " AND ";
+		}
+		else {
+		    $multi = 1;
+		}
+	
+		$sql .= "clientid=" . $_POST['client'] . " ";
     }
 
-    print $sql;    
-    
-    $result = mysql_query($sql);
-    if (!$result) {
-	$message  = 'Invalid query: ' . mysql_error() . "\n";
-	$message .= 'Whole query: ' . $query;
-	die($message);
-    }
+	// if debug_sql_limit is set, append it to the query
+	if($settings['debug_sql_limit'] > 0) {
+		$sql .= " LIMIT " . $settings['debug_sql_limit'];
+	}
+	
+	// check if the report is bigger than we allow per page
+	$sql_count .= $sql;
+	$big_report = setpagesenv( $sql_count); 
+	
+	$sql_norm .= $sql;
+	$result = mysql_query($sql_norm);
+	if (!$result) {
+		$message  = 'Invalid query: ' . mysql_error() . "\n";
+		$message .= 'Whole query: ' . $sql_norm;
+		die($message);
+	}
 
     $out  = "<hr noshade>";
-    $out .= "<table width='100%'>";
+    $out .= "<table width='100%' border='1' cellpadding='0' cellspacing='0'>";
     $out .= "<tr bgcolor='#00FF00'>";
-    $out .= "<td width='2%'><b>Call ID</td>";
-    $out .= "<td width='2%'><b>Client ID</td>";
-    $out .= "<td width='15%'><b>Date & time</td>";
-    $out .= "<td><b>Call details</td>";    
+    $out .= "<td width='2%'><font size=$fs><b>Call ID</td>";
+    $out .= "<td width='2%'><font size=$fs><b>Client ID</td>";
+    $out .= "<td width='15%'><font size=$fs><b>Date & time</td>";
+    $out .= "<td><font size=$fs><b>Call details</td>";    
     $out .= "</tr>";
-    print $out;
-    
-    while( $row = mysql_fetch_array($result)) {
-	if ($rowclr % 2) {
-	    $out = '<tr bgcolor="#FFFFFF">';
+
+	if (!$big_report) {
+		print "<html>
+				<head>
+				<title> Report -- Good Morning " . $settings['location'] . "</TITLE>
+				<meta http-equiv=\"Content-Type\" content=\"text/html; charset=iso-8859-1\">
+				</head>
+				
+				
+				<body bgcolor=\"#BEC8FD\" link=\"#0000FF\" vlink=\"#0000FF\" alink=\"#0000FF\">
+				<font face=\"Verdana\" size=\"2\">
+				
+				<h1>Report</h1>
+				
+				<p>";
+
+		print $out;
+
+		// report table itself    
+	    while( $row = mysql_fetch_array($result)) {
+			if ($rowclr % 2) {
+			    $out = '<tr bgcolor="#FFFFFF">';
+			}
+			else {
+			    $out = '<tr bgcolor="#DDDDDD">';	
+			}
+			
+			$out .= "<td><font size=$fs>";
+			$out .= $row['callid'];
+			$out .= "</td><td width='2%'><font size=$fs>";
+			$out .= $row['clientid'];
+			$out .= "</td><td width='15%'><font size=$fs>";	
+			$out .= $row[2];	// if you use time in brackets
+						// data in table if broken due to DATE_FORMAT()
+						// use. that's why it's index here.
+			$out .= "</td><td><font size=$fs>";	
+			if(0 == strlen($row['chat'])) {
+				$out .= "&nbsp";
+			}
+			else {
+				$out .= $row['chat'];
+			}
+			$out .= "</td></tr>";
+	
+			print $out;
+		
+			$rowclr++; // change row's background colour
+	    }
 	}
 	else {
-	    $out = '<tr bgcolor="#DDDDDD">';	
+		$pdf=new PDF();
+		$pdf->AliasNbPages();
+		$pdf->sql_query = $sql_norm;
+		$pdf->border = $settings['pdf_draw_cell_border'];
+		
+		//Column titles
+		$pdf->header = array('Call ID','Client ID','Date & time','Call details');
+		$pdf->SetFont('Arial','',8);
+		$pdf->AddPage();
+	    
+			//Data loading
+	//		$data=$pdf->LoadData('countries.txt');
+		$pdf->ColoredTable($header,$result);
+	
+		// print the actual SQL query at the end of the report
+		if($settings['debug_pdf'] == 1) {
+			$pdf->Write(5, $pdf->sql_query);
+		}
+		
+		$pdf->Output();
 	}
-	
-	$out .= "<td>";
-	$out .= "$row[callid]";
-	$out .= "</td><td width='2%'>";
-	$out .= "$row[clientid]";
-	$out .= "</td><td width='15%'>";	
-	$out .= "$row[time]";
-	$out .= "</td><td>";	
-	$out .= "$row[chat]";
-	$out .= "</td></tr>";
-    
-        print $out;
-	
-	$rowclr++; // change row's background colour
-    }
-    
-
-    print("<table>");
 }
 
-?>
+dbclose($dbConnect);
 
-</body>
-</html>
+print "</body></html>";
+
+// return 1 if the report is bigger than $numofrecs
+function setpagesenv( $query) {
+	$numofrecs = 25;
+	$big_report = 0;
+	$pages = 0;
+	
+// if debug flag is set, print the following info
+$settings = get_gmp_settings();
+if($settings['debug'] == 1){
+	print "<b>Query:</b><br>";
+	print $query . "<p>";
+}
+	
+	$result = mysql_query($query);
+	if (!$result) {
+		$message  = 'Invalid query: ' . mysql_error() . '<br>';
+		$message .= 'Whole query: ' . $query;
+		die($message);
+	}
+	
+	$row = mysql_fetch_array($result);
+
+	if($row[0] > $settings['force_pdf_when_more_than']) {
+		$big_report = 1;
+//		print "Number of records: $row[0]<br>";
+	}
+	
+	return $big_report;
+}
