@@ -40,8 +40,10 @@ CREATE TABLE `calls` (
   `chat` text,
   `class` int(11) default NULL,
   PRIMARY KEY  (`callid`),
-  KEY `class` (`class`)
-) ENGINE=MyISAM DEFAULT CHARSET=latin1 PACK_KEYS=1;
+  KEY `time_idx` (`time`),
+  KEY `class_idx` (`class`),
+  KEY `clientid_idx` (`clientid`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 PACK_KEYS=1;
 
 --
 -- Table structure for table `clients`
@@ -55,7 +57,7 @@ CREATE TABLE `clients` (
   `initials` varchar(5) default NULL,
   `title` varchar(20) default NULL,
   `houseno` varchar(15) default NULL,
-  `postcode` varchar(8) default NULL,
+  `postcode` smallint(4) default NULL,
   `street` varchar(30) default NULL,
   `town` varchar(50) default NULL,
   `phone1` varchar(15) default NULL,
@@ -89,6 +91,30 @@ CREATE TABLE `clients` (
   `note` varchar(255) default NULL,
   `timenote` varchar(255) default NULL,
   `modified` timestamp NOT NULL default CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP,
-  `done` varchar(5) default NULL,
+  `done` tinyint(1) default '0',
   PRIMARY KEY  (`clientid`)
-) ENGINE=MyISAM DEFAULT CHARSET=latin1 PACK_KEYS=1;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 PACK_KEYS=1;
+
+--
+-- Table structure for table `mysql_auth`
+--
+
+DROP TABLE IF EXISTS `mysql_auth`;
+CREATE TABLE `mysql_auth` (
+  `username` varchar(25) NOT NULL default '',
+  `passwd` tinyblob,
+  `groups` varchar(25) default NULL,
+  PRIMARY KEY  (`username`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+--
+-- Table structure for table `postcode`
+--
+
+DROP TABLE IF EXISTS `postcode`;
+CREATE TABLE `postcode` (
+  `id` int(11) NOT NULL auto_increment,
+  `codename` varchar(128) NOT NULL default '',
+  PRIMARY KEY  (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
