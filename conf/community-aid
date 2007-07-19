@@ -1,0 +1,41 @@
+#NameVirtualHost *
+Listen 127.0.0.1:8080
+
+<VirtualHost 127.0.0.1:8080>
+	ServerName	localhost
+	ServerAdmin webmaster@localhost
+	
+	DocumentRoot /var/www/community-aid/www
+	<Directory />
+		Options FollowSymLinks
+		AllowOverride None
+	</Directory>
+
+	SSLEngine		On
+	SSLCertificateFile	/etc/apache2/ssl/apache.pem
+
+	SetENV   Operator          gmoperator
+	SetENV   Operator_Password gmoperator
+	SetENV   Admin					gmadmin
+	SetENV   Admin_Password		gmadmin
+
+	<Directory "/var/www/community-aid/www">
+
+	Options -Indexes -FollowSymLinks
+	AllowOverride None
+	Order allow,deny
+	Allow from all
+	</Directory>
+
+	CustomLog /var/log/apache2/community-aid-access.log combined
+	ErrorLog /var/log/apache2/community-aid-error.log
+
+	# Possible values include: debug, info, notice, warn, error, crit,
+	# alert, emerg.
+	LogLevel warn
+
+	ServerSignature 	Off
+	HostnameLookups 	Off
+	UseCanonicalName 	Off
+
+</VirtualHost>

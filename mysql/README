@@ -1,13 +1,17 @@
-The directory has backups of MySQL database for GoodMorning
-project and file tables.sql with tables structure only.
+The directory has a clean dump of MySQL database for Community-Aid
+project.
 
-All the files named in according to the following convention:
-mysql.database_name.backup.date
+-----------------------------------------------------------------------
+WARNING!!! WARNING!!! WARNING!!! WARNING!!! WARNING!!! WARNING!!! 
 
-To restore a backup of particular date use:
+community-aid-db-dump-clean.sql WILL DROP EXISTING community_aid_db!!!
 
-mysql -u <mysql_user_name> -p mysql < mysql.gmpDb.backup.<date>
+WARNING!!! WARNING!!! WARNING!!! WARNING!!! WARNING!!! WARNING!!! 
+-----------------------------------------------------------------------
+To setup the database:
+
+mysql -u root -p mysql < community-aid-db-dump-clean.sql
 
 or, if MySQL server is a remote one:
 
-mysql -h <hostname> -u <mysql_user_name> -p mysql < mysql.gmpDb.backup.<date>
+mysql -h <hostname> -u <mysql_user_name> -p mysql < community-aid-db-dump-clean.sql

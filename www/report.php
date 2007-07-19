@@ -1,4 +1,5 @@
 <?php
+session_start();
 require 'functions.inc';
 
 $clean = array();
@@ -17,7 +18,14 @@ $settings = get_gmp_settings();
 
 <body bgcolor="#BEC8FD" link="#0000FF" vlink="#0000FF" alink="#0000FF">
 <font face="Verdana" size="2">
-
+<?php 
+	// START LOG IN CODE
+		$doWeExit = displayLogin(basename($_SERVER['PHP_SELF']), false);
+		if($doWeExit == true){
+			exit;
+		}
+	// END LOG IN CODE
+?>
 <h1>Report</h1>
 
 Please, choose criteria for the report and press 'Submit' button.
@@ -78,17 +86,6 @@ Please, choose criteria for the report and press 'Submit' button.
     </td>
     
     <td>    
-    </td>
-</tr>
-<tr>
-    <td>
-    <input type="checkbox" name="area_cb"></input>
-    </td>
-    <td valign="top">
-    by Area: 
-    <select name="area" size="1">
-    <?php draw_area() ?>
-    </select>
     </td>
 </tr>
 <tr>

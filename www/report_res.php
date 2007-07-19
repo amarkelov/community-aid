@@ -73,19 +73,7 @@ if (isset($clean['report'])) {
 				break;
 		}
     }
-    // (3) area
-    if(isset($_POST['area_cb'])) {
-		if($multi) {
-		    $sql .= " AND ";
-		}
-		else {
-		    $multi = 1;
-		}
-	
-		$sql .= "clientid in (select clientid FROM clients where postcode=";
-		$sql .= "(select id FROM postcode where id='$area')) ";
-    }
-    // (4) client name
+    // (3) client name
     if(isset( $_POST['client_cb'])) {
 		if($multi) {
 		    $sql .= " AND ";

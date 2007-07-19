@@ -1,11 +1,199 @@
 <?php
 
-define(CONFIG_FILE, "gmp.ini");
+define(CONFIG_FILE, "../www/gmp.ini");
+
+define(ACTIVE_CLIENTS, 2);
+define(INACTIVE_CLIENTS, 4);
+define(ALL_CLIENTS, 8);
 
 $last_dow = 6;
 
-function get_gmp_settings()
-{
+
+ //THIS NEEDS TO BE SET
+function getTheSalt(){
+	return "salt";
+}
+
+function salt($passwd){
+	return sha1($passwd . getTheSalt());
+}
+
+function checkValues($fname, $uname, $pass, $pass2){
+	$isOK = false;
+	if($fname ^ $uname ^ $pass ^ $pass2 == ""){
+				messagebox(false, "Adding User",
+			 	"You have left a required field blank!<br /> Please fill it in an submit again.");
+			}elseif($pass != $pass2){
+				messagebox(false, "Adding User", "Password fields to not match. Please Re-enter.");
+			}elseif(strlen($pass) <= 5){
+				messagebox(false, "Adding User", "Password is too short.<br /> It must be greater than 5 characters");
+			}else{
+			$isOK=true;
+			}
+	return $isOK;
+}
+
+function addUser($uname, $fname, $pass, $isadmin){
+	$success = false;
+	$link = dbConnect();
+	if(checkIsAdmin($_SESSION['s_username'])){
+			$sql = "INSERT INTO `operators` (`operatorid`, `loginname`, `fullname`,".
+					" `saltypwd`, `isAdmin`) VALUES ('', '$uname', '$fname', '"
+					.salt($pass)."','$isadmin')";
+			$query = mysql_query($sql, $link);
+			
+			if (mysql_errno($link)=='0'){
+				//Print Success
+				$success = true;
+			}else{
+				//echo mysql_error($link);
+			}
+		}
+		dbclose($link);
+	
+	return $success;
+}
+
+function checkIsAdmin( $loginname){
+	if($loginname == ""){
+		return false;
+	}else{
+		$link = preLoginDBConnect();
+		$sql = mysql_query("SELECT isAdmin FROM operators WHERE loginname='$loginname'") 
+				or die ("Error connecting to database");
+		$data = mysql_fetch_array($sql);
+		dbclose($link);
+		if($data['isAdmin']){
+		  	return true;
+		}
+	}
+	return false;
+}
+
+function deleteUser($loginname){
+	$success = false;
+	if(checkIsAdmin($_SESSION['s_username'])){
+		$link = dbConnect();
+		$sql = mysql_query("DELETE FROM operators WHERE loginname='$loginname' LIMIT 1") or die (mysql_error($link));
+		//$data = mysql_fetch_array($sql);
+		if (mysql_errno($link)=='0'){
+		$success = true;
+		}
+		dbclose($link);
+	}
+	return $success;
+}
+
+function updateUser($loginname, $newloginname, $newfullname, $newisadmin){
+	$success = false;
+	if(checkIsAdmin($_SESSION['s_username'])){
+		$link = dbConnect();
+		$sql = mysql_query("UPDATE operators SET loginname = '$newloginname',
+							`fullname` = '$newfullname', `isAdmin` = '$newisadmin'
+							WHERE `loginname` = '$loginname' LIMIT 1") 
+				or die (mysql_error($link));		//not the best idea for deployment
+		//$data = mysql_fetch_array($sql);
+		if (mysql_errno($link)=='0'){
+		$success = true;
+		}
+		dbclose($link);
+	}
+	return $success;
+}
+
+
+/* 
+ * $page Page calling this method
+ * $check4Admin shoule be either true, false or null;
+ * returns true or false. True idicates the page should stop executing after this method
+ *
+ */
+ //TODO put the from into a table 3 rows x 2 columns
+function displayLogin($page, $check4Admin){
+	if ($page == ""){
+		$page = "gmp.php";
+	}
+
+	$out = '<table width="100%" border="0" cellpadding="2"><tr>';
+
+	if(!isset($_SESSION['s_username'])){   //we haven't logged in yet   
+		$out .= $_SESSION['s_username'] . 
+		'<br />	<div align="left">
+		<form id="login.php" method="post" action="login.php?f='.$page.'">
+		<table>
+		<tr>
+		<td>Username: </td>
+		<td><input name="loginname" type="text" id="loginname" size="20" maxlength="64" /><br/></td>
+		</tr>
+		<tr>
+		<td>Password: </td>
+		<td><input name="password" type="password" size="20" maxlength="64" /><br/></td>
+		</tr>
+		</table>
+		<input name="Submit" type="submit" value="Login" />
+		</form></div></tr></td></table></body></html>';
+		echo $out;
+		return true; //we need to exit code
+	}else{  // we have logged in 
+		if($check4Admin and !checkIsAdmin($_SESSION['s_username'])){
+			//if logged in, need to check for admin and IS NOT admin 
+			$out .= '<div align=left>Sorry you dont have sufficent priviledges to access this page<br /><br/>
+					<a href=gmp.php>Click here to return to main page</a></div></td></tr></table>';
+			echo $out;
+			return true;
+			echo "I shouldn't have got here";
+		}
+		else {
+			$out .= '<td  valign="top"><div align="left">
+			Logged in as <b>' . $_SESSION['s_username'] .'</b>. 
+			<a href="logout.php?f=$thisPage">logout</a>
+			</div></td>';	
+		}
+	}
+	$out .= '<td><div align="right">
+			<a href="/gmp.php"><img src="/images/header.png" border="0" alt="Friendly Call Service"></a>
+			</div></td>
+			</tr></table>';
+	
+	echo $out;
+}
+
+function print_debug( $clean, $settings) {
+// if debug flag is set, print the following info
+	$s = array();
+	$s = get_gmp_settings();
+	if($s['debug'] >0){
+		print "<b>\$_POST:</b><br>";
+		print_r( $_POST);
+		print "<p>";
+
+		print "<b>\$_GET:</b><br>";
+		print_r( $_GET);
+		print "<p>";
+
+		print "<b>\$clean:</b><br>";
+		print_r( $clean);
+		print "<p>";
+
+		print "<b>\$settings:</b><br>";
+		print_r( $settings);
+		print "<p>";
+
+		print "<b>\$_SERVER:</b><br>";
+		print_r( $_SERVER);
+		print "<p>";
+
+		print "<b>\$_SESSION:</b><br>";
+		print_r( $_SESSION);
+		print "<p>";
+
+/*		print "<b>\$GLOBALS:</b><br>";
+		print_r( $GLOBALS);
+		print "<p>";*/
+	}
+}
+	
+function get_gmp_settings(){
 	$settings = array();
 	
 	$settings = parse_ini_file(CONFIG_FILE);
@@ -22,10 +210,24 @@ function get_gmp_settings()
 	}
 	
 	if(isset($_SERVER['Operator_Password'])) {
-		$settings['optrpswd'] = $_SERVER['Operator_Password'];
+		$settings['operator_password'] = $_SERVER['Operator_Password'];
 	}
 	else {
-		$settings['operator'] = 'gmoperatorpwd';
+		$settings['operator_password'] = 'gmoperatorpwd';
+	}
+	
+	if(isset($_SERVER['Admin'])) {
+		$settings['admin'] = $_SERVER['Admin'];
+	}
+	else {
+		$settings['admin'] = 'gmadmin';
+	}
+	
+	if(isset($_SERVER['Admin_Password'])) {
+		$settings['admin_password'] = $_SERVER['Admin_Password'];
+	}
+	else {
+		$settings['admin_password'] = 'gmadminpwd';
 	}
 	
 	if(isset($_SERVER['DbHost'])) {
@@ -38,22 +240,64 @@ function get_gmp_settings()
 	return $settings;
 }
 
-function dbconnect()
+function preLoginDBConnect()
 {
 	$settings = array();
 	
 	$settings = get_gmp_settings();
 	
-//	$db = "gmpDb";
-//	$dbConnect = mysql_connect("localhost", "gmadmin", "old290174");
-	
-	$dbConnect = mysql_connect($settings['dbhost'], $settings['operator'], $settings['optrpswd']);
+	$dbLoginName = $settings['operator'];
+	$dbLoginPwd = $settings['operator_password'];
+		
+	$dbConnect = mysql_connect($settings['dbhost'], $dbLoginName, $dbLoginPwd);
 	if (!$dbConnect) {
 		die('Could not connect: ' . mysql_error());
 	}
 	
-//	mysql_select_db($db, $dbConnect);
-	mysql_select_db($settings['database'], $dbConnect);
+	//mysql_select_db($db, $dbConnect);
+	$db_selected = mysql_select_db($settings['database'], $dbConnect);
+	if($settings['debug'] > 0) {
+		if (!$db_selected) {
+		    die ('Can\'t use ' . $settings['database']. ': ' . mysql_error());
+		}
+	}
+	
+	return $dbConnect;
+}
+
+function dbconnect()
+{
+	$dbLoginName = '';
+	
+	if( isset($_SESSION['s_username'])) {
+		$dbLoginName = $_SESSION['s_username'];
+	}
+	
+	$settings = array();
+	
+	$settings = get_gmp_settings();
+	
+	if( !checkIsAdmin( $dbLoginName)) {
+		$dbLoginName = $settings['operator'];
+		$dbLoginPwd = $settings['operator_password'];
+	}
+	else {
+		$dbLoginName = $settings['admin'];
+		$dbLoginPwd = $settings['admin_password'];
+	}
+		
+	$dbConnect = mysql_connect($settings['dbhost'], $dbLoginName, $dbLoginPwd);
+	if (!$dbConnect) {
+		die('Could not connect: ' . mysql_error());
+	}
+	
+	//mysql_select_db($db, $dbConnect);
+	$db_selected = mysql_select_db($settings['database'], $dbConnect);
+	if($settings['debug'] > 0) {
+		if (!$db_selected) {
+		    die ('Can\'t use ' . $settings['database']. ': ' . mysql_error());
+		}
+	}
 	
 	return $dbConnect;
 }
@@ -65,10 +309,20 @@ function dbclose( $dbConnect)
 
 function draw_calls( $clientid) 
 {
+	$current_week_number = 0;
+	$last_week_number = 0;
+	
 	$dbConnect = dbconnect();
 	
-    $sql  = "SELECT time,chat,class FROM calls WHERE";
-    $sql .= " (clientid='$clientid') ORDER BY callid DESC ";
+    $sql  = "SELECT calls.time as time,
+				calls.chat as chat,
+				calls.class as class,
+				operators.loginname as operator FROM calls, operators
+				WHERE clientid='{$clientid}' AND 
+				time > (NOW() - INTERVAL 3 WEEK) AND 
+				calls.operatorid=operators.operatorid 
+				ORDER BY callid DESC ";
+    
     $result = mysql_query( $sql, $dbConnect);
     if (!$result) {
 		$message  = 'Invalid query: ' . mysql_error() . "\n";
@@ -79,63 +333,87 @@ function draw_calls( $clientid)
     print ("<hr noshade>");
     print('<table border="0" width="100%" cellspacing="0" cellpadding="0">');
     $i=0; // need this to change cell bgcolor
-
+	$firstround = 1;
     while ($myrow = mysql_fetch_array($result)) {
 // select sclass short name
         $class_ = $myrow["class"];
-	$sql  = "SELECT sclass_sname FROM call_sclass WHERE";
-	$sql .= " sclass_id='$class_'";
-	$res = mysql_query( $sql, $dbConnect);
-	if (!$res) {
-	    $message  = 'Invalid query: ' . mysql_error() . "\n";
-	    $message .= 'Whole query: ' . $sql;
-	    die($message);
-	}
-	$class_row = mysql_fetch_row($res);
+		$sql  = "SELECT sclass_sname FROM call_sclass WHERE";
+		$sql .= " sclass_id='$class_'";
+		$res = mysql_query( $sql, $dbConnect);
+		if (!$res) {
+		    $message  = 'Invalid query: ' . mysql_error() . "\n";
+		    $message .= 'Whole query: ' . $sql;
+		    die($message);
+		}
+		$class_row = mysql_fetch_row($res);
 // select sclass short name (end)
-
-	$i=$i + 1; // need this to change cell bgcolor
-	$time=$myrow["time"];
-
-	$regs = 0;
-	if ( ereg( "([0-9]{4})-([0-9]{2})-([0-9]{2}) ([0-9]{2}):([0-9]{2}):([0-9]{2})", $time, $regs ) ) {
-	    $out="$regs[3]/$regs[2]/$regs[1] $regs[4]:$regs[5]";
-	}
-	else {
-	    $out="Invalid date format: $time";
-	}
-
-	if($i % 2) {
-	    print('<tr bgcolor="#FFFFFF">');
-	}
-	else {
-	    print('<tr bgcolor="#DDDDDD">');
-	}
-// time column
-	print('<td width="20%"> <font size="1" color="#FF0000">');
-	print($out);
-	print('</font>');
-// class column
-	print('</td><td width="10%"><font size="1" color="#00FF00">');
 	
-	if(!empty($class_row[0])) { 
-		print("<a href=\"class.php\" onClick=\"window.open('class.php','','status=yes,toolbar=no,location=no,width=400,height=500');return false;\">$class_row[0]</a>");
-	}
-	else {
-	    print("&nbsp");
-	}	
-	print('</font>');
-// chat column
-	print('</td><td><font size="1" color="#0000FF">');
+		$i=$i + 1; // need this to change cell bgcolor
+		$time=$myrow["time"];
 	
-	if(!empty($myrow["chat"])) { 
-	    print($myrow["chat"] );
-	}
-	else {
-	    print("&nbsp");
-	}
-	    
-	print("</td></tr>");
+		$regs = 0;
+		if ( ereg( "([0-9]{4})-([0-9]{2})-([0-9]{2}) ([0-9]{2}):([0-9]{2}):([0-9]{2})", $time, $regs ) ) {
+		    $out="$regs[3]/$regs[2]/$regs[1] $regs[4]:$regs[5]";
+		    $current_week_number = date("W",mktime(0,0,0,$regs[2],$regs[3],$regs[1]));
+		}
+		else {
+		    $out="Invalid date format: $time";
+		}
+
+
+		if( $firstround) {
+			$last_week_number = $current_week_number;
+			$firstround = 0;
+		}
+		
+		if($current_week_number < $last_week_number) {
+			print '<tr><td>&nbsp</td></tr>';
+			print '<tr><td><font size="1"><b>Week ' . $current_week_number . '</font></td></tr>';
+			$last_week_number = $current_week_number;
+		}
+		
+		if($i % 2) {
+		    print('<tr bgcolor="#FFFFFF">');
+		}
+		else {
+		    print('<tr bgcolor="#DDDDDD">');
+		}
+	
+	// time column
+		print('<td width="20%"> <font size="1" color="#FF0000">');
+		print $out . ' ' . $current_week_number . ' ' . $last_week_number;
+		print('</font>');
+	// class column
+		print('</td><td width="10%"><font size="1" color="#00FF00">');
+		
+		if(!empty($class_row[0])) { 
+			print("<a href=\"class.php\" onClick=\"window.open('class.php','','status=yes,toolbar=no,location=no,width=400,height=500');return false;\">$class_row[0]</a>");
+		}
+		else {
+		    print("&nbsp");
+		}	
+		print('</font>');
+	// chat column
+		print('</td><td><font size="1" color="#0000FF">');
+		
+		if(!empty($myrow["chat"])) { 
+		    print($myrow["chat"] );
+		}
+		else {
+		    print("&nbsp");
+		}
+	// operator
+		print('</td><td width="10%"><font size="1" color="#0000FF">');
+		
+		if(!empty($myrow["operator"])) { 
+		    print($myrow["operator"] );
+		}
+		else {
+		    print("&nbsp");
+		}
+		    
+		print("</td></tr>");
+
     } // while
     
     print("</table>");
@@ -162,25 +440,6 @@ function draw_classification()
 		printf("<option value=\"%d\">%s -- %s</option>",$class[sclass_id],$class[mclass_name],$class[sclass_name]);
     }
     
-    dbclose($dbConnect);
-}
-
-function draw_area($selected = 0)
-{
-	$dbConnect = dbconnect();
-	
-    $sql = "SELECT id,codename FROM postcode"; // ORDER BY codename";
-    
-    $result = mysql_query($sql, $dbConnect);
-    if (!$result) {
-		$message  = 'Invalid query: ' . mysql_error() . "\n";
-		$message .= 'Whole query: ' . $sql;
-		die($message);
-    }
-    while( $area = mysql_fetch_array($result)) {
-    	
-		printf("<option value=\"%d\">%s</option>",$area[id],$area[codename]);
-    }
     dbclose($dbConnect);
 }
 
@@ -214,8 +473,9 @@ function draw_client_details($clientid)
 	$dbConnect = dbconnect();
 
     if( $clientid and $dbConnect) {
-		$sql  = "SELECT phone1,phone2,dob,ailments,note from clients";
-		$sql .= " WHERE clientid='$clientid'";
+		$sql  = "SELECT phone1,phone2,dob,ailments,note,
+					TIME_FORMAT(timeslot,'%H:%m') as timeslot from clients
+					WHERE clientid='$clientid' AND active='1'";
 		
 		$result = mysql_query( $sql, $dbConnect);
 		if (!$result) {
@@ -243,27 +503,31 @@ function draw_client_details($clientid)
 		       	else {
 				    $dob = "Invalid DOB";
 				} 
+				$timeslot = $myrow['timeslot'];
 				$ailments = $myrow["ailments"];
 		       	$note = $myrow["note"];
 		    }
 		}
     }    
 
-    $out  = '<table border="0" width="100%">';
+    $out  = '<table frame="border" width="100%">';
     $out .= '<tr>';
-    $out .= "<td width=\"30%\"><font size=$fs>Phone 1:</font></td>";
+    $out .= "<td width=\"30%\"><font size=$fs><b>Phone 1:</b></font></td>";
     $out .= "<td><font size=$fs>$phone1</font></td>";
     $out .= '</tr><tr>';        
-    $out .= "<td width=\"30%\"><font size=$fs>Phone 2:</font></td>";
+    $out .= "<td width=\"30%\"><font size=$fs><b>Phone 2:</b></font></td>";
     $out .= "<td><font size=$fs>$phone2</font></td>";
     $out .= '</tr><tr>';    
-    $out .= "<td width=\"30%\"><font size=$fs>D.O.B. (DD/MM/YYYY):</font></td>";
+    $out .= "<td width=\"30%\"><font size=$fs><b>D.O.B. (DD/MM/YYYY):</b></font></td>";
     $out .= "<td><font size=$fs>$dob</font></td>";
     $out .= '</tr><tr>';
-    $out .= "<td width=\"30%\"><font size=$fs>Ailments:</font></td>";
+    $out .= "<td width=\"30%\"><font size=$fs><b>Time slot:</b></font></td>";
+    $out .= "<td><font size=$fs>$timeslot</font></td>";
+    $out .= '</tr><tr>';
+    $out .= "<td width=\"30%\"><font size=$fs><b>Ailments:</b></font></td>";
     $out .= "<td><font size=$fs>$ailments</font></td>";
     $out .= '</tr><tr>';
-    $out .= "<td width=\"30%\"><font size=$fs>Notes:</font></td>";
+    $out .= "<td width=\"30%\"><font size=$fs><b>Notes:</b></font></td>";
     $out .= "<td><font size=$fs>$note</font></td>";
     $out .= '</tr></table>';
     
@@ -274,83 +538,127 @@ function draw_client_details($clientid)
 
 // Draw clients list
 // left part of the screen
-function draw_clients_list($list, $clientid)
+function draw_clients_list($operator, $clientid)
 {
+	$clients = array();		// array to store clientids and the rest
+	$calltime = array();	// array to store timeslots
+	$nextcall = array();	// array to store nextcalls
+	$timeslot_done = array();	// to track if the timeslot call was made
+ 
 	$dbConnect = dbconnect();
 	
 	$fs = 1; // font size
 	
-	if ($list == "black")  {
-	    $sql  = "SELECT * FROM clients where (clients.list = '$list' )";
-	    $sql .= " order by lastname, firstname";
-	    $result = mysql_query( $sql, $dbConnect);
-	    if (!$result) {
-		$message  = 'Invalid query: ' . mysql_error() . "\n";
+	// getting client list first ...
+    $sql  = "SELECT clientid,firstname,lastname,
+			TIME_FORMAT(timeslot,'%H:%i') AS timeslot
+			FROM clients WHERE clientid IN (SELECT clientid FROM client2operator WHERE 
+			operatorid=(SELECT operatorid FROM operators WHERE loginname='{$operator}'))
+			AND active='1' ORDER BY timeslot, firstname";
+    
+    $result = mysql_query( $sql, $dbConnect);
+    if (!$result) {
+		$message  = 'Invalid query: ' . mysql_error() . '<br>' . 'Query: ' . $sql;
+		die($message);
+    }
+
+	while ($myrow = mysql_fetch_array($result)) {
+		$clients[$myrow['clientid']] = $myrow['firstname'] . ' ' . $myrow['lastname'];
+		$calltime[$myrow['clientid']] = $myrow['timeslot'];
+	}
+
+	// getting unfinished calls and nextcalltime for it
+	$sql = "SELECT clientid,DATE_FORMAT(nextcalltime,'%Y-%m-%d %H:%i:%s') as nextcalltime
+			FROM calls WHERE clientid in 
+			(SELECT clientid FROM client2operator WHERE 
+			operatorid=(SELECT operatorid FROM operators WHERE loginname='{$operator}')) 
+			and call_finished='0'";
+	
+    $result = mysql_query( $sql, $dbConnect);
+    if (!$result) {
+		$message  = 'Invalid query: ' . mysql_error() . '\n';
 		$message .= 'Whole query: ' . $sql;
 		die($message);
-	    }
-	} 
-	elseif ($list == "white") {
-	    $sql  = "SELECT * FROM clients where (clients.list != 'black' )";
-	    $sql .= " order by done, lastname, firstname";
-	    $result = mysql_query( $sql, $dbConnect);
-	    if (!$result) {
-	    	$message  = 'Invalid query: ' . mysql_error() . "\n";
-			$message .= 'Whole query: ' . $sql;
-	    	die($message);
-	    }
-	}
-	else {
-	    $sql  = "SELECT * FROM clients where (clients.list = '$list' )";
-	    $sql .= " order by done, timeslot, firstname";
-	    $result = mysql_query( $sql, $dbConnect);
-	    if (!$result) {
-			$message  = 'Invalid query: ' . mysql_error() . "\n";
-			$message .= 'Whole query: ' . $sql;
-			die($message);
-	    }
-	}
+    }
 
-	print("<table>");
-	
 	while ($myrow = mysql_fetch_array($result)) {
-	    $tmp_done = $myrow["done"]; 
-	    $tmp_clientid = $myrow["clientid"];
-	    $tmp_firstname = $myrow["firstname"]; 
-	    $tmp_lastname = stripslashes($myrow["lastname"]);
-	
-	    print("<tr>");
-	
-	    if ( $clientid)  {
-			$out  = "<td><font size=\"$fs\">";
-			$out .= "$tmp_firstname  $tmp_lastname";
-			$out .= "</font></td>";
-			print($out);
-	    }
-	    else {
-			$out  = "<td><a href=\"$PHP_SELF?clientid=$tmp_clientid\">";
-			$out .= "<font size=\"$fs\">";
-			$out .= "$tmp_firstname  $tmp_lastname</a>";
-			$out .= "</font></td>";
-			print ($out);
-	    }
-	
-	    if ( !$tmp_done) {
-	    	$regs = 0;
-			ereg( "([0-9]{2}):([0-9]{2}):([0-9]{2})", $myrow["timeslot"], $regs );
-			$out  = "<td><font size=\"$fs\">";
-			$out .= "$regs[1]:$regs[2]";
-			$out .= "</font></td>";
-			print ($out);
-	    }
-	    
-	    print("</tr>");
+		$nextcall[$myrow['clientid']] = $myrow['nextcalltime'];
 	}
 	
-	print("</table>");
+	// getting the timeslot_done flags for all the clients
+	$sql = "SELECT clientid,timeslot_done
+			FROM client_timeslot_call WHERE clientid in 
+			(SELECT clientid FROM client2operator WHERE 
+			operatorid=(SELECT operatorid FROM operators WHERE loginname='{$operator}'))";
 	
-	dbclose($dbConnect);
+    $result = mysql_query( $sql, $dbConnect);
+    if (!$result) {
+		$message  = 'Invalid query: ' . mysql_error() . '\n';
+		$message .= 'Whole query: ' . $sql;
+		die($message);
+    }
 
+	while ($myrow = mysql_fetch_array($result)) {
+		$timeslot_done[$myrow['clientid']] = $myrow['timeslot_done'];
+	}
+
+	// processing now.....
+	$now = time();
+	$mnt = mktime(0, 0, 0, date("m"), date("d"), date("Y")); // tonight's midnight
+
+	foreach( $calltime as $cid => $nctime) { // now go through it all and figure out the time....
+		$nct = -1;
+		if( isset($nextcall[$cid])) {
+			if( ereg( "([0-9]{4})-([0-9]{2})-([0-9]{2}) ([0-9]{2}):([0-9]{2}):([0-9]{2})", $nextcall[$cid], $regs )) {
+				$nct = mktime($regs[4],$regs[5],$regs[6],$regs[2],$regs[3],$regs[1]); // nextcalltime
+			}
+		}
+
+		$regs = 0;
+		if( ereg( "([0-9]{2}):([0-9]{2})", $nctime, $regs )) {
+			$tms = mktime($regs[1], $regs[2], 0, date("m"), date("d"), date("Y")); // time slot
+		}
+		else {
+			$tms = 0;
+		}
+
+		if( ($mnt - $nct) > 0 && $nct > 0) { // we left unfinished call from yesterday. bad!
+			$calltime[$cid] = '<b><font color="#f11313">Unfinished call from the past. ' . $nextcall[$cid] . ' Call now!</font></b>';
+		}
+		else if( $tms < $now && $timeslot_done[$cid] == 0 ) { // we missed client's usual time slot. bad!
+			$calltime[$cid] = '<b><font color="#f11313">Missed time slot (' . $nctime . '). Call now!</font></b>';
+		}
+		else if( $nct > $now) {
+			$calltime[$cid] = date( "H:i", $nct);
+		}
+		else if( $nct < $now && $nct > 0) {
+			$calltime[$cid] = '<b><font color="#f11313">Missed call time ('. date( "H:i", $nct) . '). Call now!</font></b>';
+		}
+		
+		else if( $tms < $now) {
+			$calltime[$cid] = '';
+		}
+//		$calltime[$cid] .= '  --- nct: ' . date("Y-m-d H:i:s", $nct) . '; timeslot: ' . date("Y-m-d H:i:s", $tms) . '; ' . $nextcall[$cid] . '==' . $nct; 
+	}
+    
+	// we need to sort the array now
+	
+
+	// print it all out ....
+	print("<table>");
+
+	foreach ( $clients as $cid => $name ) {
+		$out  = '<tr><td><a href="' . $PHP_SELF . '?clientid=' . $cid . '">';
+		$out .= '<font size="$fs">';
+		$out .= $name . '</a></font></td>';
+		$out .= '<td>' . $calltime[$cid] . '</td>';
+	    
+	    print $out . '</tr>';
+	}
+
+	print("</table>");
+
+	dbclose($dbConnect);
 }
 
 function verify_timeslot($timeslot)
@@ -367,22 +675,842 @@ function verify_timeslot($timeslot)
 	return $ts; 
 }
 
-//function draw_calendar() {
-//<table>
-//<td>
-//<input type="text" name="day" size="2"></input><br>
-//DD
-//</td>
-//<td>
-//<input type="text" name="month" size="2"></input><br>
-//MM
-//</td>
-//<td>
-//<input type="text" name="year" size="4"></input><br>
-//YYYY
-//</td>
-//</table>
-//}
+function getOperators( &$operators) {
+	$myrow = '';
+	$dbConnect = dbconnect();
+
+	$sql = "SELECT operatorid,fullname FROM operators ORDER BY fullname";
+	
+	$result = mysql_query( $sql,$dbConnect);
+	if ( !$result) {
+		$message  = 'Invalid query: ' . mysql_error() . '<br>' . 'Query: ' . $sql;
+		die($message);
+	}
+	else {
+		while ( $myrow = mysql_fetch_array($result)) {
+			if(isset( $myrow['operatorid'])) {
+				if( ctype_digit($myrow['operatorid'])) { 
+					$operators[$myrow['operatorid']]= htmlentities($myrow['fullname'], ENT_QUOTES);
+				}
+			} 
+		}
+	}
+	
+	dbclose( $dbConnect);
+	
+	return $result;
+}
+
+function getOperatorName( $operatorid) {
+	$myrow = '';
+	$sOperatorName = '';
+	
+	$dbConnect = dbconnect();
+
+	$sql = "SELECT fullname FROM operators WHERE operatorid='" . $operatorid . "'";
+	
+	$result = mysql_query( $sql,$dbConnect);
+	if ( !$result) {
+		$message  = 'Invalid query: ' . mysql_error() . '<br>' . 'Query: ' . $sql;
+		die($message);
+	}
+	else {
+		while ( $myrow = mysql_fetch_array($result)) {
+			if(isset( $myrow['fullname'])) {
+				$sOperatorName = $myrow['fullname'];
+			} 
+		}
+	}
+	
+	dbclose( $dbConnect);
+	
+	return $sOperatorName;
+}
+
+function getOperatorLoginName( $operatorid) {
+	$myrow = '';
+	$sOperatorName = '';
+	
+	$dbConnect = dbconnect();
+
+	$sql = "SELECT loginname FROM operators WHERE operatorid='" . $operatorid . "'";
+	
+	$result = mysql_query( $sql,$dbConnect);
+	if ( !$result) {
+		$message  = 'Invalid query: ' . mysql_error() . '<br>' . 'Query: ' . $sql;
+		die($message);
+	}
+	else {
+		while ( $myrow = mysql_fetch_array($result)) {
+			if(isset( $myrow['loginname'])) {
+				$sOperatorName = $myrow['loginname'];
+			} 
+		}
+	}
+	
+	dbclose( $dbConnect);
+	
+	return $sOperatorName;
+}
+
+function getOperatorPassword( $operatorid) {
+	$myrow = '';
+	$sOperatorPwd = '';
+	
+	$dbConnect = dbconnect();
+
+	$sql = "SELECT saltypwd FROM operators WHERE operatorid='" . $operatorid . "'";
+	
+	$result = mysql_query( $sql,$dbConnect);
+	if ( !$result) {
+		$message  = 'Invalid query: ' . mysql_error() . '<br>' . 'Query: ' . $sql;
+		die($message);
+	}
+	else {
+		while ( $myrow = mysql_fetch_array($result)) {
+			if(isset( $myrow['saltypwd'])) {
+				$sOperatorPwd = $myrow['saltypwd'];
+			} 
+		}
+	}
+	
+	dbclose( $dbConnect);
+	
+	return $sOperatorPwd;
+}
+
+function isOperatorAdmin( $operatorid) {
+	$myrow = '';
+	$isAdmin = '';
+	
+	$dbConnect = dbconnect();
+
+	$sql = "SELECT isAdmin FROM operators WHERE operatorid='" . $operatorid . "'";
+	
+	$result = mysql_query( $sql,$dbConnect);
+	if ( !$result) {
+		$message  = 'Invalid query: ' . mysql_error() . '<br>' . 'Query: ' . $sql;
+		die($message);
+	}
+	else {
+		while ( $myrow = mysql_fetch_array($result)) {
+			if(isset( $myrow['isAdmin'])) {
+				$isAdmin = $myrow['isAdmin'];
+			} 
+		}
+	}
+	
+	dbclose( $dbConnect);
+	
+	return $isAdmin;
+}
+
+function getClientsForOperator( $operatorid, &$clients) {
+	$myrow = '';
+	$dbConnect = dbconnect();
+
+	$sql = 'SELECT clients.clientid,clients.firstname,clients.lastname,clients.initials 
+			FROM clients LEFT JOIN client2operator ON clients.clientid=client2operator.clientid 
+			WHERE client2operator.operatorid="' . $operatorid . '"  
+			ORDER BY clients.lastname, clients.firstname';
+
+	$result = mysql_query( $sql, $dbConnect);
+	if ( !$result) {
+		$message  = 'Invalid query: ' . mysql_error() . '<br>' . 'Query: ' . $sql;
+		die($message);
+	}
+	else {
+		while ( $myrow = mysql_fetch_array($result)) {
+			$clients[$myrow['clientid']] = $myrow['lastname'] . ', ' . $myrow['firstname'] . ' ' . $myrow['initials'];
+		}
+	}
+	
+	dbclose( $dbConnect);
+
+	return $result;
+}
+
+function getClients( &$clients, $what_clients) {
+	$myrow = '';
+	$dbConnect = dbconnect();
+	
+	switch( $what_clients) {
+	case ACTIVE_CLIENTS:
+			$sql = "SELECT clientid,firstname,lastname,initials FROM clients WHERE active='1' ORDER BY lastname";
+			break;
+	case INACTIVE_CLIENTS:
+			$sql = "SELECT clientid,firstname,lastname,initials FROM clients WHERE active='0' ORDER BY lastname";
+			break;
+	case ALL_CLIENTS:
+			$sql = "SELECT clientid,firstname,lastname,initials FROM clients ORDER BY lastname";
+			break;
+	}
+	
+	$result = mysql_query( $sql,$dbConnect);
+	if ( !$result) {
+		$message  = 'Invalid query: ' . mysql_error() . '<br>' . 'Query: ' . $sql;
+		die($message);
+	}
+	else {
+		while ( $myrow = mysql_fetch_array($result)) {
+			if(isset( $myrow['clientid'])) {
+				if( ctype_digit($myrow['clientid'])) { 
+					$clients[$myrow['clientid']]= htmlentities($myrow['lastname'], ENT_QUOTES) . ', ' .
+											htmlentities($myrow['firstname'], ENT_QUOTES) . ' ' .
+											htmlentities($myrow['initials'], ENT_QUOTES) . ' ';
+				}
+			} 
+		}
+	}
+	
+	dbclose( $dbConnect);
+	
+	return $result;
+}
+
+function getActiveClients( &$clients) {
+	return getClients( $clients, ACTIVE_CLIENTS);
+}
+
+function getInactiveClients( &$clients) {
+	return getClients( $clients, INACTIVE_CLIENTS);
+}
+
+function getAllClients( &$clients) {
+	return getClients( $clients, ALL_CLIENTS);
+}
+
+function deactivate_client( $clientid) {
+	$dbConnect = dbconnect();
+
+	$sql = "UPDATE clients SET active='0' WHERE clientid='" . $clientid . "'";
+	$result = mysql_query($sql);
+	if (!$result) {
+		die('Invalid query: ' . mysql_error());
+	}
+	
+	dbclose( $dbConnect);
+}
+
+function reactivate_client( $clientid) {
+	$dbConnect = dbconnect();
+
+	$sql = "UPDATE clients SET active='1' WHERE clientid='" . $clientid . "'";
+	$result = mysql_query($sql);
+	if (!$result) {
+		die('Invalid query: ' . mysql_error());
+	}
+	
+	dbclose( $dbConnect);
+}
+
+function printAddEditClientJavaScript() 
+{
+	print '
+		<script language="JavaScript1.1">
+		<!-- hide it from old browsers or from those with JavaScript disabled
+		function vtslot(s)
+		{
+		   var ts = Array();
+		   var ts = s.value.split(":");
+		   var hour = Number(ts[0]);
+		   var min = Number(ts[1]);
+
+		   if(!isNaN(hour) && !isNaN(min)) {
+		      if((hour>=0 && hour<=23) && (min>=0 && min<=59)) {
+		         return true;
+		      }
+		   }
+		   alert("Time has to be of 24 hours format (HH:MM)!");
+		   return false;
+		}
+		
+		function vphone(phone)
+		{
+			var result = phone.value.match(/\d+/g);
+
+			if( result != null) {
+				return true;
+			}
+			else {
+				alert("Phone number should consist of digits only!");
+				return false;
+			}
+		}
+
+		function vdob(dob)
+		{
+			var msg = "";
+			var today = new Date();
+			var checked_dob = Array();
+			checked_dob = dob.value.split("/");
+			
+			var day = Number(checked_dob[0]);
+			var month = Number(checked_dob[1]);
+			var year = Number(checked_dob[2]);
+
+			if(!isNaN(day) && !isNaN(month) && !isNaN(year)) {
+				if((day >= 1 && day <= 31) && 
+					(month >= 1 && month <= 12) && 
+					(year >= 1900 && year <= (today.getYear()+1900))) {
+				   return true;
+				}
+				else {
+					msg  = "Day range: 1-31\n";
+					msg += "Month range: 1-12\n";
+					msg += "Year range: 1900 - ";
+					msg += (today.getYear()+1900);
+				}
+			}
+			alert("Date of birth must be of format DD/MM/YYYY!\n\n" + msg);
+			return false;
+		}
+		
+		function isEmpty(text, field_name)
+		{
+			if( text.value.length == 0) {
+				alert( field_name + " can not be empty!");
+				return false;
+			}
+			return true;
+		}
+		
+		// A utility function that returns true if a string contains only 
+		// whitespace characters
+		function isblank(s) {
+		    for(var i = 0; i < s.length; i++) {
+		        var c = s.charAt(i);
+		        if ((c != " ") && (c != "\n") && (c != "\t")) return false;
+		    }
+		    return true;
+		}
+		
+		function verify(f)
+		{
+			var msg = "Please, fill all fields marked with red asterisk.\nThe fields are mandatory!\n";
+			var empty_fields = "";
+			var errors = "";
+			var ret;
+		
+		    // Loop through the elements of the form, looking for all Text and 
+		    // Textarea elements that do not have an "optional" property defined. 
+		    // Then check for fields that are empty and make a list of them.
+		    // Put together error messages for fields that are wrong.
+		    for(var i = 0; i < f.length; i++) {
+		        var e = f.elements[i];
+		        if (((e.type == "text") || (e.type == "textarea")) && !e.optional) {
+		            // First check if the field is empty
+		            if ((e.value == null) || (e.value == "") || isblank(e.value)) {
+		                empty_fields += "\n          " + e.name;
+		                continue;
+		            }
+		        }
+		    }
+
+			if( !vdob(f.dob)) {
+				errors += "Date of birth format: DD/MM/YYYY\n";
+			}
+
+			if( !vphone(f.phone1) || !vphone(f.phone2) || !vphone(f.contact1phone1)) {
+				errors += "Phone numbers must consist of digits only!\n";
+			}
+
+			// Now, if there were any errors, display the messages, and
+		    // return false to prevent the form from being submitted. 
+		    // Otherwise, return true.
+		    if (!empty_fields && !errors) return true;
+		
+		    msg += "______________________________________________________\n\n"
+		
+		    if (empty_fields) {
+		        msg += "- The following required field(s) are empty:" 
+		                + empty_fields + "\n";
+		        if (errors) msg += "\n";
+		    }
+		    msg += errors;
+		    alert(msg);
+		    return false;
+		}
+		
+		-->
+		</script>';
+
+}
+
+function printAddEditClientTable( $clean)
+{
+	print'<table width="100%" border="0" cellspacing="4" cellpadding="2">
+	<tr>
+		<td bgcolor="#EEEEEE" colspan="2">
+			<font face="verdana, arial, helvetica" size="-1">
+			<b>Personal Details</b><br>
+			</font>
+		</td>
+	</tr>
+	
+	<br>
+	<br>
+	
+	<TABLE BORDER=0 WIDTH=100%>
+	<tr>
+		<td ALIGN="right" width="15%" VALIGN="top">
+		</td>
+	
+		<td ALIGN="right" width="30%" VALIGN="top">
+		<font face="verdana, arial, helvetica" size="-1">
+		<b>First name: </b>
+		</font>
+		<input type="Text" name="firstname" value="' . $clean['firstname'] . '" size="30" maxlength="30">
+		<font size="1" color="#FF0000">
+		<b> *</b>
+		</font>
+		</td>
+	
+		<td ALIGN="right" width="10%" VALIGN="top">
+		</td>
+	
+		<td ALIGN="left" width="30%" VALIGN="top">
+		<font face="verdana, arial, helvetica" size="-1">
+		<b>Date of Birth: </b>
+		</font>
+		<input type="Text" name="dob" onchange="return vdob(this);" value="';
+		    
+	if($clean['dob']) {
+		if( ereg( "([1-2]{1}[0-9]{3})-([0-1]{1}[0-9]{1})-([0-9]{2})", $clean['dob'], $reg)) {
+			print("$reg[3]/$reg[2]/$reg[1]");
+		}
+		else {
+			print("bad dob");
+		}
+	}
+	
+	print '" size="11">
+		<font size="1" color="#FF0000">
+		<b>* Format DD/MM/YYYY</b>
+		</font>
+		</td>
+	
+		<td ALIGN="right" width="15%"  VALIGN="top">
+		</td>
+	</tr>
+	</TABLE>
+	
+	<TABLE BORDER=0 WIDTH=100%>
+	<tr>
+		<td ALIGN="right" width="15%" VALIGN="top">
+		</td>
+	
+		<td ALIGN="right" width="30%" VALIGN="top">
+		<font face="verdana, arial, helvetica" size="-1">
+		<b>Last name: </b>
+		</font>
+		<input type="Text" name="lastname" value="' . $clean['lastname'] . '" size="30" maxlength="30">
+		<font size="1" color="#FF0000">
+		<b> *</b>
+		</font>
+		</td>
+	
+		<td ALIGN="right" width="10%" VALIGN="top">
+		</td>
+	
+		<td ALIGN="left" width="30%"  VALIGN="top">
+		<font face="verdana, arial, helvetica" size="-1">
+		<b>Alone: </b>
+		</font>
+		<input type="checkbox" name="alone" size="5" maxlength="5"';
+				
+	if($clean['alone']) {
+		print(" checked");
+	}
+	
+	print '>
+		</td>
+		<td ALIGN="left" width="15%"  VALIGN="top">
+		</td>
+	</tr>
+	</TABLE>
+	
+	
+	<TABLE BORDER=0 WIDTH=100%>
+	<tr>
+		<td ALIGN="right" width="15%" VALIGN="top">
+		</td>
+	
+		<td ALIGN="right"  width="30%" VALIGN="top">
+		<font face="verdana, arial, helvetica" size="-1">
+		<b>House #: </b>
+		</font>
+		<input type="Text" name="houseno" value="' . $clean['houseno'] . '" size="30" maxlength="30">
+		<font size="1" color="#FF0000">
+		<b> *</b>
+		</font>
+		</td>
+	
+		<td ALIGN="right" width="10%" VALIGN="top">
+		</td>
+	
+		<td ALIGN="left" width="30%"  VALIGN="top">
+		<font face="verdana, arial, helvetica" size="-1">
+		<b>Note: </b><br>
+		</font>
+		<textarea name="note" cols="27" rows="4" >' . $clean['note'] . '</textarea>
+		</td>
+	
+		<td ALIGN="left" width="15%"  VALIGN="top">
+		</td>
+	</tr>
+	</TABLE>
+	
+	
+	
+	<TABLE BORDER=0 WIDTH=100%>
+	<tr>
+		<td ALIGN="right" width="15%" VALIGN="top">
+		</td>
+	
+		<td ALIGN="right"  width="30%" VALIGN="top">
+		<font face="verdana, arial, helvetica" size="-1">
+		<b>Street: </b>
+		</font>
+		<input type="Text" name="street" value="' . $clean['street'] . '" size="30">
+		<font size="1" color="#FF0000">
+		<b> *</b>
+		</font>
+		</td>
+	
+		<td ALIGN="right" width="10%" VALIGN="top">
+		</td>
+	
+		<td ALIGN="left" width="30%"  VALIGN="top">
+		<font face="verdana, arial, helvetica" size="-1">
+		<b>Landlord: </b></font>
+	    <select name="housing">
+	         <option value="FCC">FCC</option>
+	         <option value="Owner Occupier">Owner Occupier</option>
+	         <option value="HA">HA - add note</option>
+	         <option value="other">Other</option>
+	         <option value="' . $clean['housing'] . '" selected>' . $clean['housing'] . '</option>
+	    </select>
+		</td>
+	
+		<td ALIGN="left" width="15%"  VALIGN="top">
+		</td>
+	</tr>
+	</TABLE>
+	
+	
+	
+	<TABLE BORDER=0 WIDTH=100%>
+	<tr>
+		<td ALIGN="right" width="15%" VALIGN="top">
+		</td>
+	
+		<td ALIGN="right"  width="30%" VALIGN="top">
+		&nbsp;
+		</td>
+	
+		<td ALIGN="right" width="10%" VALIGN="top">
+		</td>
+	
+		<td ALIGN="left" width="30%"  VALIGN="top">
+		<font face="verdana, arial, helvetica" size="-1">
+		<b>House Type: </b>
+		</font>
+		<select name="housetype">
+			<option value="apartment">Apartment</option>
+			<option value="bungalow">Bungalow</option>
+			<option value="cottage flat">Country House / Cottage</option>
+			<option value="detached">Detached House</option>
+			<option value="farm">Farm</option>
+			<option value="holiday">Holiday Home</option>
+			<option value="other">Other</option>
+			<option value="semi-detached">Semi-Detached House</option>
+			<option value="terraced">Terraced House</option>
+			<option value="' . $clean['housetype'] . '" selected>' . $clean['housetype'] . '</option>
+		</select>
+		</td>
+	
+		<td ALIGN="left" width="15%"  VALIGN="top">
+		</td>
+	</tr>
+	</TABLE>
+	
+	<TABLE BORDER=0 WIDTH=100%>
+	<tr>
+		<td ALIGN="right" width="15%" VALIGN="top">
+		</td>
+	
+		<td ALIGN="right"  width="30%" VALIGN="top">
+		<font face="verdana, arial, helvetica" size="-1">
+		<b>Phone Number 1: </b>
+		</font>
+		<input type="Text" name="phone1" onchange="return vphone(this);" value="' . $clean['phone1'] . '" size="15">
+		<font size="1" color="#FF0000">
+		<b> *</b>
+		</font>
+		</td>
+	
+		<td ALIGN="right" width="10%" VALIGN="top">
+		</td>
+	
+		<td ALIGN="left" width="30%"  VALIGN="top">
+		<font face="verdana, arial, helvetica" size="-1">
+		<b>Phone Number 2: </b></font><input type="text" name="phone2" onchange="return vphone(this);" size="14" value="' . $clean['phone2'] . '">
+		<font size="1" color="#FF0000">
+		<b> *</b>
+		</font>
+		</td>
+	
+		<td ALIGN="left" width="15%"  VALIGN="top">
+		</td>
+	</tr>
+	</TABLE>
+	
+	<table width="100%" border="0" cellspacing="4" cellpadding="2">
+	<tr>
+		<td bgcolor="#EEEEEE" colspan="2">
+		<font face="verdana, arial, helvetica" size="-1">
+		<b>Medical Details</b><br>
+		</font>
+		</td>
+	</tr>
+	</table>
+	
+	<TABLE BORDER=0 WIDTH=100%>
+	<tr>
+		<td ALIGN="right" width="15%" VALIGN="top">
+		</td>
+	
+		<td ALIGN="right"  width="30%" VALIGN="top">
+		<font face="verdana, arial, helvetica" size="-1">
+		<b>Referrer: </b>
+		</font>
+		<select name="referrer">
+			<option value="Health Board">Health Board</option>
+			<option value="Social Work">Social Work</option>
+			<option value="Private">Private</option>
+			<option value="Voluntary Group">Voluntary Group</option>
+			<option value="Self-Referred">Self Referred</option>
+			<option selected value="' . $clean['referrer'] . '">' . $clean['referrer'] . '</option>
+		</select>
+		</td>
+	
+		<td ALIGN="right" width="10%" VALIGN="top">
+		</td>
+	
+		<td ALIGN="left" width="30%"  VALIGN="top">
+		<font face="verdana, arial, helvetica" size="-1">
+		<b>GP name: </b>
+		</font>
+		<input type="text" name="gpname" maxlength="30" size="30" value="' . $clean['gpname'] . '">
+		<font size="1" color="#FF0000">
+		<b> *</b>
+		</font>
+		</td>
+	
+		<td ALIGN="left" width="15%"  VALIGN="top">
+		</td>
+	</tr>
+	</TABLE>
+	
+	
+	
+	<TABLE BORDER=0 WIDTH=100%>
+	<tr>
+		<td ALIGN="right" width="15%" VALIGN="top">
+		</td>
+	
+		<td ALIGN="right"  width="30%" VALIGN="top">
+		<font face="verdana, arial, helvetica" size="-1">
+		<b>Other: </b>
+		</font>
+		<input type="text" name="referrer_other" size="25" value="' . $clean['referrer_other'] . '" maxlength="40">
+		</td>
+	
+		<td ALIGN="right" width="10%" VALIGN="top">
+		</td>
+	
+		<td ALIGN="left" width="30%"  VALIGN="top">
+		<font face="verdana, arial, helvetica" size="-1">
+		<b>Ailments: </b>
+		</font>
+		<input type="text" name="ailments" size="30" value="' . $clean['ailments'] . '" maxlength="150">
+		<font size="1" color="#FF0000">
+		<b> *</b>
+		</font>
+		</td>
+	
+		<td ALIGN="left" width="15%"  VALIGN="top">
+		</td>
+	</tr>
+	</TABLE>
+	
+	<table width="100%" border="0" cellspacing="4" cellpadding="2">
+	<tr>
+		<td bgcolor="#EEEEEE" colspan="2">
+		<font face="verdana, arial, helvetica" size="-1">
+		<b>Home Help Details</b><br>
+		</font>
+		</td>
+	</tr>
+	</table>
+	
+	<TABLE BORDER=0 WIDTH=100%>
+	<tr>
+		<td ALIGN="right" width="15%" VALIGN="top">
+		</td>
+	
+		<td ALIGN="right"  width="30%" VALIGN="top">
+		<font face="verdana, arial, helvetica" size="-1">
+		<b>Contact name 1: </b>
+		</font>
+		<input type="text" name="contact1name" value="' . $clean['contact1name'] . '" size="22" maxlength="30">
+		<font size="1" color="#FF0000">
+		<b> *</b>
+		</font>
+		</td>
+	
+		<td ALIGN="right" width="10%" VALIGN="top">
+		</td>
+	
+		<td ALIGN="left" width="30%"  VALIGN="top">
+		<font face="verdana, arial, helvetica" size="-1">
+		<b>Phone: </b>
+		</font>
+		<input type="text" name="contact1phone1" onchange="return vphone(this);" size="15" maxlength="15" value="' . $clean['contact1phone1'] . '">
+		<font size="1" color="#FF0000">
+		<b> *</b>
+		</font>
+		</td>
+	
+		<td ALIGN="left" width="15%"  VALIGN="top">
+		</td>
+	</tr>
+	</TABLE>
+	
+	
+	<TABLE BORDER=0 WIDTH=100%>
+	<tr>
+		<td ALIGN="right" width="15%" VALIGN="top">
+		</td>
+	
+		<td ALIGN="right"  width="30%" VALIGN="top">
+		<font face="verdana, arial, helvetica" size="-1">
+		<b>Address: </b>
+		</font>
+		<input type="text" name="contact1address" size="32" maxlength="50" value="' . $clean['contact1address'] . '">
+		</td>
+	
+		<td ALIGN="right" width="10%" VALIGN="top">
+		</td>
+	
+		<td ALIGN="left" width="30%"  VALIGN="top">
+		<font face="verdana, arial, helvetica" size="-1">
+		<b>Relationship: </b>
+		</font>
+		<input type="text" name="contact1relationship" size="20" value="' . $clean['contact1relationship'] . '">
+		</td>
+	
+		<td ALIGN="left" width="15%"  VALIGN="top"></td>
+	</tr>
+	</TABLE>
+	
+	<TABLE BORDER=0 WIDTH=100%>
+	<tr>
+		<td ALIGN="right" width="15%" VALIGN="top">
+		</td>
+	
+		<td ALIGN="right"  width="30%" VALIGN="top">
+		<font face="verdana, arial, helvetica" size="-1">
+		<b>Contact name 2: </b>
+		</font>
+		<input type="text" name="contact2name" value="' . $clean['contact2name'] . '" size="22" maxlength="30">
+		</td>
+	
+		<td ALIGN="right" width="10%" VALIGN="top">
+		</td>
+	
+		<td ALIGN="left" width="30%"  VALIGN="top">
+		<font face="verdana, arial, helvetica" size="-1">
+		<b>Phone: </b>
+		</font>
+		<input type="text" name="contact2phone1" onchange="return vphone(this);" size="15" maxlength="15" value="' . $clean['contact2phone1'] . '">
+		</td>
+	
+		<td ALIGN="left" width="15%"  VALIGN="top">
+		</td>
+	</tr>
+	</TABLE>
+	
+	
+	<TABLE BORDER=0 WIDTH=100%>
+	<tr>
+		<td ALIGN="right" width="15%" VALIGN="top">
+		</td>
+	
+		<td ALIGN="right"  width="30%" VALIGN="top">
+		<font face="verdana, arial, helvetica" size="-1">
+		<b>Address: </b>
+		</font>
+		<input type="text" name="contact2address" size="32" maxlength="50" value="' . $clean['contact2address'] . '">
+		</td>
+	
+		<td ALIGN="right" width="10%" VALIGN="top">
+		</td>
+	
+		<td ALIGN="left" width="30%"  VALIGN="top">
+		<font face="verdana, arial, helvetica" size="-1">
+		<b>Relationship: </b>
+		</font>
+		<input type="text" name="contact2relationship" size="20" value="' . $clean['contact2relationship'] . '">
+		</td>
+	
+		<td ALIGN="left" width="15%"  VALIGN="top">
+		</td>
+	</tr>
+	</TABLE>
+	
+	<table width="100%" border="0" cellspacing="4" cellpadding="2">
+	<tr>
+		<td bgcolor="#EEEEEE" colspan="2">
+		<font face="verdana, arial, helvetica" size="-1">
+		<b>Time of the first call on a day</b><br>
+		</font>
+		</td>
+	</tr>
+	</table>
+	
+	<TABLE BORDER=0 WIDTH=100%>
+	<tr>
+		<td ALIGN="right" width="15%" VALIGN="top">
+		</td>
+	
+		<td ALIGN="right"  width="30%" VALIGN="top">
+		<font face="verdana, arial, helvetica" size="-1">
+		<b>Time slot: </b>
+		</font>
+		<input type="text" name="timeslot" onchange="return vtslot(this);" value="';
+	if($timeslot) {
+		if(ereg("([0-9){2}):([0-9]{2}):([0-9]{2})", $clean['timeslot'], $reg)) {
+			print("$reg[1]:$reg[2]");
+		}
+	}
+	
+	print '" size="6" maxlength="5">
+		<font size="1" color="#FF0000">
+		<b>* 24 hour format (HH:MM)</b>
+		</font>
+		</td>
+	
+		<td ALIGN="right" width="10%" VALIGN="top">
+		</td>
+	
+		<td ALIGN="left" width="15%"  VALIGN="top">
+		</td>
+	</tr>
+	</TABLE>';
+
+}
 
 // pdf stuff begin
 require('fpdf.php');
@@ -457,6 +1585,7 @@ class PDF extends FPDF
 	    $this->Cell(array_sum($w),0,'','T');
 	}
 }
+
 
 // pdf ends
 

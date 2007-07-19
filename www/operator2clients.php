@@ -1,0 +1,165 @@
+<?php
+session_start();
+require 'functions.inc';
+
+$clean = array();
+$mysql = array();
+
+$settings = get_gmp_settings();
+
+print '<html><head>
+		<title>Assign Operator to Client --  Friendly Call Service -- ' . $settings['location'] . '</title>
+		<meta http-equiv="expires" content="-1">
+		<meta http-equiv="Cache-Control" content="no-cache">
+		</head>
+		<body bgcolor="#BEC8FD"><p>';
+
+// if debug flag is set, print the following info
+if ($settings['debug'] > 0) {
+	print_debug();
+}
+
+	// START LOG IN CODE
+		$doWeExit = displayLogin(basename($_SERVER['PHP_SELF']), true);
+		if($doWeExit == true){
+			exit;
+		}
+	// END LOG IN CODE
+
+/*
+ * Start filtering input
+ */
+
+if(isset($_POST['submit'])) {
+	$clean['submit'] = $_POST['submit'];
+}
+else if(isset($_POST['edit'])) {
+	$clean['edit'] = $_POST['edit'];
+}
+if(isset($_POST['operatorid_edit'])){
+	$clean['operatorid_edit'] = $_POST['operatorid_edit']; 
+}
+
+if(isset($_SESSION['operatorid'])){
+	if(ctype_digit($_SESSION['operatorid'])) {
+		$clean['operatorid'] = $_SESSION['operatorid'];
+	}
+}
+if($settings['debug'] == 1){
+	print "<b>\$clean:</b><br>";
+	print_r( $clean);
+	print "<p>";
+}
+/*
+ * End of filtering input
+ */
+ 
+if ($clean['submit']) {
+	if ($clean['operatorid_edit']) {
+		//assign_client( $clean['operatorid'], ...);
+		if( is_array($_POST['assigned'])) {
+			$assigned = $_POST['assigned'];
+
+			$dbConnect = dbconnect();
+			
+			$sql = 'DELETE FROM client2operator WHERE operatorid="' . $clean['operatorid_edit'] . '"';
+			$result = mysql_query( $sql,$dbConnect);
+			if ( !$result) {
+				$message  = 'Invalid query: ' . mysql_error() . '<br>' . 'Query: ' . $sql;
+				die($message);
+			}
+
+			$sql = 'INSERT INTO client2operator VALUES ';
+			
+			foreach($assigned as $cid => $value) {
+				$sql .= '('. $cid . ','. $clean['operatorid_edit'] . '),';
+			}
+			
+			// trim trailing comma
+			$out = $sql;
+			$sql = rtrim( $out, ",");
+			
+			$result = mysql_query( $sql,$dbConnect);
+			if ( !$result) {
+				$message  = 'Invalid query: ' . mysql_error() . '<br>' . 'Query: ' . $sql;
+				die($message);
+			}
+			
+			dbclose( $dbConnect);
+		}
+		print '<b>Clients assigned to operator!</b><p>
+				<a href="' . $PHP_SELF . '">Assign client(s) to another operator</a><p>';
+	}
+}
+else if( $clean['edit']) {
+	if ( $clean['operatorid_edit']) {
+		$aActiveClients = array();
+		$aAssignedClients = array();
+		
+		if( getClientsForOperator( $clean['operatorid_edit'], $aAssignedClients)) {
+			if( getActiveClients( $aActiveClients)) {	
+				print '<b>You are now assigning clients for operator: ' . getOperatorName( $clean['operatorid_edit']) . '</b>
+						<p>To assign client to operator, use the checkboxes to the left from
+						the client names. Checked checkbox means the client will be assigned
+						to the operator.<br>When finished, press "Submit" button.</p>';
+			
+				print '<div align="left"><form method="post" action="' . $PHP_SELF . '">
+						<table width="100%">';
+				
+				foreach( $aActiveClients as $cid => $value) {
+					print '<tr><td witdth="10%" valign="top">
+						    <input type="checkbox" name="assigned['. $cid . ']"';
+					if(isset($aAssignedClients[$cid])) {
+						print 'checked';
+					}
+					print '></input></td>
+							<td width="10%">' . $cid . '</td>
+							<td width="100%">' . $value . '</tr>';
+				}
+				
+				
+				print '<input type="hidden" name="operatorid_edit" value="' . $clean['operatorid_edit'] . '" />
+						</table>
+						<font face="Verdana, Arial, Helvetica, sans-serif">
+						<input type="Submit" name="submit" value="Submit">
+						</font>
+						</div>
+						</form>';
+			}			
+		}
+	}
+}
+else {	// this part happens if we don't press submit
+	if ( $clean['operatorid']) {
+		// pull the list of operators
+		$operators = array();
+		
+		if( getOperators( $operators)) {
+			print '<form method="post" action="' . $PHP_SELF . '">
+					<font face="Verdana, Arial, Helvetica, sans-serif">
+					<div align="left">
+					<table>';
+	
+			print '<tr><td><select name="operatorid_edit">';
+			
+			foreach ( $operators as $oid => $value) {
+				print '<option value="' . $oid . '">'
+					  . $value . ' (' . $oid . ')' . 
+					  '</option>';
+			
+			}
+	
+			print '</select></td></tr>';
+			print '<tr><td><font face="Verdana, Arial, Helvetica, sans-serif">
+					<input type="Submit" name="edit" value="Assign clients">
+					</font>
+					</div></td></tr>';
+			
+			print '</table></form>';
+		}
+	}
+}
+
+print '</body></html>';
+
+?>
