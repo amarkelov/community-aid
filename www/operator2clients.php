@@ -95,6 +95,7 @@ else if( $clean['edit']) {
 	if ( $clean['operatorid_edit']) {
 		$aActiveClients = array();
 		$aAssignedClients = array();
+		$aOperatorNames = array();
 		
 		if( getClientsForOperator( $clean['operatorid_edit'], $aAssignedClients)) {
 			if( getActiveClients( $aActiveClients)) {	
@@ -104,7 +105,15 @@ else if( $clean['edit']) {
 						to the operator.<br>When finished, press "Submit" button.</p>';
 			
 				print '<div align="left"><form method="post" action="' . $PHP_SELF . '">
-						<table width="100%">';
+						<table border="1" width="50%">';
+				
+				print '<tr>
+						<td></td>
+						<td><b>Client ID</b></td>
+						<td><b>Client Name</b></td>
+						<td><b>Client\'s timeslot</b></td>
+						<td><b>Client assigned to</b></td>
+					   </tr>';
 				
 				foreach( $aActiveClients as $cid => $value) {
 					print '<tr><td witdth="10%" valign="top">
@@ -113,8 +122,25 @@ else if( $clean['edit']) {
 						print 'checked';
 					}
 					print '></input></td>
-							<td width="10%">' . $cid . '</td>
-							<td width="100%">' . $value . '</tr>';
+							<td width="10%" valign="top">' . $cid . '</td>
+							<td width="30%" valign="top">' . $value . '</td>
+							<td width="10%" valign="top">' . getClientTimeSlot( $cid) . '</td>';
+					
+					print '<td width="100%" valign="top">';
+					getOperatorNameAssignedToClient( $cid, &$aOperatorNames);
+					
+					if( count($aOperatorNames)) {
+						
+						foreach( $aOperatorNames as $operator_name => $cid) {
+							print $operator_name . "<br>";
+						}
+						// clean it up
+						$aOperatorNames = array();
+					}
+					else {
+						print '&nbsp;';
+					}
+					print '</td>';
 				}
 				
 				

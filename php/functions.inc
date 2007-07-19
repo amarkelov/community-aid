@@ -727,6 +727,36 @@ function getOperatorName( $operatorid) {
 	return $sOperatorName;
 }
 
+function getOperatorNameAssignedToClient( $clientid, &$aOperatorNames) {
+	$myrow = '';
+
+	if( !ctype_digit( trim($clientid))) {
+		return false;
+	}
+	
+	$dbConnect = dbconnect();
+
+	$sql = "SELECT loginname FROM operators WHERE operatorid IN 
+			(SELECT operatorid FROM client2operator WHERE clientid='" . $clientid . "');";
+	
+	$result = mysql_query( $sql,$dbConnect);
+	if ( !$result) {
+		$message  = 'Invalid query: ' . mysql_error() . '<br>' . 'Query: ' . $sql;
+		die($message);
+	}
+	else {
+		while ( $myrow = mysql_fetch_array($result)) {
+			if(isset( $myrow['loginname'])) {
+				$aOperatorNames[ $myrow['loginname']] = $clientid;
+			} 
+		}
+	}
+	
+	dbclose( $dbConnect);
+	
+	return true;
+}
+
 function getOperatorLoginName( $operatorid) {
 	$myrow = '';
 	$sOperatorName = '';
@@ -828,6 +858,34 @@ function getClientsForOperator( $operatorid, &$clients) {
 	dbclose( $dbConnect);
 
 	return $result;
+}
+
+function getClientTimeSlot( $clientid) {
+	$myrow = '';
+	$timeslot = '&nbsp;';
+
+	if( !ctype_digit( trim($clientid))) {
+		return 'Bad client ID';
+	}
+	
+	$dbConnect = dbconnect();
+
+	$sql = "SELECT TIME_FORMAT(timeslot,'%H:%m') as timeslot FROM clients WHERE clientid='" . $clientid . "'";  
+
+	$result = mysql_query( $sql, $dbConnect);
+	if ( !$result) {
+		$message  = 'Invalid query: ' . mysql_error() . '<br>' . 'Query: ' . $sql;
+		die($message);
+	}
+	else {
+		while ( $myrow = mysql_fetch_array($result)) {
+			$timeslot = $myrow['timeslot'];
+		}
+	}
+	
+	dbclose( $dbConnect);
+	
+	return $timeslot;
 }
 
 function getClients( &$clients, $what_clients) {
