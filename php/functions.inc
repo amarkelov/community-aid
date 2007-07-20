@@ -1547,17 +1547,12 @@ function printAddEditClientTable( $clean)
 		<font face="verdana, arial, helvetica" size="-1">
 		<b>Time slot: </b>
 		</font>
-		<input type="text" name="timeslot" onchange="return vtslot(this);" value="';
-	if($timeslot) {
-		if(ereg("([0-9){2}):([0-9]{2}):([0-9]{2})", $clean['timeslot'], $reg)) {
-			print("$reg[1]:$reg[2]");
-		}
-	}
-	
-	print '" size="6" maxlength="5">
+		<input type="text" name="timeslot" onchange="return vtslot(this);" 
+			value="' . $clean['timeslot'] . '" size="6" maxlength="5">
 		<font size="1" color="#FF0000">
 		<b>* 24 hour format (HH:MM)</b>
 		</font>
+		</input>
 		</td>
 	
 		<td ALIGN="right" width="10%" VALIGN="top">

@@ -252,7 +252,7 @@ if ($clean['submit']) {
 		dbclose( $dbConnect);
 		
 		echo "Record updated/edited!<p>";
-		print  '<a href="' . $PHP_SELF . '">Choose another client to edit</a><p>';
+		print  '<a href="' . $_SERVER[PHP_SELF] . '">Choose another client to edit</a><p>';
 	}
 } // if ($submit)
 else if( $clean['edit']) {
@@ -276,7 +276,12 @@ else if( $clean['edit']) {
 	
 	    // editing so select a record
 	
-		$sql = "SELECT * FROM clients WHERE clientid='" . $clean['clientid'] . "'";
+		$sql = "SELECT firstname,lastname,initials,title,houseno,street,phone1,phone2,housetype,
+				dob,alone,ailments,contact1name,contact1relationship,contact1address,contact1phone1,
+				contact1phone2,contact2name,contact2relationship,contact2address,contact2phone1,
+				contact2phone2,gpname,referrer,referrer_other,housing,note,
+				TIME_FORMAT(timeslot,'%H:%i') as timeslot
+				FROM clients WHERE clientid='" . $clean['clientid'] . "'";
 		
 		$dbConnect = dbconnect();
 		

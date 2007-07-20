@@ -149,37 +149,37 @@ if(isset($_POST['alone'])) {
 }
 
 if(isset($_POST['ailments'])) {
-	if(ctype_alnum($_POST['ailments'])) {
+	if(ctype_print($_POST['ailments'])) {
 		$clean['ailments'] = htmlentities($_POST['ailments'], ENT_QUOTES );
 	}
 }
 
 if(isset($_POST['note'])) {
-	if(ctype_alnum($_POST['note'])) {
+	if(ctype_print($_POST['note'])) {
 		$clean['note'] = htmlentities($_POST['note'], ENT_QUOTES );
 	}
 }
 
 if(isset($_POST['referrer_other'])) {
-	if(ctype_alnum($_POST['referrer_other'])) {
+	if(ctype_print($_POST['referrer_other'])) {
 		$clean['referrer_other'] = htmlentities($_POST['referrer_other'], ENT_QUOTES );
 	}
 }
 
 if(isset($_POST['contact1name'])) {
-	if(ctype_alnum($_POST['contact1name'])) {
+	if(ctype_print($_POST['contact1name'])) {
 		$clean['contact1name'] = htmlentities($_POST['contact1name'], ENT_QUOTES );
 	}
 }
 
 if(isset($_POST['contact1relationship'])) {
-	if(ctype_alnum($_POST['contact1relationship'])) {
+	if(ctype_print($_POST['contact1relationship'])) {
 		$clean['contact1relationship'] = htmlentities($_POST['contact1relationship'], ENT_QUOTES );
 	}
 }
 
 if(isset($_POST['contact1address'])) {
-	if(ctype_alnum($_POST['contact1address'])) {
+	if(ctype_print($_POST['contact1address'])) {
 		$clean['contact1address'] = htmlentities($_POST['contact1address'], ENT_QUOTES );
 	}
 }
@@ -196,13 +196,13 @@ if(isset($_POST['contact2name'])) {
 }
 
 if(isset($_POST['contact2relationship'])) {
-	if(ctype_alnum($_POST['contact2relationship'])) {
+	if(ctype_print($_POST['contact2relationship'])) {
 		$clean['contact2relationship'] = htmlentities($_POST['contact2relationship'], ENT_QUOTES );
 	}
 }
 
 if(isset($_POST['contact2address'])) {
-	if(ctype_alnum($_POST['contact2address'])) {
+	if(ctype_print($_POST['contact2address'])) {
 		$clean['contact2address'] = htmlentities($_POST['contact2address'], ENT_QUOTES );
 	}
 }
@@ -257,7 +257,7 @@ if ($clean['submit']) {
 	}
 
 	echo "Record Added!<p>";
-	print  '<a href="' . $PHP_SELF . '">Add another client</a><p>';
+	print  '<a href="' . $_SERVER[PHP_SELF] . '">Add another client</a><p>';
 
 	dbclose($dbConnect);
 } // if ($submit)
