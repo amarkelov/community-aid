@@ -105,14 +105,14 @@ else if( $clean['edit']) {
 						to the operator.<br>When finished, press "Submit" button.</p>';
 			
 				print '<div align="left"><form method="post" action="' . $PHP_SELF . '">
-						<table border="1" width="50%">';
+						<table frame="border" rules="rows" width="50%">';
 				
 				print '<tr>
 						<td></td>
 						<td><b>Client ID</b></td>
 						<td><b>Client Name</b></td>
 						<td><b>Client\'s timeslot</b></td>
-						<td><b>Client assigned to</b></td>
+						<td align="center"><b>Client assigned to</b></td>
 					   </tr>';
 				
 				foreach( $aActiveClients as $cid => $value) {
@@ -123,10 +123,10 @@ else if( $clean['edit']) {
 					}
 					print '></input></td>
 							<td width="10%" valign="top">' . $cid . '</td>
-							<td width="30%" valign="top">' . $value . '</td>
-							<td width="10%" valign="top">' . getClientTimeSlot( $cid) . '</td>';
+							<td width="30%" valign="top">' . strtoupper( $value) . '</td>
+							<td width="10%" valign="top" align="center">' . getClientTimeSlot( $cid) . '</td>';
 					
-					print '<td width="100%" valign="top">';
+					print '<td width="100%" valign="top" align="center">';
 					getOperatorNameAssignedToClient( $cid, &$aOperatorNames);
 					
 					if( count($aOperatorNames)) {
