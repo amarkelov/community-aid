@@ -88,7 +88,7 @@ if ($clean['submit']) {
 			dbclose( $dbConnect);
 		}
 		print '<b>Clients assigned to operator!</b><p>
-				<a href="' . $PHP_SELF . '">Assign client(s) to another operator</a><p>';
+				<a href="' . $_SERVER[$PHP_SELF] . '">Assign client(s) to another operator</a><p>';
 	}
 }
 else if( $clean['edit']) {
