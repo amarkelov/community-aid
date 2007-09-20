@@ -55,28 +55,34 @@ if($settings['debug'] == 1){
  */
  
 if ($clean['delete']) {
-	if ($clean['operatorid']) {
-		$loginname = getOperatorLoginName($clean['operatorid_delete']);
-		if( ctype_alnum($loginname)) {
-			$clean['loginname_delete'] = $loginname;
-		}
-		 
-		$dbConnect = dbconnect();
-		
-		$sql = 'DELETE FROM operators WHERE loginname="' . $clean['loginname_delete'] . '"';
-				
-		$result = mysql_query( $sql, $dbConnect);
-		if ( !$result) {
-			$message  = 'Invalid query: ' . mysql_error() . '<br>' . 'Query: ' . $sql;
-			die($message);
+	if ( $clean['operatorid']) {
+		if( $clean['operatorid_delete'] != 1) {
+			$loginname = getOperatorLoginName($clean['operatorid_delete']);
+			if( ctype_alnum($loginname)) {
+				$clean['loginname_delete'] = $loginname;
+			}
+			 
+			$dbConnect = dbconnect();
+			
+			$sql = 'DELETE FROM operators WHERE loginname="' . $clean['loginname_delete'] . '"';
+					
+			$result = mysql_query( $sql, $dbConnect);
+			if ( !$result) {
+				$message  = 'Invalid query: ' . mysql_error() . '<br>' . 'Query: ' . $sql;
+				die($message);
+			}
+			else {
+				print '<b>Operator ' . $clean['loginname_delete'] . ' deleted!</b><p>
+						<a href="' . $PHP_SELF . '">Delete another operator</a><p>';
+			}
+			
+			dbclose( $dbConnect);
 		}
 		else {
-			print '<b>Operator ' . $clean['loginname_delete'] . ' deleted!</b><p>
+			print '<b>You cannot delete default System Administrator!</b><p>
 					<a href="' . $PHP_SELF . '">Delete another operator</a><p>';
-		}
 		
-		dbclose( $dbConnect);
-
+		}
 	}
 }
 else {	// this part happens if we don't press delete
