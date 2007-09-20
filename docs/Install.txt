@@ -1,0 +1,299 @@
+Installing on Debian:
+---------------------
+
+Install minimum system. During the installation create a separate partition 
+with mount point /srv. That is where we will hold all the files.
+
+Then:
+
+as root run:
+1) apt-get install apache2 php5 libapache2-mod-php5 mysql-server
+mysql-client php5-mysql cvsnt php-fpdf ssl-cert
+
+2) cd /srv
+3) cvs -d:pserver:anonymous@community-aid.cvs.sourceforge.net:/cvsroot/community-aid login
+4) cvs -z3 -d:pserver:anonymous@community-aid.cvs.sourceforge.net:/cvsroot/community-aid co -P community-aid
+5) chmod -R o-rwx /srv/community-aid
+6) chmod o+x /srv/community-aid
+7) chgrp -R www-data /srv/community-aid/php
+8) chgrp -R www-data /srv/community-aid/www
+9) cp /srv/community-aid/conf/community-aid /etc/apache2/sites-available/
+10) a2dissite (input 000-default)
+11) a2ensite (input community-aid)
+12) a2enmod (input ssl)
+13) mkdir /etc/apache2/ssl
+14) make-ssl-cert /usr/share/ssl-cert/ssleay.cnf /etc/apache2/ssl/apache.pem
+(NOTE: make sure that server name is the same as in your Apache config
+file!)
+
+15) edit /etc/apache2/ports.conf. Comment the line 'Listen 80' and add 'Listen 443':
+#Listen 80
+Listen 443
+
+16) /etc/init.d/apache2 restart
+
+17) mysql -u root < /srv/community-aid/mysql/community-aid-db-dump-clean.sql
+(NOTE: make sure you set MySQL root password and secure the default installation as it's
+recommended in the manual http://dev.mysql.com/doc/refman/5.0/en/default-privileges.html)
+
+18) edit /etc/php5/apache2/php.ini and change the defaults to the following values:
+
+include_path = ".:/usr/share/php:/usr/share/fpdf:/srv/community-aid/php"
+memory_limit = 128M
+max_execution_time = 360
+max_input_time = 360
+
+19) /etc/init.d/apache2 restart
+
+20) point your browser to https://server_IP/gmp.php and you must see the
+login prompt to the system.
+
+It's a good idea to configure a firewall on the system as well.
+You can use the following start/stop script for iptables:
+
+======================= iptables start/stop script ===========================
+
+#!/bin/sh
+
+set -e
+
+# Q: How do I get started?
+# A: (Did I mention "do not use it" already? Oh well.)
+#    1. Setup your normal iptables rules -- firewalling, port forwarding
+#       NAT, etc. When everything is configured the way you like, run:
+#
+#           /etc/init.d/iptables save active
+#
+#    2. Setup your your inactive firewall rules -- this can be something
+#       like clear all rules and set all policy defaults to accept (which
+#       can be done with /etc/init.d/iptables clear). When that is ready,
+#       save the inactive ruleset:
+#
+#           /etc/init.d/iptables save inactive
+#
+#    3. Controlling the script itself is done through runlevels configured
+#       with debconf for package installation. Run "dpkg-reconfigure iptables"
+#       to enable or disable after installation.
+#
+# Q: Is that all?
+# A: Mostly. You can save additional rulesets and restore them by name. As
+#    an example:
+#
+#       /etc/init.d/iptables save midnight
+#       /etc/init.d/iptables load midnight
+#
+#
+#    Autosave only works with start followed by stop.
+#
+#    Also, take great care with the halt option. It's almost as good as
+#    pulling the network cable, except it disrupts localhost too.
+#
+#    Also, create the /var/lib/iptables and /var/lib/ip6tables dirs
+#    as necessary.
+
+# enable ipv6 support
+enable_ipv6=false
+
+# set enable_autosave to "true" to autosave the active ruleset
+# when going from start to stop
+enable_autosave=false
+
+# set enable_save_counters to "true" to save table counters with
+# rulesets
+enable_save_counters=true
+
+PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
+
+initd="$0"
+default="$0"
+
+initd_abort () {
+  cmd=$1
+  shift
+  echo "Aborting iptables $cmd: $@."
+  echo
+  usage
+  exit 0
+}
+
+initd_have_a_cow_man () {
+  for i in $@; do
+    if ! command -v "$i" >/dev/null 2>&1; then
+      echo "Aborting iptables initd: no $i executable"
+      exit 0
+    fi
+  done
+}
+
+initd_clear () {
+  rm -f "$autosave"
+  echo -n "Clearing ${iptables_command} ruleset: default ACCEPT policy"
+  $iptables_save | sed "/-/d;/^#/d;s/DROP/ACCEPT/" | $iptables_restore
+  echo "."
+}
+
+initd_halt () {
+  rm -f $autosave
+  echo -n "Clearing ${iptables_command} ruleset: default DROP policy"
+  $iptables_save | sed "/-/d;/^#/d;s/ACCEPT/DROP/" | $iptables_restore
+  echo "."
+}
+
+initd_load () {
+  ruleset="$libdir/$@"
+  if ! test -f "$ruleset"; then
+    initd_abort load "unknown ruleset, \"$@\""
+  fi
+  if test "$@" = inactive; then
+    initd_autosave
+  fi
+  rm -f "$autosave"
+  echo -n "Loading ${iptables_command} ruleset: load \"$@\""
+  $iptables_restore < "$ruleset"
+  echo "."
+}
+
+initd_counters () {
+  if test "${enable_save_counters:-false}" = true; then
+    echo -n " with counters"
+    $iptables_save -c > "$ruleset"
+  else
+    $iptables_save | sed '/^:/s@\[[0-9]\{1,\}:[0-9]\{1,\}\]@[0:0]@g' > "$ruleset"
+  fi
+}
+
+initd_save () {
+  rm -f $autosave
+  ruleset="${libdir}/$@"
+  echo -n "Saving ${iptables_command} ruleset: save \"$@\""
+   initd_counters
+  echo "."
+}
+
+initd_autosave () {
+  if test -f $autosave -a ${enable_autosave-false} = true; then
+    ruleset="${libdir}/active"
+    echo -n "Autosaving ${iptables_command} ruleset: save \"active\""
+    initd_counters
+    echo "."
+  fi
+}
+
+usage () {
+#  current="$(ls -m ${libdir} \
+#    | sed 's/ \{0,1\}autosave,\{0,1\} \{0,1\}//')"
+cat << END
+$initd options:
+  start|restart|reload|force-reload
+     load the "active" ruleset
+  save <ruleset>
+     save the current ruleset
+  load <ruleset>
+     load a ruleset
+  stop
+     load the "inactive" ruleset
+  clear
+     remove all rules and user-defined chains, set default policy to ACCEPT
+  halt
+     remove all rules and user-defined chains, set default policy to DROP
+
+Saved ruleset locations: /var/lib/iptables/ and /var/lib/ip6tables/
+
+Please read: $default
+
+END
+}
+
+initd_main () {
+  case "$1" in
+    start|restart|reload|force-reload)
+      initd_load active
+      if test ${enable_autosave-false} = true; then
+        touch $autosave
+      fi
+      ;;
+    stop)
+      initd_load inactive
+      ;;
+    clear)
+      initd_clear
+      ;;
+    halt)
+      initd_halt
+      ;;
+    save)
+      shift
+      if test -z "$*"; then
+        initd_abort save "no ruleset name given"
+      else
+        initd_save "$*"
+      fi
+      ;;
+    load)
+      shift
+      if test -z "$*"; then
+        initd_abort load "no ruleset name given"
+      else
+        initd_load "$*"
+      fi
+      ;;
+    save_active) #legacy option
+      initd_save active
+      ;;
+    save_inactive) #legacy option
+      initd_save inactive
+      ;;
+    *)
+      echo "$initd: unknown command: \"$*\""
+      usage
+      ;;
+  esac
+}
+
+initd_preload() {
+  iptables="/sbin/${iptables_command}"
+  iptables_save="${iptables}-save"
+  iptables_restore="${iptables}-restore"
+  libdir="/var/lib/${iptables_command}"
+  autosave="${libdir}/autosave"
+  initd_have_a_cow_man "$iptables_save" "$iptables_restore"
+  ${iptables_command} -nL >/dev/null
+  initd_main $*
+}
+
+iptables_command=iptables initd_preload $*
+if test "$enable_ipv6" = "true"; then
+  iptables_command=ip6tables initd_preload $*
+fi
+
+exit 0
+
+======================= iptables start/stop script (END) ===========================
+
+Place it in /etc/init.d directory and run the following command to create necessary 
+start/stop links on your system:
+
+update-rc.d iptables defaults 10 90
+
+this one will create:
+   /etc/rc0.d/K90iptables -> ../init.d/iptables
+   /etc/rc1.d/K90iptables -> ../init.d/iptables
+   /etc/rc6.d/K90iptables -> ../init.d/iptables
+   /etc/rc2.d/S10iptables -> ../init.d/iptables
+   /etc/rc3.d/S10iptables -> ../init.d/iptables
+   /etc/rc4.d/S10iptables -> ../init.d/iptables
+   /etc/rc5.d/S10iptables -> ../init.d/iptables
+
+Now you need to create your rules to allow only HTTPS and SSH connections into your system:
+
+/sbin/iptables -A INPUT -s 127.0.0.1 -d 127.0.0.1 -i lo+ -j ACCEPT
+/sbin/iptables -A INPUT -p tcp -m tcp --dport 22 --tcp-flags SYN,RST,ACK SYN -j ACCEPT
+/sbin/iptables -A INPUT -p tcp -m state --state RELATED,ESTABLISHED -j ACCEPT
+
+Then run:
+
+/etc/init.d/iptables save_active
+
+to save the rules, so it will preserve them for future use.
+You may want to read more on iptables and securing Debian in 
+more details here http://www.debian.org/doc/manuals/securing-debian-howto/index.en.html#contents.
