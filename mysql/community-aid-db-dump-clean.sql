@@ -224,4 +224,7 @@ GRANT SELECT, INSERT, UPDATE ON `community_aid_db`.`calls` TO 'gmoperator'@'loca
 GRANT SELECT, UPDATE ON `community_aid_db`.`client_timeslot_call` TO 'gmoperator'@'localhost'; 
 GRANT SELECT, UPDATE ON `community_aid_db`.`operators` TO 'gmoperator'@'localhost'; 
 
+SET PASSWORD FOR 'gmadmin'@'localhost' = PASSWORD('gmadmin');
+SET PASSWORD FOR 'gmoperator'@'localhost' = PASSWORD('gmoperator');
+
 -- Dump completed on 2007-07-19 20:23:52
