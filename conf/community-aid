@@ -1,11 +1,10 @@
-#NameVirtualHost *
-Listen 127.0.0.1:8080
+NameVirtualHost *:443
 
-<VirtualHost 127.0.0.1:8080>
-	ServerName	localhost
-	ServerAdmin webmaster@localhost
+<VirtualHost *:443>
+	ServerName	ca-server
+	ServerAdmin webmaster@ca-server
 	
-	DocumentRoot /var/www/community-aid/www
+	DocumentRoot /srv/community-aid/www
 	<Directory />
 		Options FollowSymLinks
 		AllowOverride None
@@ -19,7 +18,7 @@ Listen 127.0.0.1:8080
 	SetENV   Admin					gmadmin
 	SetENV   Admin_Password		gmadmin
 
-	<Directory "/var/www/community-aid/www">
+	<Directory "/srv/community-aid/www">
 
 	Options -Indexes -FollowSymLinks
 	AllowOverride None
