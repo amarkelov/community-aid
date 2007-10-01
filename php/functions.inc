@@ -110,16 +110,21 @@ function updateUser($loginname, $newloginname, $newfullname, $newisadmin){
  */
  //TODO put the from into a table 3 rows x 2 columns
 function displayLogin($page, $check4Admin){
-	if ($page == ""){
+	if (!isset($page)){
 		$page = "gmp.php";
 	}
 
 	$out = '<table width="100%" border="0" cellpadding="2"><tr>';
 
 	if(!isset($_SESSION['s_username'])){   //we haven't logged in yet   
-		$out .= $_SESSION['s_username'] . 
-		'<br />	<div align="left">
-		<form id="login.php" method="post" action="login.php?f='.$page.'">
+		$out .= '<br />	<div align="left">';
+		
+		// check if login had failed due to wrong user name or password
+		if( array_key_exists('f', $_GET)) {
+			$out .= '<b><font color="#f11313">User name or password is incorrect!</font></b>';
+		}
+		
+		$out .= '<form id="login.php" method="post" action="login.php?f=' . $page . '">
 		<table>
 		<tr>
 		<td>Username: </td>
@@ -134,7 +139,8 @@ function displayLogin($page, $check4Admin){
 		</form></div></tr></td></table></body></html>';
 		echo $out;
 		return true; //we need to exit code
-	}else{  // we have logged in 
+	}
+	else {  // we have logged in 
 		if($check4Admin and !checkIsAdmin($_SESSION['s_username'])){
 			//if logged in, need to check for admin and IS NOT admin 
 			$out .= '<div align=left>Sorry you dont have sufficent priviledges to access this page<br /><br/>
@@ -146,7 +152,7 @@ function displayLogin($page, $check4Admin){
 		else {
 			$out .= '<td  valign="top"><div align="left">
 			Logged in as <b>' . $_SESSION['s_username'] .'</b>. 
-			<a href="logout.php?f=$thisPage">logout</a>
+			<a href="logout.php?f=' . $page . '">logout</a>
 			</div></td>';	
 		}
 	}
