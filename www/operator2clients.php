@@ -104,7 +104,7 @@ else if( $clean['edit']) {
 						the client names. Checked checkbox means the client will be assigned
 						to the operator.<br>When finished, press "Submit" button.</p>';
 			
-				print '<div align="left"><form method="post" action="' . $PHP_SELF . '">
+				print '<div align="left"><form method="post" action="' . $_SERVER['PHP_SELF'] . '">
 						<table frame="border" rules="rows" width="50%">';
 				
 				print '<tr>
@@ -161,7 +161,7 @@ else {	// this part happens if we don't press submit
 		$operators = array();
 		
 		if( getOperators( $operators)) {
-			print '<form method="post" action="' . $PHP_SELF . '">
+			print '<form method="post" action="' . $_SERVER['PHP_SELF'] . '">
 					<font face="Verdana, Arial, Helvetica, sans-serif">
 					<div align="left">
 					<table>';

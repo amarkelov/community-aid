@@ -288,7 +288,7 @@ if ($clean['submit']) {
 		}
 		else {
 			print '<b>Operator ' . $clean['loginname'] . ' (' . $clean['fullname'] . ') changed!</b><p>
-					<a href="' . $PHP_SELF . '">Edit another operator</a><p>';
+					<a href="' . $_SERVER['PHP_SELF'] . '">Edit another operator</a><p>';
 		}
 		
 		dbclose( $dbConnect);
@@ -299,7 +299,7 @@ else  if( $clean['edit']){
 	if ( $clean['operatorid_edit']) {
 		print '<div align="left">
 			<table>
-			<form method="post" action="' . $PHP_SELF . '" onsubmit="return(this.password = SHA1(this.password + \"' . getTheSalt() . '\"));">
+			<form method="post" action="' . $_SERVER['PHP_SELF'] . '" onsubmit="return(this.password = SHA1(this.password + \"' . getTheSalt() . '\"));">
 			<tr><td>Operator\'s login name: </td>
 				<td><input name="loginname" type="text" size="20" maxlength="64" value="' . getOperatorLoginName($clean['operatorid_edit']) .'" /></td></tr>
 			<tr><td>Operator\'s full name: </td>
@@ -327,7 +327,7 @@ else {
 		$operators = array();
 		
 		if( getOperators( $operators)) {
-			print '<form method="post" action="' . $PHP_SELF . '">
+			print '<form method="post" action="' . $_SERVER['PHP_SELF'] . '">
 					<font face="Verdana, Arial, Helvetica, sans-serif">
 					<div align="left">
 					<table>';

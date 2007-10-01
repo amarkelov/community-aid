@@ -269,7 +269,7 @@ else if( $clean['edit']) {
 				this.referrer_other.optional = true;
 				return verify(this);"
 				method="post" 
-				action="' . $PHP_SELF . '">
+				action="' . $_SERVER['PHP_SELF'] . '">
 			<font face="Verdana, Arial, Helvetica, sans-serif">';
 	
 	if ($clean['clientid']) {
@@ -365,7 +365,7 @@ else {
 		$clients = array();
 		
 		if( getAllClients( $clients)) {
-			print '<form method="post" action="' . $PHP_SELF . '">
+			print '<form method="post" action="' . $_SERVER['PHP_SELF'] . '">
 					<font face="Verdana, Arial, Helvetica, sans-serif">
 					<div align="left">
 					<table>';

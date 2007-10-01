@@ -109,10 +109,10 @@ if($settings['debug'] == 1){
 	// remove/black-list column
 		print '</td><td>';
 		if( $myrow["list"] == "black") {
-			print '<a href="' . $PHP_SELF . '"><img src="images/new/unlock.png" alt="Restore client record" border="0"></a>';
+			print '<a href="' . $_SERVER['PHP_SELF'] . '"><img src="images/new/unlock.png" alt="Restore client record" border="0"></a>';
 		}
 		else {
-			print '<a href="' . $PHP_SELF . '"><img src="images/new/encrypted.png" alt="Remove client record" border="0"></a>';
+			print '<a href="' . $_SERVER['PHP_SELF'] . '"><img src="images/new/encrypted.png" alt="Remove client record" border="0"></a>';
 		}
 	// no more raws
 		print "</td></tr>";

@@ -239,11 +239,11 @@ else {
 if ( !$clean['clientid'])   {
 	print ' <meta http-equiv="refresh" content="12" url="http://'
 			. $HTTP_ENV_VARS["HOSTNAME"]
-			. $PHP_SELF . '"  /> ';
+			. $_SERVER['PHP_SELF'] . '"  /> ';
 } 
 
 print '<form onsubmit="return(vtslot(this.nextcalltime));" 
-		method="post" action="' . $PHP_SELF . ' " >
+		method="post" action="' . $_SERVER['PHP_SELF'] . ' " >
 		<table width="100%" border="0" cellpadding="5">
 		<tr><td><font face="Verdana, Arial, Helvetica, sans-serif" size="2">';
 
