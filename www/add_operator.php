@@ -266,7 +266,7 @@ if ($clean['submit']) {
 		}
 		else {
 			print '<b>Operator ' . $clean['loginname'] . ' (' . $clean['fullname'] . ') added!</b><p>
-					<a href="' . $PHP_SELF . '">Add another operator</a><p>';
+					<a href="' . $_SERVER['PHP_SELF'] . '">Add another operator</a><p>';
 		}
 		
 		dbclose( $dbConnect);
@@ -277,7 +277,7 @@ else {	// this part happens if we don't press submit
 	if ( $clean['operatorid']) {
 		print '<div align="left">
 			<table>
-			<form method="post" action="' . $PHP_SELF . '" onsubmit="return(this.password = SHA1(this.password + \"' . getTheSalt() . '\"));">
+			<form method="post" action="' . $_SERVER['PHP_SELF'] . '" onsubmit="return(this.password = SHA1(this.password + \"' . getTheSalt() . '\"));">
 			<tr><td>Operator\'s login name: </td><td><input name="loginname" type="text" size="20" maxlength="64" /></td></tr>
 			<tr><td>Operator\'s full name: </td><td><input name="fullname" type="text" size="20" maxlength="64" /></td></tr>
 			<tr><td>Password: </td><td><input name="password" type="password" size="20" maxlength="64" /></td></tr>

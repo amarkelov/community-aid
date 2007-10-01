@@ -73,14 +73,14 @@ if ($clean['delete']) {
 			}
 			else {
 				print '<b>Operator ' . $clean['loginname_delete'] . ' deleted!</b><p>
-						<a href="' . $PHP_SELF . '">Delete another operator</a><p>';
+						<a href="' . $_SERVER['PHP_SELF'] . '">Delete another operator</a><p>';
 			}
 			
 			dbclose( $dbConnect);
 		}
 		else {
 			print '<b>You cannot delete default System Administrator!</b><p>
-					<a href="' . $PHP_SELF . '">Delete another operator</a><p>';
+					<a href="' . $_SERVER['PHP_SELF'] . '">Delete another operator</a><p>';
 		
 		}
 	}
@@ -91,7 +91,7 @@ else {	// this part happens if we don't press delete
 		$operators = array();
 		
 		if( getOperators( $operators)) {
-			print '<form method="post" action="' . $PHP_SELF . '">
+			print '<form method="post" action="' . $_SERVER['PHP_SELF'] . '">
 					<font face="Verdana, Arial, Helvetica, sans-serif">
 					<div align="left">
 					<table>';

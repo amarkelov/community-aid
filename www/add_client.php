@@ -275,7 +275,7 @@ else {
 				this.referrer_other.optional = true;
 				return verify(this);"
 				method="post" 
-				action="' . $PHP_SELF . '">
+				action="' . $_SERVER['PHP_SELF'] . '">
 			<font face="Verdana, Arial, Helvetica, sans-serif">';
 	
 	if ($clean['clientid']) {

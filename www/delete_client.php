@@ -58,7 +58,7 @@ if ($clean['submit']) {
 		deactivate_client( $clean['clientid']);
 			
 		print '<b>Client set inactive!</b><p>
-				<a href="' . $PHP_SELF . '">De-activate another client</a><p>';
+				<a href="' . $_SERVER['PHP_SELF'] . '">De-activate another client</a><p>';
 	}
 }
 else {	// this part happens if we don't press submit
@@ -69,7 +69,7 @@ else {	// this part happens if we don't press submit
 	$clients = array();
 	
 	if( getActiveClients( $clients)) {
-		print '<form method="post" action="' . $PHP_SELF . '">
+		print '<form method="post" action="' . $_SERVER['PHP_SELF'] . '">
 				<font face="Verdana, Arial, Helvetica, sans-serif">
 				<div align="left">
 				<table>';
