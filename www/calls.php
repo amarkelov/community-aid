@@ -139,7 +139,13 @@ if (isset($clean['submit']) and $clean['clientid']) {
 if ($clean['clientid'] and !isset($clean['submit'])) {
 	$dbConnect = dbconnect();
 
-	$sql = "SELECT * FROM clients WHERE (clients.clientid={$clean['clientid']})";
+	$sql = "SELECT firstname,lastname,
+					initials,title,houseno,
+					street,phone1,phone2,housetype,dob,alone,ailments,
+					contact1name,contact1relationship,contact1address,contact1phone1,contact1phone2,
+					contact2name,contact2relationship,contact2address,contact2phone1,contact2phone2,
+					gpname,referrer,housing,note,referrer_other,
+					TIME_FORMAT(timeslot,'%H:%i') as timeslot FROM clients WHERE (clients.clientid={$clean['clientid']})";
 	
 	$result = mysql_query($sql, $dbConnect);
 	if (!$result) {
