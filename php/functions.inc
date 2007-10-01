@@ -480,7 +480,7 @@ function draw_client_details($clientid)
 
     if( $clientid and $dbConnect) {
 		$sql  = "SELECT phone1,phone2,dob,ailments,note,
-					TIME_FORMAT(timeslot,'%H:%m') as timeslot from clients
+					TIME_FORMAT(timeslot,'%H:%i') as timeslot from clients
 					WHERE clientid='$clientid' AND active='1'";
 		
 		$result = mysql_query( $sql, $dbConnect);
@@ -876,7 +876,7 @@ function getClientTimeSlot( $clientid) {
 	
 	$dbConnect = dbconnect();
 
-	$sql = "SELECT TIME_FORMAT(timeslot,'%H:%m') as timeslot FROM clients WHERE clientid='" . $clientid . "'";  
+	$sql = "SELECT TIME_FORMAT(timeslot,'%H:%i') as timeslot FROM clients WHERE clientid='" . $clientid . "'";  
 
 	$result = mysql_query( $sql, $dbConnect);
 	if ( !$result) {
