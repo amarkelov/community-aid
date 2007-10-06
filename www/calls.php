@@ -140,11 +140,11 @@ if ($clean['clientid'] and !isset($clean['submit'])) {
 	$dbConnect = dbconnect();
 
 	$sql = "SELECT firstname,lastname,
-					initials,title,houseno,
-					street,phone1,phone2,housetype,dob,alone,ailments,
+					initials,title,gender,
+					address,phone1,phone2,housetype,dob,alone,ailments,
 					contact1name,contact1relationship,contact1address,contact1phone1,contact1phone2,
 					contact2name,contact2relationship,contact2address,contact2phone1,contact2phone2,
-					gpname,referrer,housing,note,referrer_other,
+					gpname,referrer,note,referrer_other,
 					TIME_FORMAT(timeslot,'%H:%i') as timeslot FROM clients WHERE (clients.clientid={$clean['clientid']})";
 	
 	$result = mysql_query($sql, $dbConnect);
@@ -162,8 +162,8 @@ if ($clean['clientid'] and !isset($clean['submit'])) {
 	$clean['lastname']				= htmlentities($myrow['lastname'], ENT_QUOTES);
 	$clean['initials']				= htmlentities($myrow['initials'], ENT_QUOTES);
 	$clean['title']					= htmlentities($myrow['title'], ENT_QUOTES);
-	$clean['houseno']				= htmlentities($myrow['houseno'], ENT_QUOTES);
-	$clean['street']				= htmlentities($myrow['street'], ENT_QUOTES);
+	$clean['gender']				= htmlentities($myrow['gender'], ENT_QUOTES);
+	$clean['address']				= htmlentities($myrow['address'], ENT_QUOTES);
 	$clean['phone1']				= htmlentities($myrow['phone1'], ENT_QUOTES);
 	$clean['phone2']				= htmlentities($myrow['phone2'], ENT_QUOTES);
 	$clean['housetype']				= htmlentities($myrow['housetype'], ENT_QUOTES);
@@ -182,10 +182,9 @@ if ($clean['clientid'] and !isset($clean['submit'])) {
 	$clean['contact2phone2']		= htmlentities($myrow['contact2phone2'], ENT_QUOTES);
 	$clean['gpname']				= htmlentities($myrow['gpname'], ENT_QUOTES);
 	$clean['referrer']				= htmlentities($myrow['referrer'], ENT_QUOTES);
-	$clean['housing']				= htmlentities($myrow['housing'], ENT_QUOTES);
 	$clean['timeslot']				= htmlentities($myrow['timeslot'], ENT_QUOTES);
 	$clean['note']					= htmlentities($myrow['note'], ENT_QUOTES);
-	$clean['referrer_other']			= htmlentities($myrow['referrer_other'], ENT_QUOTES);
+	$clean['referrer_other']		= htmlentities($myrow['referrer_other'], ENT_QUOTES);
 
 	dbclose($dbConnect);
 	
@@ -198,26 +197,29 @@ $out = '<title>Calls -- Friendly Call Service --' . $settings['location'] . '</t
 
 		<script type="text/javascript">
 		<!-- hide it from old browsers or from those with JavaScript disabled
-		function displayStatusMsg(msgStr) { //v1.0
-		  status=msgStr;
-		  document.returnValue = true;
-		}
-		
-		function vtslot(s)
+		function vtslot(time, form)
 		{
-		   var ts = Array();
-		   var ts = s.value.split(":");
-		   var hour = Number(ts[0]);
-		   var min = Number(ts[1]);
-		
-		   if(!isNaN(hour) && !isNaN(min)) {
-		      if((hour>=0 && hour<=23) && (min>=0 && min<=59)) {
-		         return true;
-		      }
-		   }
-			msg = "Time has to be of 24 hours format (HH:MM)!\n" ;
-		   alert( msg);
-		   return false;
+			var ts = Array();
+			var ts = time.value.split(":");
+			var hour = Number(ts[0]);
+			var min = Number(ts[1]);
+
+			// if both hours and minutes are numeric and within the range => true		
+			if(!isNaN(hour) && !isNaN(min)) {
+			   if((hour>=0 && hour<=23) && (min>=0 && min<=59)) {
+			      return true;
+			   }
+			}
+			
+			// if the call is finished => true
+			if(form.call_finished.checked) {
+				return true;
+			}
+
+			// otherwise throw error message
+			msg = "Time has to be of 24 hours format (HH:MM)!\n";
+			alert( msg);
+			return false;
 		}
 		-->
 		</script>
@@ -248,10 +250,10 @@ if ( !$clean['clientid'])   {
 			. $_SERVER['PHP_SELF'] . '"  /> ';
 } 
 
-print '<form onsubmit="return(vtslot(this.nextcalltime));" 
+print '<form onsubmit="return(vtslot(this.nextcalltime, this));" 
 		method="post" action="' . $_SERVER['PHP_SELF'] . ' " >
 		<table width="100%" border="0" cellpadding="5">
-		<tr><td><font face="Verdana, Arial, Helvetica, sans-serif" size="2">';
+		<tr><td>';
 
 if ( $clean['clientid'])   {
 	// Client name (bold and big) when one selected
@@ -269,10 +271,6 @@ else {
 
 print '</td>
  </tr>
- <tr>
-   <td height="33">
-   </td>
- </tr> 
  <tr> 
    <td rowspan="3" width="25%" valign="top"> 
      <font face="Verdana, Arial, Helvetica, sans-serif" size="2"><br/>';
@@ -284,11 +282,6 @@ else {
     print '</font>
 		    </td>
 		    <td width="75%" valign="top" align="center" height="120" > 
-		    <div align="right">
-		      <font face="Verdana, Arial, Helvetica, sans-serif" size="2"> 
-		      </font>
-		    </div>
-		    <br /><br /><br />
 		    <b><div align="left">Client details:</div></b>';
     
 	draw_client_details($clean['clientid']);
