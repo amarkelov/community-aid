@@ -143,7 +143,7 @@ function displayLogin($page, $check4Admin){
 	else {  // we have logged in 
 		if($check4Admin and !checkIsAdmin($_SESSION['s_username'])){
 			//if logged in, need to check for admin and IS NOT admin 
-			$out .= '<div align=left>Sorry you dont have sufficent priviledges to access this page<br /><br/>
+			$out .= '<div align=left>Sorry you do not have sufficent priviledges to access this page<br /><br/>
 					<a href=gmp.php>Click here to return to main page</a></div></td></tr></table>';
 			echo $out;
 			return true;
@@ -153,15 +153,63 @@ function displayLogin($page, $check4Admin){
 			$out .= '<td  valign="top"><div align="left">
 			Logged in as <b>' . $_SESSION['s_username'] .'</b>. 
 			<a href="logout.php?f=' . $page . '">logout</a>
+			<br><br>
+			<a href=gmp.php>Click here to return to main menu</a>
 			</div></td>';	
 		}
 	}
 	$out .= '<td><div align="right">
-			<a href="/gmp.php"><img src="/images/header.png" border="0" alt="Friendly Call Service"></a>
-			</div></td>
-			</tr></table>';
+			<a href="/gmp.php"><img src="/images/header.png" border="0" alt="Friendly Call Service"></a>';
+	$out .= '<br>';
+	$out .= '<br><b>Registered clients today:</b> ' . getNumberOfRegisteredClients();
+	$out .= '<br><b>Active clients today:</b> ' . getNumberOfActiveClients();
+	$out .= '</div></td></tr></table>';
 	
 	echo $out;
+}
+
+function getNumberOfRegisteredClients() {
+	$iNumberOfClients = 0;
+	$dbConnect = dbconnect();
+
+	$sql = "SELECT COUNT(clientid) FROM clients";
+	
+	$result = mysql_query( $sql, $dbConnect);
+	if ( !$result) {
+		$message  = 'Invalid query: ' . mysql_error() . '<br>' . 'Query: ' . $sql;
+		die($message);
+	}
+
+	$myrow = mysql_fetch_row($result);
+	if($myrow != FALSE) {
+		$iNumberOfClients = $myrow[0];
+	}
+	
+	dbclose( $dbConnect);
+	
+	return $iNumberOfClients;
+}
+
+function getNumberOfActiveClients() {
+	$iNumberOfClients = 0;
+	$dbConnect = dbconnect();
+
+	$sql = "SELECT COUNT(clientid) FROM clients WHERE active='1'";
+	
+	$result = mysql_query( $sql, $dbConnect);
+	if ( !$result) {
+		$message  = 'Invalid query: ' . mysql_error() . '<br>' . 'Query: ' . $sql;
+		die($message);
+	}
+
+	$myrow = mysql_fetch_row($result);
+	if($myrow != FALSE) {
+		$iNumberOfClients = $myrow[0];
+	}
+	
+	dbclose( $dbConnect);
+	
+	return $iNumberOfClients;
 }
 
 function print_debug( $clean, $settings) {
@@ -473,13 +521,13 @@ function draw_clients()
 
 function draw_client_details($clientid)
 {
-    $fs = 1; // font size
+    $fs = 2; // font size
     $regs = 0;
 
 	$dbConnect = dbconnect();
 
     if( $clientid and $dbConnect) {
-		$sql  = "SELECT phone1,phone2,dob,ailments,note,
+		$sql  = "SELECT phone1,phone2,alone,dob,ailments,note,
 					TIME_FORMAT(timeslot,'%H:%i') as timeslot from clients
 					WHERE clientid='$clientid' AND active='1'";
 		
@@ -512,29 +560,40 @@ function draw_client_details($clientid)
 				$timeslot = $myrow['timeslot'];
 				$ailments = $myrow["ailments"];
 		       	$note = $myrow["note"];
+		       	$alone = $myrow["alone"];
 		    }
 		}
     }    
 
     $out  = '<table frame="border" width="100%">';
     $out .= '<tr>';
-    $out .= "<td width=\"30%\"><font size=$fs><b>Phone 1:</b></font></td>";
-    $out .= "<td><font size=$fs>$phone1</font></td>";
+    $out .= "<td width=\"30%\"><font size=" . $fs ."><b>Phone 1:</b></font></td>";
+    $out .= "<td><font size=" . $fs . ">" . $phone1 . "</font></td>";
     $out .= '</tr><tr>';        
-    $out .= "<td width=\"30%\"><font size=$fs><b>Phone 2:</b></font></td>";
-    $out .= "<td><font size=$fs>$phone2</font></td>";
+    $out .= "<td width=\"30%\"><font size=" . $fs . "><b>Phone 2:</b></font></td>";
+    $out .= "<td><font size=" . $fs . ">" . $phone2 . "</font></td>";
     $out .= '</tr><tr>';    
-    $out .= "<td width=\"30%\"><font size=$fs><b>D.O.B. (DD/MM/YYYY):</b></font></td>";
-    $out .= "<td><font size=$fs>$dob</font></td>";
+    $out .= "<td width=\"30%\"><font size=" . $fs . "><b>D.O.B. (DD/MM/YYYY):</b></font></td>";
+    $out .= "<td><font size=" . $fs . ">" . $dob . "</font></td>";
     $out .= '</tr><tr>';
-    $out .= "<td width=\"30%\"><font size=$fs><b>Time slot:</b></font></td>";
-    $out .= "<td><font size=$fs>$timeslot</font></td>";
+    $out .= "<td width=\"30%\"><font size=" . $fs . "><b>Time slot:</b></font></td>";
+    $out .= "<td><font size=" . $fs . ">" . $timeslot . "</font></td>";
     $out .= '</tr><tr>';
-    $out .= "<td width=\"30%\"><font size=$fs><b>Ailments:</b></font></td>";
-    $out .= "<td><font size=$fs>$ailments</font></td>";
+    $out .= "<td width=\"30%\"><font size=" . $fs . "><b>Alone:</b></font></td>";
+    $out .= "<td><font size=" . $fs . ">"; 
+		if( $alone = 1) {
+    		$out .= "Yes";
+		}
+		else {
+			$out .= "No";
+		}
+	$out .= "</font></td>";
     $out .= '</tr><tr>';
-    $out .= "<td width=\"30%\"><font size=$fs><b>Notes:</b></font></td>";
-    $out .= "<td><font size=$fs>$note</font></td>";
+    $out .= "<td width=\"30%\"><font size=" . $fs . "><b>Medical notes:</b></font></td>";
+    $out .= "<td><font size=" . $fs .">" . $ailments . "</font></td>";
+    $out .= '</tr><tr>';
+    $out .= "<td width=\"30%\"><font size=" . $fs . "><b>Alerts:</b></font></td>";
+    $out .= "<td><font size=" . $fs . ">" . $note . "</font></td>";
     $out .= '</tr></table>';
     
     print "$out";
@@ -1103,6 +1162,8 @@ function printAddEditClientJavaScript()
 
 function printAddEditClientTable( $clean)
 {
+	$arDistricts = array(); // array to populate district list
+	
 	print'<table width="100%" border="0" cellspacing="4" cellpadding="2">
 	<tr>
 		<td bgcolor="#EEEEEE" colspan="2">
@@ -1202,9 +1263,54 @@ function printAddEditClientTable( $clean)
 	
 		<td ALIGN="right"  width="30%" VALIGN="top">
 		<font face="verdana, arial, helvetica" size="-1">
-		<b>House #: </b>
+		<b>Address: </b>
 		</font>
-		<input type="Text" name="houseno" value="' . $clean['houseno'] . '" size="30" maxlength="30">
+		<input type="Text" name="address" value="' . $clean['address'] . '" size="30" maxlength="30">
+		<font size="1" color="#FF0000">
+		<b> *</b>
+		</font>
+		</td>
+
+		<td ALIGN="right" width="10%" VALIGN="top">
+		</td>
+	
+		<td ALIGN="left" width="30%"  VALIGN="top">
+		<font face="verdana, arial, helvetica" size="-1">
+		<b>';
+		
+		print '<input type="radio" name="gender" value="female" ';
+		if($clean['gender'] == 'female') {
+			print 'checked';
+		}
+		print '>Female</input>';
+		
+		print '<input type="radio" name="gender" value="male" ';
+		if($clean['gender'] == 'male') {
+			print 'checked ';
+		}
+		print '>Male</input>';
+		
+		print '</b>
+		</font>
+		</td>
+	
+		<td ALIGN="left" width="15%"  VALIGN="top">
+		</td>
+	</tr>
+	</TABLE>
+	
+	
+	
+	<TABLE BORDER=0 WIDTH=100%>
+	<tr>
+		<td ALIGN="right" width="15%" VALIGN="top">
+		</td>
+	
+		<td ALIGN="right"  width="30%" VALIGN="top">
+		<font face="verdana, arial, helvetica" size="-1">
+		<b>Area: </b>
+		</font>
+		<input type="Text" name="area" value="' . $clean['area'] . '" size="25">
 		<font size="1" color="#FF0000">
 		<b> *</b>
 		</font>
@@ -1215,7 +1321,7 @@ function printAddEditClientTable( $clean)
 	
 		<td ALIGN="left" width="30%"  VALIGN="top">
 		<font face="verdana, arial, helvetica" size="-1">
-		<b>Note: </b><br>
+		<b>Alerts: </b><br>
 		</font>
 		<textarea name="note" cols="27" rows="4" >' . $clean['note'] . '</textarea>
 		</td>
@@ -1234,43 +1340,26 @@ function printAddEditClientTable( $clean)
 	
 		<td ALIGN="right"  width="30%" VALIGN="top">
 		<font face="verdana, arial, helvetica" size="-1">
-		<b>Street: </b>
-		</font>
-		<input type="Text" name="street" value="' . $clean['street'] . '" size="30">
-		<font size="1" color="#FF0000">
+		<b>District: </b>
+		</font>';
+			
+		if( getDistrictList( $arDistricts)) {
+			print '<select name="districtid">';
+			
+			foreach( $arDistricts as $did => $district_name) {
+				if($clean['districtid'] == $did) {
+					print '<option value="' . $did . '" selected>' . $district_name . '</option>';
+				}
+				else {
+					print '<option value="' . $did . '">' . $district_name . '</option>';
+				}
+			}
+			
+			print '</select>';
+		}
+		print '<font size="1" color="#FF0000">
 		<b> *</b>
 		</font>
-		</td>
-	
-		<td ALIGN="right" width="10%" VALIGN="top">
-		</td>
-	
-		<td ALIGN="left" width="30%"  VALIGN="top">
-		<font face="verdana, arial, helvetica" size="-1">
-		<b>Landlord: </b></font>
-	    <select name="housing">
-	         <option value="FCC">FCC</option>
-	         <option value="Owner Occupier">Owner Occupier</option>
-	         <option value="HA">HA - add note</option>
-	         <option value="other">Other</option>
-	         <option value="' . $clean['housing'] . '" selected>' . $clean['housing'] . '</option>
-	    </select>
-		</td>
-	
-		<td ALIGN="left" width="15%"  VALIGN="top">
-		</td>
-	</tr>
-	</TABLE>
-	
-	
-	
-	<TABLE BORDER=0 WIDTH=100%>
-	<tr>
-		<td ALIGN="right" width="15%" VALIGN="top">
-		</td>
-	
-		<td ALIGN="right"  width="30%" VALIGN="top">
-		&nbsp;
 		</td>
 	
 		<td ALIGN="right" width="10%" VALIGN="top">
@@ -1306,7 +1395,7 @@ function printAddEditClientTable( $clean)
 	
 		<td ALIGN="right"  width="30%" VALIGN="top">
 		<font face="verdana, arial, helvetica" size="-1">
-		<b>Phone Number 1: </b>
+		<b>Phone Number 1 <font size="1" color="#FF0000">(digits only!)</font>: </b>
 		</font>
 		<input type="Text" name="phone1" onchange="return vphone(this);" value="' . $clean['phone1'] . '" size="15">
 		<font size="1" color="#FF0000">
@@ -1319,7 +1408,9 @@ function printAddEditClientTable( $clean)
 	
 		<td ALIGN="left" width="30%"  VALIGN="top">
 		<font face="verdana, arial, helvetica" size="-1">
-		<b>Phone Number 2: </b></font><input type="text" name="phone2" onchange="return vphone(this);" size="14" value="' . $clean['phone2'] . '">
+		<b>Phone Number 2 <font size="1" color="#FF0000">(digits only!)</font>: </b>
+		</font>
+		<input type="text" name="phone2" onchange="return vphone(this);" size="14" value="' . $clean['phone2'] . '">
 		<font size="1" color="#FF0000">
 		<b> *</b>
 		</font>
@@ -1396,9 +1487,9 @@ function printAddEditClientTable( $clean)
 	
 		<td ALIGN="left" width="30%"  VALIGN="top">
 		<font face="verdana, arial, helvetica" size="-1">
-		<b>Ailments: </b>
+		<b>Medical notes: </b><br>
 		</font>
-		<input type="text" name="ailments" size="30" value="' . $clean['ailments'] . '" maxlength="150">
+		<textarea name="ailments" cols="27" rows="4" >' . $clean['ailments'] . '</textarea>
 		<font size="1" color="#FF0000">
 		<b> *</b>
 		</font>
@@ -1439,7 +1530,7 @@ function printAddEditClientTable( $clean)
 	
 		<td ALIGN="left" width="30%"  VALIGN="top">
 		<font face="verdana, arial, helvetica" size="-1">
-		<b>Phone: </b>
+		<b>Phone <font size="1" color="#FF0000">(digits only!)</font>: </b>
 		</font>
 		<input type="text" name="contact1phone1" onchange="return vphone(this);" size="15" maxlength="15" value="' . $clean['contact1phone1'] . '">
 		<font size="1" color="#FF0000">
@@ -1496,7 +1587,7 @@ function printAddEditClientTable( $clean)
 	
 		<td ALIGN="left" width="30%"  VALIGN="top">
 		<font face="verdana, arial, helvetica" size="-1">
-		<b>Phone: </b>
+		<b>Phone <font size="1" color="#FF0000">(digits only!)</font>: </b>
 		</font>
 		<input type="text" name="contact2phone1" onchange="return vphone(this);" size="15" maxlength="15" value="' . $clean['contact2phone1'] . '">
 		</td>
@@ -1569,6 +1660,33 @@ function printAddEditClientTable( $clean)
 	</tr>
 	</TABLE>';
 
+}
+
+function getDistrictList( &$arDistricts)
+{
+	$myrow = '';
+	$dbConnect = dbconnect();
+	
+	$sql = "SELECT districtid,district_name,comments FROM districts";
+
+	$result = mysql_query( $sql,$dbConnect);
+	if ( !$result) {
+		$message  = 'Invalid query: ' . mysql_error() . '<br>' . 'Query: ' . $sql;
+		die($message);
+	}
+	else {
+		while ( $myrow = mysql_fetch_array($result)) {
+			if(isset( $myrow['districtid'])) {
+				if( ctype_digit($myrow['districtid'])) { 
+					$arDistricts[$myrow['districtid']]= htmlentities($myrow['district_name'], ENT_QUOTES);
+				}
+			} 
+		}
+	}
+	
+	dbclose( $dbConnect);
+	
+	return $result;
 }
 
 // pdf stuff begin
