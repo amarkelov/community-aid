@@ -1,52 +1,73 @@
-<?php   session_start(); ?><html>
+<?php
+session_start();
+require 'functions.inc';
+
+$settings = get_gmp_settings();
+?>
+
+
+<html>
 <head>
-<title>Good Morning Project</title>
-<script language="JavaScript">
-
-var sParams = "toolbar=no,menubar=no,resizable=yes,height=600,width=800";
-var sURL ;
-var sWindowName = "GMP";
-
-function openWin()
-{
-var newWindow = window.open(sURL, sWindowName, sParams);
-newWindow.focus();
-}
-</script>
-<style>
-body {
-	background-color: #BEC8FD;
-}
-</style>
+<title> Report -- Good Morning <?php echo $settings['location'] ?></TITLE>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
 </head>
- <?php  
- 	require("functions.inc");
-	
-	$settings = get_gmp_settings();
-	
-	if ($settings['debug'] > 0) {
-		print_debug( $clean, $settings);
-	}
- 	
+
+
+<body bgcolor="#BEC8FD" link="#0000FF" vlink="#0000FF" alink="#0000FF">
+<font face="Verdana" size="2">
+<?php 
 	// START LOG IN CODE
-	$doWeExit = displayLogin(basename($_SERVER['PHP_SELF']), false);
-	if($doWeExit == true){
-		exit;
-	}
+		$doWeExit = displayLogin(basename($_SERVER['PHP_SELF']), false);
+		if($doWeExit == true){
+			exit;
+		}
 	// END LOG IN CODE
 ?>
-<body onLoad="javascript:window.name = 'GMP';">
-<button name="swap" onClick="javascript: sURL = 'calls.php'; openWin();" > Calls </button>
-<?php if(checkIsAdmin($_SESSION['s_username'])){?>
-<button name="swap" onClick="javascript: sURL = 'add_client.php'; openWin();" > Add Client </button>
-<button name="swap" onClick="javascript: sURL = 'edit_client.php'; openWin();" > Edit Client </button>
-<button name="swap" onClick="javascript: sURL = 'delete_client.php'; openWin();" > De-activate Client </button>
-<button name="swap" onClick="javascript: sURL = 'restore_client.php'; openWin();" > Re-activate Client </button>
-<button name="swap" onClick="javascript: sURL = 'operator2clients.php'; openWin();" > Assign Client(s) to Operator </button>
-<button name="swap" onClick="javascript: sURL = 'add_operator.php'; openWin();" > Add Operators </button>
-<button name="swap" onClick="javascript: sURL = 'edit_operator.php'; openWin();" > Edit Operators </button>
-<button name="swap" onClick="javascript: sURL = 'delete_operator.php'; openWin();" > Delete Operators </button>
-<button name="swap" onClick="javascript: sURL = 'report.php'; openWin();" > Report </button>
-<?php }?>
+
+<table>
+<tr>
+	<td><a href='calls.php'>Calls</a></td>
+	<td>Calls is the main operator's tool to log call to/from client(s)</td>
+</tr>
+<tr>
+	<?php if(checkIsAdmin($_SESSION['s_username'])){?>
+	<td><a href='add_client.php'>Add Client</a></td>
+	<td>Add new client to the system</td>
+</tr>
+<tr>
+	<td><a href='edit_client.php'>Edit Client</a></td>
+	<td>Edit existing client</td>
+</tr>
+<tr>
+	<td><a href='delete_client.php'>De-activate Client</a></td>
+	<td>Mark client 'inactive'. We never delete clients. Once marked 'inactive' client stops appearing on operators lists.</td>
+</tr>
+<tr>
+	<td><a href='restore_client.php'>Re-activate Client</a></td>
+	<td>Marks client 'active'. The client now can be assigned to operator(s) again.</td>
+</tr>
+<tr>
+	<td><a href='operator2clients.php'>Assign Client(s) to Operator</a></td>
+	<td>Before client can be served she has to be assigned to operator(s)</td>
+</tr>
+<tr>
+	<td><a href='add_operator.php'>Add Operators</a></td>
+	<td>Add new operator to the system</td>
+</tr>
+<tr>
+	<td><a href='edit_operator.php'>Edit Operators</a></td>
+	<td>Edit operator's name, login name, change password, add administrator privileges</td>
+</tr>
+<tr>
+	<td><a href='delete_operator.php'>Delete Operators</a></td>
+	<td>Delete operator from the system</td>
+</tr>
+<tr>
+	<td><a href='report.php'>Report</a></td>
+	<td>Create call reports by Classification, date, client name (no names are displayed in the resulted report!) and district</td>
+	<?php }?>
+</tr>
+</table>
+
 </body>
 </html>
