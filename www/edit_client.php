@@ -64,15 +64,21 @@ if(isset($_POST['title'])) {
 	$clean['title'] = htmlentities($_POST['title'], ENT_QUOTES );
 }
 
-if(isset($_POST['houseno'])) {
-	if(ctype_digit($_POST['houseno'])) {
-		$clean['houseno'] = $_POST['houseno'];
+if(isset($_POST['gender'])) {
+	if(ctype_print($_POST['gender'])) {
+		$clean['gender'] = htmlentities($_POST['gender'], ENT_QUOTES );
 	}
 }
 
-if(isset($_POST['street'])) {
-	if(ctype_print($_POST['street'])) {
-		$clean['street'] = htmlentities($_POST['street'], ENT_QUOTES );
+if(isset($_POST['address'])) {
+	if(ctype_print($_POST['address'])) {
+		$clean['address'] = htmlentities($_POST['address'], ENT_QUOTES );
+	}
+}
+
+if(isset($_POST['area'])) {
+	if(ctype_print($_POST['area'])) {
+		$clean['area'] = htmlentities($_POST['area'], ENT_QUOTES );
 	}
 }
 
@@ -94,12 +100,6 @@ if(isset($_POST['dob'])) {
 if(isset($_POST['gpname'])) {
 	if(ctype_print($_POST['gpname'])) {
 		$clean['gpname'] = htmlentities($_POST['gpname'], ENT_QUOTES );
-	}
-}
-
-if(isset($_POST['housing'])) {
-	if(ctype_print($_POST['housing'])) {
-		$clean['housing'] = htmlentities($_POST['housing'], ENT_QUOTES );
 	}
 }
 
@@ -129,7 +129,7 @@ if(isset($_POST['ailments'])) {
 }
 
 if(isset($_POST['note'])) {
-	if(ctype_print($_POST['note'])) {
+	if(ctype_print(strtr($_POST['note'],"\n\t\r", "   "))) {
 		$clean['note'] = htmlentities($_POST['note'], ENT_QUOTES );
 	}
 }
@@ -195,6 +195,12 @@ if(isset($_POST['reason'])) {
 	}
 }
 
+if(isset($_POST['districtid'])) {
+	if(ctype_digit($_POST['districtid'])) {
+		$clean['districtid'] = $_POST['districtid'];
+	}
+}
+
 if(isset($_SESSION['operatorid'])) {
 	$clean['operatorid'] = $_SESSION['operatorid'];
 }
@@ -224,10 +230,10 @@ if ($clean['submit']) {
 	// here if no ID then editing  else adding
 	if ( $clean['clientid']) {
 	    $sql  = "UPDATE clients SET firstname='" . $clean['firstname'] ."',
-		    lastname='" . $clean['lastname'] . "',title='" . $clean['title'] . "',houseno='" . $clean['houseno'] . "',
-		    street='" . $clean['street'] . "',phone1='" . $clean['phone1'] . "',
+		    lastname='" . $clean['lastname'] . "',title='" . $clean['title'] . "',gender ='" . $clean['gender'] . "',
+		    address='" . $clean['address'] . "', area='" . $clean['area'] . "',phone1='" . $clean['phone1'] . "',
 		    phone2='" . $clean['phone2'] . "',dob='" . $clean['dob'] . "',gpname='" . $clean['gpname'] . "',
-		    housing='" . $clean['housing'] . "',housetype='" . $clean['housetype'] . "',referrer='" . $clean['referrer'] . "',
+		    housetype='" . $clean['housetype'] . "',referrer='" . $clean['referrer'] . "',
 		    alone='" . $clean['alone'] . "',ailments='" . $clean['ailments'] . "',note='" . $clean['note'] . "',
 		    referrer_other='" . $clean['referrer_other'] . "',
 		    contact1name='" . $clean['contact1name'] . "',
@@ -238,6 +244,7 @@ if ($clean['submit']) {
 		    contact2address='" . $clean['contact2address'] . "',
 		    contact2phone1='" . $clean['contact2phone1'] . "', 
 		    timeslot='" . $clean['timeslot'] . "', changenote='" . $clean['reason'] . "', 
+			districtid='" . $clean['districtid'] . "',
 		    modifiedby='" . $clean['operatorid'] . "' WHERE clientid='" . $clean['clientid'] . "'";
 
 		// run SQL against the DB
@@ -276,10 +283,10 @@ else if( $clean['edit']) {
 	
 	    // editing so select a record
 	
-		$sql = "SELECT firstname,lastname,initials,title,houseno,street,phone1,phone2,housetype,
+		$sql = "SELECT firstname,lastname,initials,title,gender,address,area,phone1,phone2,housetype,
 				dob,alone,ailments,contact1name,contact1relationship,contact1address,contact1phone1,
 				contact1phone2,contact2name,contact2relationship,contact2address,contact2phone1,
-				contact2phone2,gpname,referrer,referrer_other,housing,note,
+				contact2phone2,gpname,referrer,referrer_other,note,districtid,
 				TIME_FORMAT(timeslot,'%H:%i') as timeslot
 				FROM clients WHERE clientid='" . $clean['clientid'] . "'";
 		
@@ -299,8 +306,9 @@ else if( $clean['edit']) {
 		$clean['lastname']				= htmlentities($myrow['lastname'], ENT_QUOTES);
 		$clean['initials']				= htmlentities($myrow['initials'], ENT_QUOTES);
 		$clean['title']					= htmlentities($myrow['title'], ENT_QUOTES);
-		$clean['houseno']				= htmlentities($myrow['houseno'], ENT_QUOTES);
-		$clean['street']				= htmlentities($myrow['street'], ENT_QUOTES);
+		$clean['gender']				= htmlentities($myrow['gender'], ENT_QUOTES);
+		$clean['address']				= htmlentities($myrow['address'], ENT_QUOTES);
+		$clean['area']					= htmlentities($myrow['area'], ENT_QUOTES);
 		$clean['phone1']				= htmlentities($myrow['phone1'], ENT_QUOTES);
 		$clean['phone2']				= htmlentities($myrow['phone2'], ENT_QUOTES);
 		$clean['housetype']				= htmlentities($myrow['housetype'], ENT_QUOTES);
@@ -319,10 +327,10 @@ else if( $clean['edit']) {
 		$clean['contact2phone2']		= htmlentities($myrow['contact2phone2'], ENT_QUOTES);
 		$clean['gpname']				= htmlentities($myrow['gpname'], ENT_QUOTES);
 		$clean['referrer']				= htmlentities($myrow['referrer'], ENT_QUOTES);
-		$clean['housing']				= htmlentities($myrow['housing'], ENT_QUOTES);
 		$clean['timeslot']				= htmlentities($myrow['timeslot'], ENT_QUOTES);
 		$clean['note']					= htmlentities($myrow['note'], ENT_QUOTES);
-		$clean['referrer_other']			= htmlentities($myrow['referrer_other'], ENT_QUOTES);
+		$clean['referrer_other']		= htmlentities($myrow['referrer_other'], ENT_QUOTES);
+		$clean['districtid']			= htmlentities($myrow['districtid'], ENT_QUOTES);
 	
 	//	$clientid = $myrow["clientid"];
 	  
