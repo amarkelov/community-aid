@@ -87,16 +87,23 @@ if(isset($_POST['title'])) {
 	$clean['title'] = htmlentities($_POST['title'], ENT_QUOTES );
 }
 
-if(isset($_POST['houseno'])) {
-	if(ctype_digit($_POST['houseno'])) {
-		$clean['houseno'] = $_POST['houseno'];
+if(isset($_POST['gender'])) {
+	if(ctype_print($_POST['gender'])) {
+		$clean['gender'] = htmlentities($_POST['gender'], ENT_QUOTES );
 	}
 }
 
-if(isset($_POST['street'])) {
-	$string = $_POST['street'];
-	if(ctype_alpha(ereg_replace( " |\'|-", "", $string))) {
-		$clean['street'] = htmlentities($_POST['street'], ENT_QUOTES );
+if(isset($_POST['address'])) {
+	$string = $_POST['address'];
+	if(ctype_alpha(ereg_replace( "|\'|", "", $string))) {
+		$clean['address'] = htmlentities($_POST['address'], ENT_QUOTES );
+	}
+}
+
+if(isset($_POST['area'])) {
+	$string = $_POST['area'];
+	if(ctype_alpha(ereg_replace( "|\'|", "", $string))) {
+		$clean['area'] = htmlentities($_POST['area'], ENT_QUOTES );
 	}
 }
 
@@ -119,13 +126,6 @@ if(isset($_POST['gpname'])) {
 	$string = $_POST['gpname'];
 	if(ctype_alpha(ereg_replace( " |\'|-", "", $string))) {
 		$clean['gpname'] = htmlentities($_POST['gpname'], ENT_QUOTES );
-	}
-}
-
-if(isset($_POST['housing'])) {
-	$string = $_POST['housing'];
-	if(ctype_alpha(ereg_replace( " |-", "", $string))) {
-		$clean['housing'] = htmlentities($_POST['housing'], ENT_QUOTES );
 	}
 }
 
@@ -234,19 +234,19 @@ if ($clean['submit']) {
 	
     $dbConnect = dbconnect();
     
-	$sql = 'INSERT INTO clients (firstname,lastname,title,houseno,street,
+	$sql = 'INSERT INTO clients (firstname,lastname,title,gender,address,area,
 			phone1,phone2,housetype,dob,alone, ailments,contact1name,contact1relationship,
 			contact1address,contact1phone1,contact2name,contact2relationship, contact2address,
-			contact2phone1,gpname,referrer,housing,note,referrer_other,timeslot,addedby,modifiedby)
+			contact2phone1,gpname,referrer,note,referrer_other,timeslot,addedby,modifiedby)
 			VALUES ("'. $clean['firstname'] . '", "' . $clean['lastname'] . '", "' . $clean['title'] . '", "'
-			 . $clean['houseno'] . '", "' . $clean['street'] . '", "'
+			 . $clean['gender'] . '", "' . $clean['address'] . '", "' . $clean['area'] . '", "' 
 			 . $clean['phone1'] . '", "'  . $clean['phone2'] . '", "' . $clean['housetype'] . '", "'
 			 . $clean['dob'] . '", "' . $clean['alone'] . '", "' . $clean['ailments'] . '", "'
 			 . $clean['contact1name'] . '", "' . $clean['contact1relationship'] . '", "'
 			 . $clean['contact1address'] . '", "' . $clean['contact1phone1'] . '", "' . $clean['contact2name'] . '", "'
 			 . $clean['contact2relationship'] . '", "' . $clean['contact2address'] . '", "' 
 			 . $clean['contact2phone1'] . '", "' . $clean['gpname'] . '", "' . $clean['referrer'] . '", "'
-			 . $clean['housing'] . '", "' . $clean['note'] . '", "' . $clean['referrer_other'] . '", "'
+			 . $clean['note'] . '", "' . $clean['referrer_other'] . '", "'
 			 . $clean['timeslot'] . '", "' . $_SESSION['operatorid'] . '", "' . $_SESSION['operatorid'] . '")';
 
 	// run SQL against the DB
@@ -257,7 +257,7 @@ if ($clean['submit']) {
 	}
 
 	echo "Record Added!<p>";
-	print  '<a href="' . $_SERVER[PHP_SELF] . '">Add another client</a><p>';
+	print  '<a href="' . $_SERVER['PHP_SELF'] . '">Add another client</a><p>';
 
 	dbclose($dbConnect);
 } // if ($submit)
@@ -275,59 +275,7 @@ else {
 				this.referrer_other.optional = true;
 				return verify(this);"
 				method="post" 
-				action="' . $_SERVER['PHP_SELF'] . '">
-			<font face="Verdana, Arial, Helvetica, sans-serif">';
-	
-	if ($clean['clientid']) {
-	
-	    // editing so select a record
-		$dbConnect = dbconnect();
-	
-		$sql = "SELECT * FROM clients WHERE (clients.clientid='" . $clean['clientid'] . "')";
-		$result = mysql_query($sql, $dbConnect);
-		if (!$result) {
-			$message  = 'Invalid query: ' . mysql_error() . '<br>' . 'Query: ' . $sql;
-			die($message);
-		}
-		$myrow = mysql_fetch_array($result);
-	
-	/*
-	 * Cleaning input from the database
-	 */
-		$clean['firstname']				= htmlentities($myrow['firstname'], ENT_QUOTES);
-		$clean['lastname']				= htmlentities($myrow['lastname'], ENT_QUOTES);
-		$clean['initials']				= htmlentities($myrow['initials'], ENT_QUOTES);
-		$clean['title']					= htmlentities($myrow['title'], ENT_QUOTES);
-		$clean['houseno']				= htmlentities($myrow['houseno'], ENT_QUOTES);
-		$clean['street']				= htmlentities($myrow['street'], ENT_QUOTES);
-		$clean['phone1']				= htmlentities($myrow['phone1'], ENT_QUOTES);
-		$clean['phone2']				= htmlentities($myrow['phone2'], ENT_QUOTES);
-		$clean['housetype']				= htmlentities($myrow['housetype'], ENT_QUOTES);
-		$clean['dob']					= htmlentities($myrow['dob'], ENT_QUOTES);
-		$clean['alone']					= htmlentities($myrow['alone'], ENT_QUOTES);
-		$clean['ailments']				= htmlentities($myrow['ailments'], ENT_QUOTES);
-		$clean['contact1name']			= htmlentities($myrow['contact1name'], ENT_QUOTES);
-		$clean['contact1relationship']	= htmlentities($myrow['contact1relationship'], ENT_QUOTES);
-		$clean['contact1address']		= htmlentities($myrow['contact1address'], ENT_QUOTES);
-		$clean['contact1phone1']		= htmlentities($myrow['contact1phone1'], ENT_QUOTES);
-		$clean['contact2name']			= htmlentities($myrow['contact2name'], ENT_QUOTES);
-		$clean['contact2relationship']	= htmlentities($myrow['contact2relationship'], ENT_QUOTES);
-		$clean['contact2address']		= htmlentities($myrow['contact2address'], ENT_QUOTES);
-		$clean['contact2phone1']		= htmlentities($myrow['contact2phone1'], ENT_QUOTES);
-		$clean['gpname']				= htmlentities($myrow['gpname'], ENT_QUOTES);
-		$clean['referrer']				= htmlentities($myrow['referrer'], ENT_QUOTES);
-		$clean['housing']				= htmlentities($myrow['housing'], ENT_QUOTES);
-		$clean['timeslot']				= htmlentities($myrow['timeslot'], ENT_QUOTES);
-		$clean['note']					= htmlentities($myrow['note'], ENT_QUOTES);
-		$clean['referrer_other']			= htmlentities($myrow['referrer_other'], ENT_QUOTES);
-	
-		dbclose($dbConnect);
-		
-		print '<input type=hidden name="clientid" value="' . $clean['clientid']. '">';
-	
-	} // if ($clean['clientid'])
-
-	print '</font>';
+				action="' . $_SERVER['PHP_SELF'] . '">';
 	
 	//<!------------------->
 	//<!----HTML LAYOUT---->
