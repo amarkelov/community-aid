@@ -126,9 +126,9 @@ CREATE TABLE `clients` (
   `lastname` varchar(64) NOT NULL,
   `initials` varchar(5) default NULL,
   `title` varchar(20) default NULL,
-  `houseno` varchar(32) NOT NULL,
-  `street` varchar(64) NOT NULL,
-  `town` varchar(50) default NULL,
+  `gender` varchar(8) NOT NULL default 'female',
+  `address` varchar(128) NOT NULL,
+  `area` varchar(50) NOT NULL,
   `phone1` varchar(32) NOT NULL,
   `phone2` varchar(32) NOT NULL,
   `referrer_other` varchar(50) default NULL,
@@ -146,7 +146,6 @@ CREATE TABLE `clients` (
   `contact2phone1` varchar(15) default NULL,
   `contact2phone2` varchar(15) default NULL,
   `gpname` varchar(64) NOT NULL,
-  `housing` varchar(30) default NULL,
   `referrer` varchar(30) default NULL,
   `timeslot` time NOT NULL,
   `ailments` varchar(255) default NULL,
@@ -156,10 +155,13 @@ CREATE TABLE `clients` (
   `addedby` int(11) NOT NULL,
   `modifiedby` int(11) NOT NULL,
   `changenote` varchar(255) default NULL,
+  `districtid` int(11) NOT NULL,
   PRIMARY KEY  (`clientid`),
-  UNIQUE KEY `firstname` (`firstname`,`lastname`,`houseno`,`street`,`dob`),
+  UNIQUE KEY `firstname` (`firstname`,`lastname`,`address`,`dob`),
   KEY `addedby` (`addedby`),
   KEY `modifiedby` (`modifiedby`),
+  KEY `districtid` (`districtid`),
+  CONSTRAINT `clients_ibfk_3` FOREIGN KEY (`districtid`) REFERENCES `districts` (`districtid`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `clients_ibfk_1` FOREIGN KEY (`addedby`) REFERENCES `operators` (`operatorid`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `clients_ibfk_2` FOREIGN KEY (`modifiedby`) REFERENCES `operators` (`operatorid`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 PACK_KEYS=1;
@@ -172,6 +174,29 @@ DELIMITER ;;
 
 DELIMITER ;
 /*!50003 SET SESSION SQL_MODE=@OLD_SQL_MODE */;
+
+--
+-- Table structure for table `districts`
+--
+
+DROP TABLE IF EXISTS `districts`;
+CREATE TABLE `districts` (
+  `districtid` int(11) NOT NULL,
+  `district_name` varchar(128) NOT NULL,
+  `comments` varchar(256) default NULL,
+  PRIMARY KEY  (`districtid`),
+  UNIQUE KEY `district_name` (`district_name`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `districts`
+--
+
+LOCK TABLES `districts` WRITE;
+/*!40000 ALTER TABLE `districts` DISABLE KEYS */;
+INSERT INTO `districts` VALUES (1,'Blachardstown',NULL),(2,'Cabra',NULL),(3,'Stoneybatter',NULL),(4,'Inner City',NULL),(5,'Marino/Fairview',NULL),(6,'Clontarf',NULL),(7,'Glasnevin',NULL),(8,'Coolock',NULL),(9,'Baldoyle',NULL),(10,'Howth/Sutton',NULL),(11,'Portmarnock',NULL),(12,'Malahide',NULL),(13,'Skerries/Lusk/Rush',NULL),(14,'Donabate/Portrane',NULL),(15,'Swords',NULL),(16,'Santry',NULL),(17,'Ballymun',NULL);
+/*!40000 ALTER TABLE `districts` ENABLE KEYS */;
+UNLOCK TABLES;
 
 --
 -- Table structure for table `operators`
@@ -201,6 +226,12 @@ LOCK TABLES `operators` WRITE;
 INSERT INTO `operators` VALUES (1,'admin','Administrator','9bc7aa55f08fdad935c3f8362d3f48bcf70eb280',1,NOW(),0,'0000-00-00 00:00:00',0);
 /*!40000 ALTER TABLE `operators` ENABLE KEYS */;
 UNLOCK TABLES;
+
+--
+-- Dumping routines for database 'community_aid_db'
+--
+DELIMITER ;;
+DELIMITER ;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
@@ -218,13 +249,15 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON `community_aid_db`.`call_sclass` TO 'gma
 GRANT SELECT, INSERT, UPDATE ON `community_aid_db`.`clients` TO 'gmadmin'@'localhost';
 GRANT SELECT, INSERT, UPDATE ON `community_aid_db`.`client_timeslot_call` TO 'gmadmin'@'localhost';
 GRANT SELECT, INSERT, UPDATE ON `community_aid_db`.`calls` TO 'gmadmin'@'localhost';
+GRANT SELECT, INSERT, UPDATE, DELETE ON `community_aid_db`.`districts` TO 'gmadmin'@'localhost';
 
 GRANT SELECT ON `community_aid_db`.* TO 'gmoperator'@'localhost'; 
 GRANT SELECT, INSERT, UPDATE ON `community_aid_db`.`calls` TO 'gmoperator'@'localhost'; 
 GRANT SELECT, UPDATE ON `community_aid_db`.`client_timeslot_call` TO 'gmoperator'@'localhost'; 
 GRANT SELECT, UPDATE ON `community_aid_db`.`operators` TO 'gmoperator'@'localhost'; 
+GRANT SELECT ON `community_aid_db`.`districts` TO 'gmoperator'@'localhost';
 
 SET PASSWORD FOR 'gmadmin'@'localhost' = PASSWORD('gmadmin');
 SET PASSWORD FOR 'gmoperator'@'localhost' = PASSWORD('gmoperator');
 
--- Dump completed on 2007-07-19 20:23:52
+-- Dump completed on 2007-10-06 22:40:55
