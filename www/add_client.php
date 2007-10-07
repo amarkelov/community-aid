@@ -107,6 +107,12 @@ if(isset($_POST['area'])) {
 	}
 }
 
+if(isset($_POST['districtid'])) {
+	if(ctype_digit($_POST['districtid'])) {
+		$clean['districtid'] = $_POST['districtid'];
+	}
+}
+
 if(isset($_POST['phone1'])) {
 	$clean['phone1'] = filter_phone_number($_POST['phone1']);
 }
@@ -234,12 +240,13 @@ if ($clean['submit']) {
 	
     $dbConnect = dbconnect();
     
-	$sql = 'INSERT INTO clients (firstname,lastname,title,gender,address,area,
+	$sql = 'INSERT INTO clients (firstname,lastname,title,gender,address,area,districtid,
 			phone1,phone2,housetype,dob,alone, ailments,contact1name,contact1relationship,
 			contact1address,contact1phone1,contact2name,contact2relationship, contact2address,
 			contact2phone1,gpname,referrer,note,referrer_other,timeslot,addedby,modifiedby)
 			VALUES ("'. $clean['firstname'] . '", "' . $clean['lastname'] . '", "' . $clean['title'] . '", "'
-			 . $clean['gender'] . '", "' . $clean['address'] . '", "' . $clean['area'] . '", "' 
+			 . $clean['gender'] . '", "' . $clean['address'] . '", "' . $clean['area'] . '", "'
+			 . $clean['districtid'] . '", "' 
 			 . $clean['phone1'] . '", "'  . $clean['phone2'] . '", "' . $clean['housetype'] . '", "'
 			 . $clean['dob'] . '", "' . $clean['alone'] . '", "' . $clean['ailments'] . '", "'
 			 . $clean['contact1name'] . '", "' . $clean['contact1relationship'] . '", "'
