@@ -16,6 +16,10 @@ $settings = get_gmp_settings();
 <body bgcolor="#BEC8FD" link="#0000FF" vlink="#0000FF" alink="#0000FF">
 <font face="Verdana" size="2">
 <?php 
+	if ($settings['debug'] > 0) {
+		print_debug( $clean, $settings);
+	}
+
 	// START LOG IN CODE
 		$doWeExit = displayLogin(basename($_SERVER['PHP_SELF']), false);
 		if($doWeExit == true){
@@ -27,7 +31,7 @@ $settings = get_gmp_settings();
 <table>
 <tr>
 	<td><a href='calls.php'>Calls</a></td>
-	<td>Calls is the main operator's tool to log call to/from client(s)</td>
+	<td>Calls is the main operator's toolbox to log calls to/from client(s)</td>
 </tr>
 <tr>
 	<?php if(checkIsAdmin($_SESSION['s_username'])){?>
@@ -40,7 +44,8 @@ $settings = get_gmp_settings();
 </tr>
 <tr>
 	<td><a href='delete_client.php'>De-activate Client</a></td>
-	<td>Mark client 'inactive'. We never delete clients. Once marked 'inactive' client stops appearing on operators lists.</td>
+	<td>Marks client as 'inactive'. Clients are never deleted from database. 
+		Once marked 'inactive' clients do not appearing on operators lists.</td>
 </tr>
 <tr>
 	<td><a href='restore_client.php'>Re-activate Client</a></td>
@@ -48,7 +53,7 @@ $settings = get_gmp_settings();
 </tr>
 <tr>
 	<td><a href='operator2clients.php'>Assign Client(s) to Operator</a></td>
-	<td>Before client can be served she has to be assigned to operator(s)</td>
+	<td>Before a client can be called she/he must be assigned to an operator</td>
 </tr>
 <tr>
 	<td><a href='add_operator.php'>Add Operators</a></td>
