@@ -108,10 +108,12 @@ function updateUser($loginname, $newloginname, $newfullname, $newisadmin){
  * returns true or false. True idicates the page should stop executing after this method
  *
  */
- //TODO put the from into a table 3 rows x 2 columns
 function displayLogin($page, $check4Admin){
+	$settings = array();
+	$settings = get_gmp_settings();
+	
 	if (!isset($page)){
-		$page = "gmp.php";
+		$page = $settings['start_page'];
 	}
 
 	$out = '<table width="100%" border="0" cellpadding="2"><tr>';
@@ -152,16 +154,20 @@ function displayLogin($page, $check4Admin){
 		else {
 			$out .= '<td  valign="top"><div align="left">
 			Logged in as <b>' . $_SESSION['s_username'] .'</b>. 
-			<a href="logout.php?f=' . $page . '">logout</a>
-			<br><br>
-			<a href=gmp.php>Click here to return to main menu</a>
-			</div></td>';	
+			<a href="logout.php?f=' . $page . '">logout</a>';
+			
+			// display link back to main menu only if we are not on the main page already
+			if( ltrim($_SERVER['PHP_SELF'], '/') != $settings['start_page']) {
+				$out .= '<br><br><a href=gmp.php>Click here to return to main menu</a>';
+			}	
+			
+			$out .= '</div></td>';
 		}
 	}
 	$out .= '<td><div align="right">
 			<a href="/gmp.php"><img src="/images/header.png" border="0" alt="Friendly Call Service"></a>';
 	$out .= '<br>';
-	$out .= '<br><b>Registered clients today:</b> ' . getNumberOfRegisteredClients();
+	$out .= '<br><b>Registered clients todate:</b> ' . getNumberOfRegisteredClients();
 	$out .= '<br><b>Active clients today:</b> ' . getNumberOfActiveClients();
 	$out .= '</div></td></tr></table>';
 	
@@ -256,6 +262,10 @@ function get_gmp_settings(){
 		$settings['force_pdf_when_more_than'] = 300;	
 	}
 
+	if(!isset($settings['start_page'])) {
+		$settings['start_page'] = 'gmp.php';	
+	}
+	
 	if(isset($_SERVER['Operator'])) {
 		$settings['operator'] = $_SERVER['Operator'];
 	}
