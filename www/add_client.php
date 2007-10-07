@@ -94,15 +94,13 @@ if(isset($_POST['gender'])) {
 }
 
 if(isset($_POST['address'])) {
-	$string = $_POST['address'];
-	if(ctype_alpha(ereg_replace( "|\'|", "", $string))) {
+	if(ctype_print($_POST['address'])) {
 		$clean['address'] = htmlentities($_POST['address'], ENT_QUOTES );
 	}
 }
 
 if(isset($_POST['area'])) {
-	$string = $_POST['area'];
-	if(ctype_alpha(ereg_replace( "|\'|", "", $string))) {
+	if(ctype_print($_POST['area'])) {
 		$clean['area'] = htmlentities($_POST['area'], ENT_QUOTES );
 	}
 }
@@ -259,13 +257,24 @@ if ($clean['submit']) {
 	// run SQL against the DB
 	$result = mysql_query($sql);
 	if (!$result) {
-		$message  = 'Invalid query: ' . mysql_error() . '<br>' . 'Query: ' . $sql;
-		die($message);
+		if( mysql_errno() == 1062) {
+			print "<font size=\"3\" color=\"#FF0000\"><b>Duplicate entry!</b></font>
+					<p>Client with the same name and date of birth already exists on the system.<br>
+					Please use Edit Client screen to change details of existing client or check that you entered
+					name and date of birth of the new client correctly<p>";
+			
+			print  '<a href="' . $_SERVER['PHP_SELF'] . '">Add another client</a><p>';
+		}
+		else {
+			$message  = 'Invalid query: ' . mysql_error() . '<br>' . 'Query: ' . $sql;
+			die($message);
+		}
 	}
-
-	echo "Record Added!<p>";
-	print  '<a href="' . $_SERVER['PHP_SELF'] . '">Add another client</a><p>';
-
+	else {
+		echo "Record Added!<p>";
+		print  '<a href="' . $_SERVER['PHP_SELF'] . '">Add another client</a><p>';
+	}
+	
 	dbclose($dbConnect);
 } // if ($submit)
 else {
