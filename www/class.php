@@ -6,7 +6,6 @@ Classification. Full and short names.
 </head>
 
 <body>
-<tr><td align="right" colspan="2">hey ho!</td>
 <?php
 require 'functions.inc';
 
