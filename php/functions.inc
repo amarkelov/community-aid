@@ -445,7 +445,7 @@ function draw_calls( $clientid)
 	
 	// time column
 		print('<td width="20%"> <font size="1" color="#FF0000">');
-		print $out . ' ' . $current_week_number . ' ' . $last_week_number;
+		print $out;
 		print('</font>');
 	// class column
 		print('</td><td width="10%"><font size="1" color="#00FF00">');
@@ -537,7 +537,9 @@ function draw_client_details($clientid)
 	$dbConnect = dbconnect();
 
     if( $clientid and $dbConnect) {
-		$sql  = "SELECT phone1,phone2,alone,dob,ailments,note,
+		$sql  = "SELECT phone1,phone2,alone,dob,ailments,note,area,
+					contact1name,contact1phone1,
+					contact2name,contact2phone1,
 					TIME_FORMAT(timeslot,'%H:%i') as timeslot from clients
 					WHERE clientid='$clientid' AND active='1'";
 		
@@ -567,6 +569,17 @@ function draw_client_details($clientid)
 		       	else {
 				    $dob = "Invalid DOB";
 				} 
+				$area = $myrow['area'];
+
+				$contact1name = $myrow['contact1name'];
+				$contact1phone1 = $myrow['contact1phone1'];
+
+				$contact2name = $myrow['contact2name'];
+				if(strlen(trim($contact2name)) == 0) $contact2name = 'N/A';
+
+				$contact2phone1 = $myrow['contact2phone1'];
+				if(strlen(trim($contact2phone1)) == 0) $contact2phone1 = 'N/A';
+
 				$timeslot = $myrow['timeslot'];
 				$ailments = $myrow["ailments"];
 		       	$note = $myrow["note"];
@@ -579,13 +592,24 @@ function draw_client_details($clientid)
     $out .= '<tr>';
     $out .= "<td width=\"30%\"><font size=" . $fs ."><b>Phone 1:</b></font></td>";
     $out .= "<td><font size=" . $fs . ">" . $phone1 . "</font></td>";
+    $out .= "<td width=\"30%\"><font size=" . $fs ."><b>First Contact:</b></font></td>";
+    $out .= "<td><font size=" . $fs . ">" . $contact1name . "</font></td>";
     $out .= '</tr><tr>';        
     $out .= "<td width=\"30%\"><font size=" . $fs . "><b>Phone 2:</b></font></td>";
     $out .= "<td><font size=" . $fs . ">" . $phone2 . "</font></td>";
+    $out .= "<td width=\"30%\"><font size=" . $fs ."><b>First Contact phone:</b></font></td>";
+    $out .= "<td><font size=" . $fs . ">" . $contact1phone1 . "</font></td>";
     $out .= '</tr><tr>';    
     $out .= "<td width=\"30%\"><font size=" . $fs . "><b>D.O.B. (DD/MM/YYYY):</b></font></td>";
     $out .= "<td><font size=" . $fs . ">" . $dob . "</font></td>";
+    $out .= "<td width=\"30%\"><font size=" . $fs ."><b>Second Contact:</b></font></td>";
+    $out .= "<td><font size=" . $fs . ">" . $contact2name . "</font></td>";
     $out .= '</tr><tr>';
+    $out .= "<td width=\"30%\"><font size=" . $fs . "><b>Area:</b></font></td>";
+    $out .= "<td><font size=" . $fs . ">" . $area . "</font></td>";
+    $out .= "<td width=\"30%\"><font size=" . $fs ."><b>Second Contact phone:</b></font></td>";
+    $out .= "<td><font size=" . $fs . ">" . $contact2phone1 . "</font></td>";
+    $out .= '</tr><tr>';    
     $out .= "<td width=\"30%\"><font size=" . $fs . "><b>Time slot:</b></font></td>";
     $out .= "<td><font size=" . $fs . ">" . $timeslot . "</font></td>";
     $out .= '</tr><tr>';
@@ -629,7 +653,7 @@ function draw_clients_list($operator, $clientid)
 			TIME_FORMAT(timeslot,'%H:%i') AS timeslot
 			FROM clients WHERE clientid IN (SELECT clientid FROM client2operator WHERE 
 			operatorid=(SELECT operatorid FROM operators WHERE loginname='{$operator}'))
-			AND active='1' ORDER BY timeslot, firstname";
+			AND active='1' ORDER BY timeslot, lastname";
     
     $result = mysql_query( $sql, $dbConnect);
     if (!$result) {
@@ -638,7 +662,7 @@ function draw_clients_list($operator, $clientid)
     }
 
 	while ($myrow = mysql_fetch_array($result)) {
-		$clients[$myrow['clientid']] = $myrow['firstname'] . ' ' . $myrow['lastname'];
+		$clients[$myrow['clientid']] = $myrow['lastname'] . ', ' . $myrow['firstname'];
 		$calltime[$myrow['clientid']] = $myrow['timeslot'];
 	}
 
