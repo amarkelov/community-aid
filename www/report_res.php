@@ -1,11 +1,17 @@
 <?php
-
+session_start();
 require 'functions.inc';
 
 $clean = array();
 $mysql = array();
 
 $settings = get_gmp_settings();
+// START LOG IN CODE
+	$doWeExit = displayLogin(basename($_SERVER['PHP_SELF']), false);
+	if($doWeExit == true){
+		exit;
+	}
+// END LOG IN CODE
 
 // if debug flag is set, print the following info
 if($settings['debug'] == 1){
@@ -73,7 +79,7 @@ if (isset($clean['report'])) {
 				break;
 		}
     }
-    // (3) client name
+    // (3) client details
     if(isset( $_POST['client_cb'])) {
 		if($multi) {
 		    $sql .= " AND ";
@@ -81,10 +87,31 @@ if (isset($clean['report'])) {
 		else {
 		    $multi = 1;
 		}
-	
-		$sql .= "clientid=" . $_POST['client'] . " ";
-    }
 
+		switch($_POST['client']) {
+		    case "name":
+				$sql .= " clientid=" . $_POST['client'] . " ";
+				break;
+		    case "gender":
+		
+				$sql .= " (time <= '$dt' AND time >= '$df') ";
+				break;
+		}
+		
+		
+    }
+    // (4) district
+    if(isset( $_POST['district_cb'])) {
+		if($multi) {
+		    $sql .= " AND ";
+		}
+		else {
+		    $multi = 1;
+		}
+	
+		$sql .= " clientid IN (SELECT clientid FROM clients WHERE districtid=" . $_POST['districtid'] . ") ";
+    }
+    
 	// if debug_sql_limit is set, append it to the query
 	if($settings['debug_sql_limit'] > 0) {
 		$sql .= " LIMIT " . $settings['debug_sql_limit'];

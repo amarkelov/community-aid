@@ -84,20 +84,63 @@ Please, choose criteria for the report and press 'Submit' button.
     </tr>
     </table>
     </td>
-    
-    <td>    
+</tr>
+<tr>
+    <td valign="top">
+    <input type="checkbox" name="client_cb"></input>
+    </td>
+    <td valign="top">
+    by Client details:
+    <br>
+    <table border="1" cellpadding="0" cellspacing="0">
+    <tr>
+	    <td>
+		    <input type="radio" name="client" value="byname" checked></input>
+	    </td>
+    	<td>
+		    Name:
+		    <select name="client" size="1">
+		    <?php draw_clients() ?>
+		    </select>
+		</td>
+	</tr>
+	<tr>
+	    <td>
+		    <input type="radio" name="client" value="bygender"></input>
+	    </td>
+		<td>
+			Gender:
+			<input type="radio" name="gender" value="female" checked>Female</input>
+			<input type="radio" name="gender" value="male">Male</input>
+		</td>
+	</tr>
+	</table>
     </td>
 </tr>
 <tr>
     <td>
-    <input type="checkbox" name="client_cb"></input>
+    <input type="checkbox" name="district_cb"></input>
     </td>
     <td valign="top">
-    by Client name: 
-    <select name="client" size="1">
-    <?php draw_clients() ?>
-    </select>
-    </td>
+    by District:
+		<?php
+		$arDistricts = array(); 
+		if( getDistrictList( $arDistricts)) {
+			print '<select name="districtid">';
+			
+			foreach( $arDistricts as $did => $district_name) {
+				if($clean['districtid'] == $did) {
+					print '<option value="' . $did . '" selected>' . $district_name . '</option>';
+				}
+				else {
+					print '<option value="' . $did . '">' . $district_name . '</option>';
+				}
+			}
+			
+			print '</select>';
+		}
+		?>
+     </td>
 </tr>
 
 </table>
