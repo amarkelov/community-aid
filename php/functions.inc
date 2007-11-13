@@ -1538,7 +1538,7 @@ function printAddEditClientTable( $clean)
 	<tr>
 		<td bgcolor="#EEEEEE" colspan="2">
 		<font face="verdana, arial, helvetica" size="-1">
-		<b>Home Help Details</b><br>
+		<b>Contact Details</b><br>
 		</font>
 		</td>
 	</tr>
