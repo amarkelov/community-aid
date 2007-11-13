@@ -1445,9 +1445,6 @@ function printAddEditClientTable( $clean)
 		<b>Phone Number 2 <font size="1" color="#FF0000">(digits only!)</font>: </b>
 		</font>
 		<input type="text" name="phone2" onchange="return vphone(this);" size="14" value="' . $clean['phone2'] . '">
-		<font size="1" color="#FF0000">
-		<b> *</b>
-		</font>
 		</td>
 	
 		<td ALIGN="left" width="15%"  VALIGN="top">
@@ -1492,9 +1489,6 @@ function printAddEditClientTable( $clean)
 		<b>GP name: </b>
 		</font>
 		<input type="text" name="gpname" maxlength="30" size="30" value="' . $clean['gpname'] . '">
-		<font size="1" color="#FF0000">
-		<b> *</b>
-		</font>
 		</td>
 	
 		<td ALIGN="left" width="15%"  VALIGN="top">
