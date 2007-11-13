@@ -540,6 +540,7 @@ function draw_client_details($clientid)
 		$sql  = "SELECT phone1,phone2,alone,dob,ailments,note,area,
 					contact1name,contact1phone1,
 					contact2name,contact2phone1,
+					gpname,
 					TIME_FORMAT(timeslot,'%H:%i') as timeslot from clients
 					WHERE clientid='$clientid' AND active='1'";
 		
@@ -580,6 +581,9 @@ function draw_client_details($clientid)
 				$contact2phone1 = $myrow['contact2phone1'];
 				if(strlen(trim($contact2phone1)) == 0) $contact2phone1 = 'N/A';
 
+				$gpname = $myrow['gpname'];
+				if(strlen(trim($gpname)) == 0) $gpname = 'N/A';
+				
 				$timeslot = $myrow['timeslot'];
 				$ailments = $myrow["ailments"];
 		       	$note = $myrow["note"];
@@ -612,6 +616,8 @@ function draw_client_details($clientid)
     $out .= '</tr><tr>';    
     $out .= "<td width=\"30%\"><font size=" . $fs . "><b>Time slot:</b></font></td>";
     $out .= "<td><font size=" . $fs . ">" . $timeslot . "</font></td>";
+    $out .= "<td width=\"30%\"><font size=" . $fs ."><b>GP name:</b></font></td>";
+    $out .= "<td><font size=" . $fs . ">" . $gpname . "</font></td>";
     $out .= '</tr><tr>';
     $out .= "<td width=\"30%\"><font size=" . $fs . "><b>Alone:</b></font></td>";
     $out .= "<td><font size=" . $fs . ">"; 
