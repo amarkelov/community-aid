@@ -266,6 +266,8 @@ else if( $clean['edit']) {
 	print '<form name="edit_client"
 				onSubmit="
 				this.title.optional = true;
+				this.phone2.optional = true;
+				this.gpname.optional = true;
 				this.contact1relationship.optional = true;
 				this.contact1address.optional = true;
 				this.contact2name.optional = true;
