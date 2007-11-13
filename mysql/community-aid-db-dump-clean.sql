@@ -130,7 +130,7 @@ CREATE TABLE `clients` (
   `address` varchar(128) NOT NULL,
   `area` varchar(50) NOT NULL,
   `phone1` varchar(32) NOT NULL,
-  `phone2` varchar(32) NOT NULL,
+  `phone2` varchar(32) default NULL,
   `referrer_other` varchar(50) default NULL,
   `housetype` varchar(20) default NULL,
   `dob` date NOT NULL,
@@ -145,7 +145,7 @@ CREATE TABLE `clients` (
   `contact2address` varchar(50) default NULL,
   `contact2phone1` varchar(15) default NULL,
   `contact2phone2` varchar(15) default NULL,
-  `gpname` varchar(64) NOT NULL,
+  `gpname` varchar(64) default NULL,
   `referrer` varchar(30) default NULL,
   `timeslot` time NOT NULL,
   `ailments` varchar(255) default NULL,
@@ -194,7 +194,7 @@ CREATE TABLE `districts` (
 
 LOCK TABLES `districts` WRITE;
 /*!40000 ALTER TABLE `districts` DISABLE KEYS */;
-INSERT INTO `districts` VALUES (1,'Blachardstown',NULL),(2,'Cabra',NULL),(3,'Stoneybatter',NULL),(4,'Inner City',NULL),(5,'Marino/Fairview',NULL),(6,'Clontarf',NULL),(7,'Glasnevin',NULL),(8,'Coolock',NULL),(9,'Baldoyle',NULL),(10,'Howth/Sutton',NULL),(11,'Portmarnock',NULL),(12,'Malahide',NULL),(13,'Skerries/Lusk/Rush',NULL),(14,'Donabate/Portrane',NULL),(15,'Swords',NULL),(16,'Santry',NULL),(17,'Ballymun',NULL);
+INSERT INTO `districts` VALUES (1,'Blachardstown',NULL),(2,'Cabra',NULL),(3,'Stoneybatter',NULL),(4,'Inner City',NULL),(5,'Marino/Fairview',NULL),(6,'Clontarf',NULL),(7,'Finglas/Glasnevin',NULL),(8,'Darndale/Coolock',NULL),(9,'Baldoyle',NULL),(10,'Howth/Sutton',NULL),(11,'Portmarnock',NULL),(12,'Malahide',NULL),(13,'Skerries/Lusk/Rush',NULL),(14,'Donabate/Portrane',NULL),(15,'Swords',NULL),(16,'Santry',NULL),(17,'Ballymun',NULL);
 /*!40000 ALTER TABLE `districts` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -242,22 +242,22 @@ DELIMITER ;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
-GRANT SELECT, INSERT, UPDATE, DELETE ON `community_aid_db`.`client2operator` TO 'gmadmin'@'localhost';
-GRANT SELECT, INSERT, UPDATE, DELETE ON `community_aid_db`.`call_mclass` TO 'gmadmin'@'localhost';
-GRANT SELECT, INSERT, UPDATE, DELETE ON `community_aid_db`.`operators` TO 'gmadmin'@'localhost';
-GRANT SELECT, INSERT, UPDATE, DELETE ON `community_aid_db`.`call_sclass` TO 'gmadmin'@'localhost';
-GRANT SELECT, INSERT, UPDATE ON `community_aid_db`.`clients` TO 'gmadmin'@'localhost';
-GRANT SELECT, INSERT, UPDATE ON `community_aid_db`.`client_timeslot_call` TO 'gmadmin'@'localhost';
-GRANT SELECT, INSERT, UPDATE ON `community_aid_db`.`calls` TO 'gmadmin'@'localhost';
-GRANT SELECT, INSERT, UPDATE, DELETE ON `community_aid_db`.`districts` TO 'gmadmin'@'localhost';
+GRANT SELECT, INSERT, UPDATE, DELETE ON `community_aid_db`.`client2operator` TO 'caadmin'@'localhost';
+GRANT SELECT, INSERT, UPDATE, DELETE ON `community_aid_db`.`call_mclass` TO 'caadmin'@'localhost';
+GRANT SELECT, INSERT, UPDATE, DELETE ON `community_aid_db`.`operators` TO 'caadmin'@'localhost';
+GRANT SELECT, INSERT, UPDATE, DELETE ON `community_aid_db`.`call_sclass` TO 'caadmin'@'localhost';
+GRANT SELECT, INSERT, UPDATE ON `community_aid_db`.`clients` TO 'caadmin'@'localhost';
+GRANT SELECT, INSERT, UPDATE ON `community_aid_db`.`client_timeslot_call` TO 'caadmin'@'localhost';
+GRANT SELECT, INSERT, UPDATE ON `community_aid_db`.`calls` TO 'caadmin'@'localhost';
+GRANT SELECT, INSERT, UPDATE, DELETE ON `community_aid_db`.`districts` TO 'caadmin'@'localhost';
 
-GRANT SELECT ON `community_aid_db`.* TO 'gmoperator'@'localhost'; 
-GRANT SELECT, INSERT, UPDATE ON `community_aid_db`.`calls` TO 'gmoperator'@'localhost'; 
-GRANT SELECT, UPDATE ON `community_aid_db`.`client_timeslot_call` TO 'gmoperator'@'localhost'; 
-GRANT SELECT, UPDATE ON `community_aid_db`.`operators` TO 'gmoperator'@'localhost'; 
-GRANT SELECT ON `community_aid_db`.`districts` TO 'gmoperator'@'localhost';
+GRANT SELECT ON `community_aid_db`.* TO 'caoperator'@'localhost'; 
+GRANT SELECT, INSERT, UPDATE ON `community_aid_db`.`calls` TO 'caoperator'@'localhost'; 
+GRANT SELECT, UPDATE ON `community_aid_db`.`client_timeslot_call` TO 'caoperator'@'localhost'; 
+GRANT SELECT, UPDATE ON `community_aid_db`.`operators` TO 'caoperator'@'localhost'; 
+GRANT SELECT ON `community_aid_db`.`districts` TO 'caoperator'@'localhost';
 
-SET PASSWORD FOR 'gmadmin'@'localhost' = PASSWORD('gmadmin');
-SET PASSWORD FOR 'gmoperator'@'localhost' = PASSWORD('gmoperator');
+SET PASSWORD FOR 'caadmin'@'localhost' = PASSWORD('caadmin');
+SET PASSWORD FOR 'caoperator'@'localhost' = PASSWORD('caoperator');
 
 -- Dump completed on 2007-10-06 22:40:55
