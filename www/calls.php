@@ -35,6 +35,17 @@ if(isset($_POST['submit'])) {
 		}
 	}
 
+	if(isset($_POST['transfer'])){
+		switch(strtoupper($_POST['transfer'])) {
+			case "ON":
+				$clean['transfer'] = 1;
+				break;
+			default:
+				$clean['transfer'] = 0;
+				break;
+		}
+	}
+	
 	if(isset($_POST['mclass'])) {
 		if(ctype_digit($_POST['mclass'])) {
 			$clean['mclass'] = $_POST['mclass'];
@@ -74,120 +85,26 @@ $clean['operatorid'] = $_SESSION['operatorid'];
  */
 
 if (isset($clean['submit']) and $clean['clientid']) {
-	$dbConnect = dbconnect();
+	// the first call to the client is made
+	setFirstCallDone( $clean['clientid']);
 	
-	$sql = 'UPDATE client_timeslot_call SET timeslot_done="1" WHERE clientid="' . $clean['clientid'] . '"';
+	// record the call
+	recordTheCall( $clean);
 	
-	$result = mysql_query($sql);
-	if (!$result) {
-		$message  = "Invalid query: " . mysql_error() . "\n";
-		$message .= "Whole query: " . $sql . "\n";
-		die($message);
+	// check if need to transfer the client to Senior Operator
+	if(isset( $clean['transfer'])) {
+		transferClientToSnrOperator( $clean['clientid']);	
 	}
-
-	/*$mysql['nextcalltime'] = mysql_real_escape_string( $clean['nextcalltime']);
-	
-	$sql  = "UPDATE calls SET nextcalltime='" . $clean['nextcalltime'] . "',
-			 call_finished='" . $clean['call_finished'] . "' WHERE clientid='" . $clean['clientid'] . 
-			"' AND callid='" . $clean['callid'] . "'";
-	
-	$result = mysql_query($sql, $dbConnect);
-	if (!$result) {
-		$message  = "Invalid query: " . mysql_error() . "<br>" ."Query: " . $sql . "<br>" . print_r($clean);
-		die($message);
-	}
-
-	$mysql['chat'] = mysql_real_escape_string($clean['chat']);*/
-	
-	$sql  = "INSERT INTO calls (clientid, time, nextcalltime, chat, class, call_finished, operatorid) 
-  		    VALUES ('" . $clean['clientid'] . "', 
-					NOW(), 
-					TIMESTAMP( CURDATE() , '" . $clean['nextcalltime'] . "'),
-					'" . $clean['chat'] . "', 
-					'" . $clean['mclass'] . "',
-					'" . $clean['call_finished'] . "', 
-					'" . $_SESSION['operatorid'] . "') ";
-	
-	$result = mysql_query($sql, $dbConnect);
-	if (!$result) {
-		$message  = 'Invalid query: ' . mysql_error() . '<br>' . 'Query: ' . $sql;
-		die($message);
-	}
-	else if( $clean['call_finished'] == 1) { 
-		// now we can set all unfinished calls to finished state, so the
-		// calculation of the next call time for the client can be correct
-		// NOTE: this is quick and dirty workaround for the moment!!!
-		$sql  = "UPDATE calls SET call_finished='1' 
-				WHERE clientid='" . $clean['clientid'] . "'";
-		
-		$result = mysql_query($sql, $dbConnect);
-		if (!$result) {
-			$message  = 'Invalid query: ' . mysql_error() . '<br>' . 'Query: ' . $sql;
-			die($message);
-		}
-	}  
 	
 	/* 
 	 * we need to unset the clientid to get back to all clients
 	 * rather than keep operate with the current one
 	 */
 	$clean['clientid'] = '';
-	
-	dbclose($dbConnect);
 }
 
 if ($clean['clientid'] and !isset($clean['submit'])) {
-	$dbConnect = dbconnect();
-
-	$sql = "SELECT firstname,lastname,
-					initials,title,gender,
-					address,phone1,phone2,housetype,dob,alone,ailments,
-					contact1name,contact1relationship,contact1address,contact1phone1,contact1phone2,
-					contact2name,contact2relationship,contact2address,contact2phone1,contact2phone2,
-					gpname,referrer,note,referrer_other,
-					TIME_FORMAT(timeslot,'%H:%i') as timeslot FROM clients WHERE (clients.clientid={$clean['clientid']})";
-	
-	$result = mysql_query($sql, $dbConnect);
-	if (!$result) {
-		$message  = "Invalid query: " . mysql_error() . "\n";
-		$message .= "Whole query: " . $sql . "\n";
-		die($message);
-	}
-	$myrow = mysql_fetch_array($result);
-
-/*
- * Cleaning input from the database
- */
-	$clean['firstname']				= htmlentities($myrow['firstname'], ENT_QUOTES);
-	$clean['lastname']				= htmlentities($myrow['lastname'], ENT_QUOTES);
-	$clean['initials']				= htmlentities($myrow['initials'], ENT_QUOTES);
-	$clean['title']					= htmlentities($myrow['title'], ENT_QUOTES);
-	$clean['gender']				= htmlentities($myrow['gender'], ENT_QUOTES);
-	$clean['address']				= htmlentities($myrow['address'], ENT_QUOTES);
-	$clean['phone1']				= htmlentities($myrow['phone1'], ENT_QUOTES);
-	$clean['phone2']				= htmlentities($myrow['phone2'], ENT_QUOTES);
-	$clean['housetype']				= htmlentities($myrow['housetype'], ENT_QUOTES);
-	$clean['dob']					= htmlentities($myrow['dob'], ENT_QUOTES);
-	$clean['alone']					= htmlentities($myrow['alone'], ENT_QUOTES);
-	$clean['ailments']				= htmlentities($myrow['ailments'], ENT_QUOTES);
-	$clean['contact1name']			= htmlentities($myrow['contact1name'], ENT_QUOTES);
-	$clean['contact1relationship']	= htmlentities($myrow['contact1relationship'], ENT_QUOTES);
-	$clean['contact1address']		= htmlentities($myrow['contact1address'], ENT_QUOTES);
-	$clean['contact1phone1']		= htmlentities($myrow['contact1phone1'], ENT_QUOTES);
-	$clean['contact1phone2']		= htmlentities($myrow['contact1phone2'], ENT_QUOTES);
-	$clean['contact2name']			= htmlentities($myrow['contact2name'], ENT_QUOTES);
-	$clean['contact2relationship']	= htmlentities($myrow['contact2relationship'], ENT_QUOTES);
-	$clean['contact2address']		= htmlentities($myrow['contact2address'], ENT_QUOTES);
-	$clean['contact2phone1']		= htmlentities($myrow['contact2phone1'], ENT_QUOTES);
-	$clean['contact2phone2']		= htmlentities($myrow['contact2phone2'], ENT_QUOTES);
-	$clean['gpname']				= htmlentities($myrow['gpname'], ENT_QUOTES);
-	$clean['referrer']				= htmlentities($myrow['referrer'], ENT_QUOTES);
-	$clean['timeslot']				= htmlentities($myrow['timeslot'], ENT_QUOTES);
-	$clean['note']					= htmlentities($myrow['note'], ENT_QUOTES);
-	$clean['referrer_other']		= htmlentities($myrow['referrer_other'], ENT_QUOTES);
-
-	dbclose($dbConnect);
-	
+	getClientData( &$clean);	
 } // if ($clientid and !$submit)
 
 
@@ -259,6 +176,14 @@ if ( $clean['clientid'])   {
 	// Client name (bold and big) when one selected
 	$out = '<font size="4"><b>' . $clean['firstname'] . ' ' . $clean['lastname'] . '</b></font>
 			<p><font size="2"><a href="/calls.php">Back to list of clients</a></font></p>';
+
+	// don't display transfer checkbox if the operator is the Senior
+	if(!checkIsSnr( $clean['operatorid'])) {
+		$out .= '</td><td align="right"><input type="checkbox" name="transfer">
+				<b><font color="#FF0000">Transfer the client to Senior Operator</font></b>
+				</input>';
+	}
+	
 	print $out;
 }
 else {
@@ -324,16 +249,16 @@ else {
 	}
 
 	print '<input type="text" name="nextcalltime" size="6" maxlength="5" value="' . $nextcalltime . '" />
-            <font color="#FF0000" size="1" face="Arial, Helvetica, sans-serif">(24 hour format HH:MM)</font>
-          </td>
-        </tr>
-        <tr>
-          <td width="30%">
-            <input type="checkbox" name="call_finished" />Call finished</input>
-          </td>
-        </tr>
-      </table>
-    <br /><br />
+				<font color="#FF0000" size="1" face="Arial, Helvetica, sans-serif">(24 hour format HH:MM)</font>
+				</td>
+			</tr>
+			<tr>
+				<td width="30%">
+				<input type="checkbox" name="call_finished">Call finished</input>
+				</td>
+			</tr>
+			</table>
+			<br /><br />
 
     <!-- Embedded table No2-->
       <table width="100%">
