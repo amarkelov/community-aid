@@ -8,7 +8,7 @@ $settings = get_gmp_settings();
 
 <html>
 <head>
-<title> Report -- Good Morning <?php echo $settings['location'] ?></TITLE>
+<title> Main menu -- Good Morning <?php echo $settings['location'] ?></TITLE>
 <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
 </head>
 
