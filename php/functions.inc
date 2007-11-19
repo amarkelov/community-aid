@@ -916,7 +916,7 @@ function getOperatorPassword( $operatorid) {
 
 function isOperatorAdmin( $operatorid) {
 	$myrow = '';
-	$isAdmin = '';
+	$isAdmin = false;
 	
 	$dbConnect = dbconnect();
 
@@ -925,7 +925,7 @@ function isOperatorAdmin( $operatorid) {
 	$result = mysql_query( $sql,$dbConnect);
 	if ( !$result) {
 		$message  = 'Invalid query: ' . mysql_error() . '<br>' . 'Query: ' . $sql;
-		die($message);
+		print $message;
 	}
 	else {
 		while ( $myrow = mysql_fetch_array($result)) {
@@ -938,6 +938,32 @@ function isOperatorAdmin( $operatorid) {
 	dbclose( $dbConnect);
 	
 	return $isAdmin;
+}
+
+function isOperatorSnr( $operatorid) {
+	$myrow = '';
+	$isSnr = false;
+	
+	$dbConnect = dbconnect();
+
+	$sql = "SELECT isSnr FROM operators WHERE operatorid='" . $operatorid . "'";
+	
+	$result = mysql_query( $sql,$dbConnect);
+	if ( !$result) {
+		$message  = 'Invalid query: ' . mysql_error() . '<br>' . 'Query: ' . $sql;
+		print $message;
+	}
+	else {
+		while ( $myrow = mysql_fetch_array($result)) {
+			if(isset( $myrow['isSnr'])) {
+				$isSnr = $myrow['isSnr'];
+			} 
+		}
+	}
+	
+	dbclose( $dbConnect);
+	
+	return $isSnr;
 }
 
 function getClientsForOperator( $operatorid, &$clients) {
@@ -1096,8 +1122,13 @@ function printAddEditClientJavaScript()
 				return true;
 			}
 			else {
-				alert("Phone number should consist of digits only!");
-				return false;
+				if(phone.optional) {
+					return true;
+				}
+				else {
+					alert("Phone number should consist of digits only!");
+					return false;
+				}
 			}
 		}
 
@@ -1174,7 +1205,11 @@ function printAddEditClientJavaScript()
 				errors += "Date of birth format: DD/MM/YYYY\n";
 			}
 
-			if( !vphone(f.phone1) || !vphone(f.phone2) || !vphone(f.contact1phone1)) {
+			if( !vphone(f.phone1) || !vphone(f.contact1phone1)) {
+				errors += "Phone numbers must consist of digits only!\n";
+			}
+
+			if(!vphone(f.phone2) && !f.phone2.optional) {
 				errors += "Phone numbers must consist of digits only!\n";
 			}
 
@@ -1721,6 +1756,410 @@ function getDistrictList( &$arDistricts)
 	dbclose( $dbConnect);
 	
 	return $result;
+}
+
+function addClientToOperator( &$arAssigned, &$clean) {
+	$retval = true;
+	$dbConnect = dbconnect();
+	
+	$sql = 'DELETE FROM client2operator WHERE operatorid="' . $clean['operatorid_edit'] . '"';
+	$result = mysql_query( $sql,$dbConnect);
+	if ( !$result) {
+		$message  = 'Invalid query: ' . mysql_error() . '<br>' . 'Query: ' . $sql;
+		$retval = false;
+	}
+
+	$sql = 'INSERT INTO client2operator VALUES ';
+	
+	foreach($arAssigned as $cid => $value) {
+		$sql .= '('. $cid . ','. $clean['operatorid_edit'] . '),';
+	}
+	
+	// trim trailing comma
+	$out = $sql;
+	$sql = rtrim( $out, ",");
+	
+	$result = mysql_query( $sql,$dbConnect);
+	if ( !$result) {
+		$message  = 'Invalid query: ' . mysql_error() . '<br>' . 'Query: ' . $sql;
+		$retval = false;
+	}
+	
+	dbclose( $dbConnect);
+	
+	return $retval;
+}
+
+function checkIsSnr( $operatorid){
+	$retval = false;
+	
+	$dbConnect = dbconnect();
+	
+	// let's see who is the senior operator at the moment
+	$sql = 'SELECT operatorid FROM operators WHERE isSnr="1"';
+	$result = mysql_query( $sql,$dbConnect);
+	if ( !$result) {
+		$message  = 'Invalid query: ' . mysql_error() . '<br>' . 'Query: ' . $sql;
+		$retval = false;
+	}
+	else {
+		while ( $myrow = mysql_fetch_array($result)) {
+			if(isset( $myrow['operatorid'])) {
+				if( ctype_digit($myrow['operatorid'])) { 
+					if( $operatorid == $myrow['operatorid']){
+						$retval = true;
+					}
+					else {
+						$retval = false;
+					}
+				}
+			} 
+		}
+	}
+	
+	dbclose( $dbConnect);
+	
+	return $retval;
+}
+
+function transferClientToSnrOperator( $clientid) {
+	$retval = true;
+	$myrow = array();
+	$snrID = -1;
+	
+	$snrID = getSnrOperatorID();
+	
+	$dbConnect = dbconnect();
+	
+	// we are not going to change anything if $snrID is not available
+	if( $snrID > 0) {
+		$sql = 'DELETE FROM client2operator WHERE clientid="' . $clientid . '"';
+		$result = mysql_query( $sql,$dbConnect);
+		if ( !$result) {
+			$message  = 'Invalid query: ' . mysql_error() . '<br>' . 'Query: ' . $sql;
+			print $message; 
+			$retval = false;
+		}
+	
+		$sql = 'INSERT INTO client2operator VALUES ('. $clientid . ','. $snrID . ')';
+		
+		$result = mysql_query( $sql,$dbConnect);
+		if ( !$result) {
+			$message  = 'Invalid query: ' . mysql_error() . '<br>' . 'Query: ' . $sql;
+			print $message;
+			$retval = false;
+		}
+	}
+	
+	dbclose( $dbConnect);
+	
+	return $retval;
+}
+
+function getSnrOperatorID() {
+	$snrID = -1;
+	
+	$dbConnect = dbconnect();
+	
+	// let's see who is the senior operator at the moment
+	$sql = 'SELECT operatorid FROM operators WHERE isSnr="1"';
+	$result = mysql_query( $sql,$dbConnect);
+	if ( !$result) {
+		$message  = 'Invalid query: ' . mysql_error() . '<br>' . 'Query: ' . $sql;
+		$retval = false;
+	}
+	else {
+		$myrow = mysql_fetch_array($result);
+		if(isset( $myrow['operatorid'])) {
+			if( ctype_digit($myrow['operatorid'])) { 
+				$snrID = $myrow['operatorid'];
+			}
+		} 
+	}
+	dbclose( $dbConnect);
+	
+	return $snrID;
+}
+
+function setSnrOperator( $operatorid) {
+	$retval = true;
+	
+	$dbConnect = dbconnect();
+
+	$sql = 'UPDATE operators SET isSnr="1" WHERE operatorid="' . $operatorid . '"';
+	$result = mysql_query( $sql,$dbConnect);
+	if ( !$result) {
+		$message  = 'Invalid query: ' . mysql_error() . '<br>' . 'Query: ' . $sql;
+		print $message;
+		$retval = false;
+	}
+	
+	dbclose( $dbConnect);
+	
+	return $retval;
+}
+
+function clearSnrOperator( $operatorid) {
+	$retval = true;
+	
+	$dbConnect = dbconnect();
+
+	$sql = 'UPDATE operators SET isSnr="0" WHERE operatorid="' . $operatorid . '"';
+	$result = mysql_query( $sql,$dbConnect);
+	if ( !$result) {
+		$message  = 'Invalid query: ' . mysql_error() . '<br>' . 'Query: ' . $sql;
+		print $message;
+		$retval = false;
+	}
+	
+	dbclose( $dbConnect);
+	
+	return $retval;
+}
+
+function addOperator( &$clean) {
+	$retval = true;
+	$snrID = -1;
+	
+	$snrID = getSnrOperatorID();
+	
+	$dbConnect = dbconnect();
+	
+	$sql = 'INSERT INTO operators (loginname,fullname,saltypwd,addedby,isAdmin,isSnr)
+			VALUES ("' . $clean['loginname'] . '","' . $clean['fullname'] . 
+			'",SHA1("' . $clean['password'] . getTheSalt() . '"),"' 
+			. $clean['operatorid'] . '","' . $clean['isAdmin'] . '","' . $clean['isSnr'] . '")';
+			
+	$result = mysql_query( $sql,$dbConnect);
+	if ( !$result) {
+		if( mysql_errno() == 1062) {
+			print "<font size=\"3\" color=\"#FF0000\"><b>Duplicate entry!</b></font>
+					<p>Operator with the same name already exists on the system.<br>
+					Please use a different login name<p>";
+			$retval = false;
+		}
+		else {
+			$message  = 'Invalid query: ' . mysql_error() . '<br>' . 'Query: ' . $sql;
+			print $message;
+			$retval = false;
+		}
+	}
+
+	// this bit really has to be a part of transaction
+	if($retval) {
+		// strip current Senior Operator off her duty
+		if( $clean['isSnr'] == 1) {
+			clearSnrOperator( $snrID);
+		}
+	}
+	
+	dbclose( $dbConnect);
+	
+	return $retval;
+}
+
+function updateOperator( &$clean) {
+	$snrID = -1;
+	$retval = true;
+	
+	$snrID = getSnrOperatorID();
+	
+	$dbConnect = dbconnect();
+	
+	$sql = 'UPDATE operators SET loginname="' . $clean['loginname'] . '",
+			fullname="' . $clean['fullname'] . '",';
+	
+	if( strlen($clean['password']) > 0) {
+		$sql .= 'saltypwd=SHA1("' . $clean['password'] . getTheSalt() . '"),';
+	}
+	
+	$sql .= 'isAdmin="' . $clean['isAdmin'] . '",' .
+			'isSnr="' . $clean['isSnr'] . '",
+			modified=NOW(),
+			modifiedby="' . $clean['operatorid'] . '" 
+			WHERE operatorid="' . $clean['operatorid_edit'] . '"';
+
+	$result = mysql_query( $sql,$dbConnect);
+	if ( !$result) {
+		$message  = 'Invalid query: ' . mysql_error() . '<br>' . 'Query: ' . $sql;
+		print $message;
+		$retval = false;
+	}
+
+	dbclose( $dbConnect);
+	
+	// check if there is no more Senior Operator on the system
+	// and make Administrator the Senior by default
+	if( $clean['isSnr'] == 0) {
+		if( $snrID == $clean['operatorid_edit']) {
+			// set admin (operatorid=1) as Senior
+			setSnrOperator(1);
+		}
+	}
+	else {
+		// we need to clear current Senior
+		if( $snrID > 0 && $snrID != $clean['operatorid_edit']) {
+			clearSnrOperator($snrID);
+		}
+	}
+	
+	return $retval;
+}
+
+function addClient(&$clean) {
+	$retval = true;
+	$dbConnect = dbconnect();
+    
+	$sql = 'INSERT INTO clients (firstname,lastname,title,gender,address,area,districtid,
+			phone1,phone2,housetype,dob,alone, ailments,contact1name,contact1relationship,
+			contact1address,contact1phone1,contact2name,contact2relationship, contact2address,
+			contact2phone1,gpname,referrer,note,referrer_other,timeslot,addedby,modifiedby)
+			VALUES ("'. $clean['firstname'] . '", "' . $clean['lastname'] . '", "' . $clean['title'] . '", "'
+			 . $clean['gender'] . '", "' . $clean['address'] . '", "' . $clean['area'] . '", "'
+			 . $clean['districtid'] . '", "' 
+			 . $clean['phone1'] . '", "'  . $clean['phone2'] . '", "' . $clean['housetype'] . '", "'
+			 . $clean['dob'] . '", "' . $clean['alone'] . '", "' . $clean['ailments'] . '", "'
+			 . $clean['contact1name'] . '", "' . $clean['contact1relationship'] . '", "'
+			 . $clean['contact1address'] . '", "' . $clean['contact1phone1'] . '", "' . $clean['contact2name'] . '", "'
+			 . $clean['contact2relationship'] . '", "' . $clean['contact2address'] . '", "' 
+			 . $clean['contact2phone1'] . '", "' . $clean['gpname'] . '", "' . $clean['referrer'] . '", "'
+			 . $clean['note'] . '", "' . $clean['referrer_other'] . '", "'
+			 . $clean['timeslot'] . '", "' . $_SESSION['operatorid'] . '", "' . $_SESSION['operatorid'] . '")';
+
+	// run SQL against the DB
+	$result = mysql_query($sql);
+	if (!$result) {
+		if( mysql_errno() == 1062) {
+			print "<font size=\"3\" color=\"#FF0000\"><b>Duplicate entry!</b></font>
+					<p>Client with the same name and date of birth already exists on the system.<br>
+					Please use Edit Client screen to change details of existing client or check that you entered
+					name and date of birth of the new client correctly<p>";
+			
+			print  '<a href="' . $_SERVER['PHP_SELF'] . '">Add another client</a><p>';
+		}
+		else {
+			$message  = 'Invalid query: ' . mysql_error() . '<br>' . 'Query: ' . $sql;
+			print $message;
+			$retval = false;
+		}
+	}
+	
+	dbclose( $dbConnect);
+	
+	return $retval;
+}
+
+function setFirstCallDone( $clientid) {
+	$retval = true;
+	
+	$dbConnect = dbconnect();
+	
+	$sql = 'UPDATE client_timeslot_call SET timeslot_done="1" WHERE clientid="' . $clientid . '"';
+	
+	$result = mysql_query($sql);
+	if (!$result) {
+		$message  = "Invalid query: " . mysql_error() . "\n";
+		$message .= "Whole query: " . $sql . "\n";
+		print $message;
+		$retval = false;
+	}
+
+	dbclose( $dbConnect);
+	
+	return $retval;
+}
+
+function recordTheCall( &$clean) {
+	$retval = true;
+	
+	$dbConnect = dbconnect();
+
+	$sql  = "INSERT INTO calls (clientid, time, nextcalltime, chat, class, call_finished, operatorid) 
+  		    VALUES ('" . $clean['clientid'] . "', 
+					NOW(), 
+					TIMESTAMP( CURDATE() , '" . $clean['nextcalltime'] . "'),
+					'" . $clean['chat'] . "', 
+					'" . $clean['mclass'] . "',
+					'" . $clean['call_finished'] . "', 
+					'" . $_SESSION['operatorid'] . "') ";
+	
+	$result = mysql_query($sql, $dbConnect);
+	if (!$result) {
+		$message  = 'Invalid query: ' . mysql_error() . '<br>' . 'Query: ' . $sql;
+		$retval = false;
+	}
+	else if( $clean['call_finished'] == 1) { 
+		// now we can set all unfinished calls to finished state, so the
+		// calculation of the next call time for the client can be correct
+		// NOTE: this is quick and dirty workaround for the moment!!!
+		$sql  = "UPDATE calls SET call_finished='1' 
+				WHERE clientid='" . $clean['clientid'] . "'";
+		
+		$result = mysql_query($sql, $dbConnect);
+		if (!$result) {
+			$message  = 'Invalid query: ' . mysql_error() . '<br>' . 'Query: ' . $sql;
+			$retval = false;
+		}
+	}  
+	
+	dbclose( $dbConnect);
+	
+	return $retval;
+}
+
+function getClientData( &$clean) {
+	$retval = true;
+	
+	$dbConnect = dbconnect();
+
+	$sql = "SELECT firstname,lastname,
+					initials,title,gender,
+					address,phone1,phone2,housetype,dob,alone,ailments,
+					contact1name,contact1relationship,contact1address,contact1phone1,contact1phone2,
+					contact2name,contact2relationship,contact2address,contact2phone1,contact2phone2,
+					gpname,referrer,note,referrer_other,
+					TIME_FORMAT(timeslot,'%H:%i') as timeslot FROM clients WHERE (clients.clientid={$clean['clientid']})";
+	
+	$result = mysql_query($sql, $dbConnect);
+	if (!$result) {
+		$message  = "Invalid query: " . mysql_error() . "\n";
+		$message .= "Whole query: " . $sql . "\n";
+		$retval = false;
+	}
+	$myrow = mysql_fetch_array($result);
+
+/*
+ * Cleaning input from the database
+ */
+	$clean['firstname']				= htmlentities($myrow['firstname'], ENT_QUOTES);
+	$clean['lastname']				= htmlentities($myrow['lastname'], ENT_QUOTES);
+	$clean['initials']				= htmlentities($myrow['initials'], ENT_QUOTES);
+	$clean['title']					= htmlentities($myrow['title'], ENT_QUOTES);
+	$clean['gender']				= htmlentities($myrow['gender'], ENT_QUOTES);
+	$clean['address']				= htmlentities($myrow['address'], ENT_QUOTES);
+	$clean['phone1']				= htmlentities($myrow['phone1'], ENT_QUOTES);
+	$clean['phone2']				= htmlentities($myrow['phone2'], ENT_QUOTES);
+	$clean['housetype']				= htmlentities($myrow['housetype'], ENT_QUOTES);
+	$clean['dob']					= htmlentities($myrow['dob'], ENT_QUOTES);
+	$clean['alone']					= htmlentities($myrow['alone'], ENT_QUOTES);
+	$clean['ailments']				= htmlentities($myrow['ailments'], ENT_QUOTES);
+	$clean['contact1name']			= htmlentities($myrow['contact1name'], ENT_QUOTES);
+	$clean['contact1relationship']	= htmlentities($myrow['contact1relationship'], ENT_QUOTES);
+	$clean['contact1address']		= htmlentities($myrow['contact1address'], ENT_QUOTES);
+	$clean['contact1phone1']		= htmlentities($myrow['contact1phone1'], ENT_QUOTES);
+	$clean['contact1phone2']		= htmlentities($myrow['contact1phone2'], ENT_QUOTES);
+	$clean['contact2name']			= htmlentities($myrow['contact2name'], ENT_QUOTES);
+	$clean['contact2relationship']	= htmlentities($myrow['contact2relationship'], ENT_QUOTES);
+	$clean['contact2address']		= htmlentities($myrow['contact2address'], ENT_QUOTES);
+	$clean['contact2phone1']		= htmlentities($myrow['contact2phone1'], ENT_QUOTES);
+	$clean['contact2phone2']		= htmlentities($myrow['contact2phone2'], ENT_QUOTES);
+	$clean['gpname']				= htmlentities($myrow['gpname'], ENT_QUOTES);
+	$clean['referrer']				= htmlentities($myrow['referrer'], ENT_QUOTES);
+	$clean['timeslot']				= htmlentities($myrow['timeslot'], ENT_QUOTES);
+	$clean['note']					= htmlentities($myrow['note'], ENT_QUOTES);
+	$clean['referrer_other']		= htmlentities($myrow['referrer_other'], ENT_QUOTES);
+
+	dbclose($dbConnect);
 }
 
 // pdf stuff begin
