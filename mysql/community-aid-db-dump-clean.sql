@@ -1,20 +1,3 @@
--- MySQL dump 10.11
---
--- Host: localhost    Database: community_aid_db
--- ------------------------------------------------------
--- Server version	5.0.32-Debian_7etch1-log
-
-/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
-/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
-/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
-/*!40101 SET NAMES utf8 */;
-/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
-/*!40103 SET TIME_ZONE='+00:00' */;
-/*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
-/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
-/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
-/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
-
 DROP DATABASE IF EXISTS community_aid_db;
 CREATE DATABASE community_aid_db;
 USE community_aid_db;
@@ -68,52 +51,57 @@ INSERT INTO `call_sclass` VALUES (1,1,'Bullying/Intimidation','AB:BI'),(1,2,'Exc
 UNLOCK TABLES;
 
 --
--- Table structure for table `calls`
+-- Table structure for table `operators`
 --
 
-DROP TABLE IF EXISTS `calls`;
-CREATE TABLE `calls` (
-  `callid` int(11) NOT NULL auto_increment,
-  `clientid` smallint(6) default NULL,
-  `time` timestamp NOT NULL default CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP,
-  `chat` text,
-  `class` int(11) default NULL,
-  `operatorid` int(11) NOT NULL,
-  `nextcalltime` timestamp NOT NULL default '0000-00-00 00:00:00',
-  `call_finished` tinyint(1) default '0',
-  PRIMARY KEY  (`callid`),
-  KEY `time_idx` (`time`),
-  KEY `class_idx` (`class`),
-  KEY `clientid_idx` (`clientid`),
-  KEY `operatorid_fk` (`operatorid`),
-  CONSTRAINT `calls_ibfk_1` FOREIGN KEY (`operatorid`) REFERENCES `operators` (`operatorid`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=latin1 PACK_KEYS=1;
-
+DROP TABLE IF EXISTS `operators`;
+CREATE TABLE `operators` (
+  `operatorid` bigint NOT NULL auto_increment,
+  `loginname` varchar(25) NOT NULL,
+  `fullname` tinytext NOT NULL,
+  `saltypwd` tinyblob NOT NULL,
+  `isAdmin` tinyint(1) default '0',
+  `isSnr` tinyint(1) default '0',  
+  `added` timestamp NOT NULL default CURRENT_TIMESTAMP,
+  `addedby` bigint NOT NULL,
+  `modified` timestamp NOT NULL,
+  `modifiedby` bigint NOT NULL,
+  PRIMARY KEY  (`operatorid`),
+  UNIQUE KEY `loginname` (`loginname`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --
--- Table structure for table `client2operator`
+-- Dumping data for table `operators`
 --
 
-DROP TABLE IF EXISTS `client2operator`;
-CREATE TABLE `client2operator` (
-  `clientid` int(11) NOT NULL,
-  `operatorid` int(11) NOT NULL,
-  KEY `clientid` (`clientid`),
-  KEY `operatorid` (`operatorid`)
-) ENGINE=MyISAM DEFAULT CHARSET=latin1;
-
+LOCK TABLES `operators` WRITE;
+/*!40000 ALTER TABLE `operators` DISABLE KEYS */;
+INSERT INTO `operators` (operatorid, loginname, fullname, saltypwd, isAdmin, isSnr, added, addedby, modified, modifiedby) VALUES (1,'admin','Administrator','9bc7aa55f08fdad935c3f8362d3f48bcf70eb280',1,1,NOW(),0,NOW(),0);
+/*!40000 ALTER TABLE `operators` ENABLE KEYS */;
+UNLOCK TABLES;
 
 --
--- Table structure for table `client_timeslot_call`
+-- Table structure for table `districts`
 --
 
-DROP TABLE IF EXISTS `client_timeslot_call`;
-CREATE TABLE `client_timeslot_call` (
-  `clientid` int(11) NOT NULL,
-  `timeslot_done` tinyint(1) default '0',
-  UNIQUE KEY `clientid` (`clientid`)
-) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+DROP TABLE IF EXISTS `districts`;
+CREATE TABLE `districts` (
+  `districtid` bigint NOT NULL,
+  `district_name` varchar(128) NOT NULL,
+  `comments` varchar(256) default NULL,
+  PRIMARY KEY  (`districtid`),
+  UNIQUE KEY `district_name` (`district_name`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
+--
+-- Dumping data for table `districts`
+--
+
+LOCK TABLES `districts` WRITE;
+/*!40000 ALTER TABLE `districts` DISABLE KEYS */;
+INSERT INTO `districts` VALUES (1,'Blachardstown',NULL),(2,'Cabra',NULL),(3,'Stoneybatter',NULL),(4,'Inner City',NULL),(5,'Marino/Fairview',NULL),(6,'Clontarf',NULL),(7,'Finglas/Glasnevin',NULL),(8,'Darndale/Coolock',NULL),(9,'Baldoyle',NULL),(10,'Howth/Sutton',NULL),(11,'Portmarnock',NULL),(12,'Malahide',NULL),(13,'Skerries/Lusk/Rush',NULL),(14,'Donabate/Portrane',NULL),(15,'Swords',NULL),(16,'Santry',NULL),(17,'Ballymun',NULL);
+/*!40000 ALTER TABLE `districts` ENABLE KEYS */;
+UNLOCK TABLES;
 
 --
 -- Table structure for table `clients`
@@ -121,7 +109,7 @@ CREATE TABLE `client_timeslot_call` (
 
 DROP TABLE IF EXISTS `clients`;
 CREATE TABLE `clients` (
-  `clientid` smallint(4) NOT NULL auto_increment,
+  `clientid` bigint NOT NULL auto_increment,
   `firstname` varchar(64) NOT NULL,
   `lastname` varchar(64) NOT NULL,
   `initials` varchar(5) default NULL,
@@ -152,10 +140,10 @@ CREATE TABLE `clients` (
   `note` varchar(255) default NULL,
   `modified` timestamp NOT NULL default CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP,
   `active` tinyint(1) default '1',
-  `addedby` int(11) NOT NULL,
-  `modifiedby` int(11) NOT NULL,
+  `addedby` bigint NOT NULL,
+  `modifiedby` bigint NOT NULL,
   `changenote` varchar(255) default NULL,
-  `districtid` int(11) NOT NULL,
+  `districtid` bigint NOT NULL,
   PRIMARY KEY  (`clientid`),
   UNIQUE KEY `firstname` (`firstname`,`lastname`,`address`,`dob`),
   KEY `addedby` (`addedby`),
@@ -164,83 +152,63 @@ CREATE TABLE `clients` (
   CONSTRAINT `clients_ibfk_3` FOREIGN KEY (`districtid`) REFERENCES `districts` (`districtid`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `clients_ibfk_1` FOREIGN KEY (`addedby`) REFERENCES `operators` (`operatorid`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `clients_ibfk_2` FOREIGN KEY (`modifiedby`) REFERENCES `operators` (`operatorid`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=latin1 PACK_KEYS=1;
-
-
-/*!50003 SET @OLD_SQL_MODE=@@SQL_MODE*/;
-DELIMITER ;;
-/*!50003 SET SESSION SQL_MODE="" */;;
-/*!50003 CREATE */ /*!50017 DEFINER=`root`@`localhost` */ /*!50003 TRIGGER `ins_clientid_into_client_timeslot_call` AFTER INSERT ON `clients` FOR EACH ROW insert into client_timeslot_call (clientid) values (NEW.clientid) */;;
-
-DELIMITER ;
-/*!50003 SET SESSION SQL_MODE=@OLD_SQL_MODE */;
-
---
--- Table structure for table `districts`
---
-
-DROP TABLE IF EXISTS `districts`;
-CREATE TABLE `districts` (
-  `districtid` int(11) NOT NULL,
-  `district_name` varchar(128) NOT NULL,
-  `comments` varchar(256) default NULL,
-  PRIMARY KEY  (`districtid`),
-  UNIQUE KEY `district_name` (`district_name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --
--- Dumping data for table `districts`
+-- Table structure for table `calls`
 --
 
-LOCK TABLES `districts` WRITE;
-/*!40000 ALTER TABLE `districts` DISABLE KEYS */;
-INSERT INTO `districts` VALUES (1,'Blachardstown',NULL),(2,'Cabra',NULL),(3,'Stoneybatter',NULL),(4,'Inner City',NULL),(5,'Marino/Fairview',NULL),(6,'Clontarf',NULL),(7,'Finglas/Glasnevin',NULL),(8,'Darndale/Coolock',NULL),(9,'Baldoyle',NULL),(10,'Howth/Sutton',NULL),(11,'Portmarnock',NULL),(12,'Malahide',NULL),(13,'Skerries/Lusk/Rush',NULL),(14,'Donabate/Portrane',NULL),(15,'Swords',NULL),(16,'Santry',NULL),(17,'Ballymun',NULL);
-/*!40000 ALTER TABLE `districts` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `operators`
---
-
-DROP TABLE IF EXISTS `operators`;
-CREATE TABLE `operators` (
-  `operatorid` int(11) NOT NULL auto_increment,
-  `loginname` varchar(25) NOT NULL,
-  `fullname` tinytext NOT NULL,
-  `saltypwd` tinyblob NOT NULL,
-  `isAdmin` tinyint(1) default '0',
-  `added` timestamp NOT NULL default CURRENT_TIMESTAMP,
-  `addedby` int(11) NOT NULL,
-  `modified` timestamp NOT NULL default '0000-00-00 00:00:00',
-  `modifiedby` int(11) NOT NULL,
-  PRIMARY KEY  (`operatorid`),
-  UNIQUE KEY `loginname` (`loginname`)
+DROP TABLE IF EXISTS `calls`;
+CREATE TABLE `calls` (
+  `callid` bigint NOT NULL auto_increment,
+  `clientid` bigint default NULL,
+  `time` timestamp NOT NULL default CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP,
+  `chat` text,
+  `class` int(11) default NULL,
+  `operatorid` bigint NOT NULL,
+  `nextcalltime` timestamp NOT NULL,
+  `call_finished` tinyint(1) default '0',
+  PRIMARY KEY  (`callid`),
+  KEY `time_idx` (`time`),
+  KEY `class_idx` (`class`),
+  KEY `clientid_idx` (`clientid`),
+  KEY `operatorid_fk` (`operatorid`),
+  CONSTRAINT `calls_ibfk_1` FOREIGN KEY (`operatorid`) REFERENCES `operators` (`operatorid`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `calls_ibfk_2` FOREIGN KEY (`clientid`) REFERENCES `clients` (`clientid`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
---
--- Dumping data for table `operators`
---
-
-LOCK TABLES `operators` WRITE;
-/*!40000 ALTER TABLE `operators` DISABLE KEYS */;
-INSERT INTO `operators` VALUES (1,'admin','Administrator','9bc7aa55f08fdad935c3f8362d3f48bcf70eb280',1,NOW(),0,'0000-00-00 00:00:00',0);
-/*!40000 ALTER TABLE `operators` ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
--- Dumping routines for database 'community_aid_db'
+-- Table structure for table `client_timeslot_call`
 --
-DELIMITER ;;
-DELIMITER ;
-/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
-/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
-/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
-/*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
-/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
-/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
-/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
-/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
+DROP TABLE IF EXISTS `client_timeslot_call`;
+CREATE TABLE `client_timeslot_call` (
+  `clientid` bigint NOT NULL,
+  `timeslot_done` tinyint(1) default '0',
+  CONSTRAINT `client_timeslot_call_ibfk_1` FOREIGN KEY (`clientid`) REFERENCES `clients` (`clientid`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+
+--
+-- Triggers
+--
+
+CREATE TRIGGER client_timeslot_call_trgr AFTER INSERT ON clients FOR EACH ROW INSERT INTO client_timeslot_call (`clientid`) VALUES (NEW.clientid);
+
+--
+-- Table structure for table `client2operator`
+--
+
+DROP TABLE IF EXISTS `client2operator`;
+CREATE TABLE `client2operator` (
+  `clientid` bigint NOT NULL,
+  `operatorid` bigint NOT NULL,
+  KEY `clientid` (`clientid`),
+  KEY `operatorid` (`operatorid`),
+  CONSTRAINT `client2operator_ibfk_1` FOREIGN KEY (`clientid`) REFERENCES `clients` (`clientid`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `client2operator_ibfk_2` FOREIGN KEY (`operatorid`) REFERENCES `operators` (`operatorid`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 GRANT SELECT, INSERT, UPDATE, DELETE ON `community_aid_db`.`client2operator` TO 'caadmin'@'localhost';
 GRANT SELECT, INSERT, UPDATE, DELETE ON `community_aid_db`.`call_mclass` TO 'caadmin'@'localhost';
@@ -252,12 +220,14 @@ GRANT SELECT, INSERT, UPDATE ON `community_aid_db`.`calls` TO 'caadmin'@'localho
 GRANT SELECT, INSERT, UPDATE, DELETE ON `community_aid_db`.`districts` TO 'caadmin'@'localhost';
 
 GRANT SELECT ON `community_aid_db`.* TO 'caoperator'@'localhost'; 
+GRANT INSERT, DELETE ON `community_aid_db`.`client2operator` TO 'caoperator'@'localhost';
 GRANT SELECT, INSERT, UPDATE ON `community_aid_db`.`calls` TO 'caoperator'@'localhost'; 
 GRANT SELECT, UPDATE ON `community_aid_db`.`client_timeslot_call` TO 'caoperator'@'localhost'; 
 GRANT SELECT, UPDATE ON `community_aid_db`.`operators` TO 'caoperator'@'localhost'; 
 GRANT SELECT ON `community_aid_db`.`districts` TO 'caoperator'@'localhost';
 
+GRANT SELECT ON `community_aid_db`.* TO 'careport'@'localhost'; 
+
 SET PASSWORD FOR 'caadmin'@'localhost' = PASSWORD('caadmin');
 SET PASSWORD FOR 'caoperator'@'localhost' = PASSWORD('caoperator');
-
--- Dump completed on 2007-10-06 22:40:55
+SET PASSWORD FOR 'careport'@'localhost' = PASSWORD('careport');
