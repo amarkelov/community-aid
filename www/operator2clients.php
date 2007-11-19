@@ -58,37 +58,19 @@ if ($clean['submit']) {
 	if ($clean['operatorid_edit']) {
 		//assign_client( $clean['operatorid'], ...);
 		if( is_array($_POST['assigned'])) {
+			$assigned = array();
 			$assigned = $_POST['assigned'];
 
-			$dbConnect = dbconnect();
-			
-			$sql = 'DELETE FROM client2operator WHERE operatorid="' . $clean['operatorid_edit'] . '"';
-			$result = mysql_query( $sql,$dbConnect);
-			if ( !$result) {
-				$message  = 'Invalid query: ' . mysql_error() . '<br>' . 'Query: ' . $sql;
-				die($message);
+			if( addClientToOperator( $assigned, $clean)) {
+				print '<b>Clients assigned to operator!</b><p>';
+						
 			}
-
-			$sql = 'INSERT INTO client2operator VALUES ';
-			
-			foreach($assigned as $cid => $value) {
-				$sql .= '('. $cid . ','. $clean['operatorid_edit'] . '),';
+			else {
+				print '<b><font color="#FF0000">Error occured while assigning client to operator!</font></b><p>';
 			}
 			
-			// trim trailing comma
-			$out = $sql;
-			$sql = rtrim( $out, ",");
-			
-			$result = mysql_query( $sql,$dbConnect);
-			if ( !$result) {
-				$message  = 'Invalid query: ' . mysql_error() . '<br>' . 'Query: ' . $sql;
-				die($message);
-			}
-			
-			dbclose( $dbConnect);
+			print '<a href="' . $_SERVER['PHP_SELF'] . '">Assign client(s) to another operator</a><p>';
 		}
-		print '<b>Clients assigned to operator!</b><p>
-				<a href="' . $_SERVER['PHP_SELF'] . '">Assign client(s) to another operator</a><p>';
 	}
 }
 else if( $clean['edit']) {
