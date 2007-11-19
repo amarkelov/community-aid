@@ -229,53 +229,10 @@ if($settings['debug'] == 1){
  */
  
 if ($clean['submit']) {
-    // fix DOB
-    if( $dob) {
-		if( ereg("([0-9]{2})/([0-1]{1}[0-9]{1})/([1-2]{1}[0-9]{3})", $dob, $reg)) {
-		    $dob="$reg[3]-$reg[2]-$reg[1]";
-		}
-    }
-	
-    $dbConnect = dbconnect();
-    
-	$sql = 'INSERT INTO clients (firstname,lastname,title,gender,address,area,districtid,
-			phone1,phone2,housetype,dob,alone, ailments,contact1name,contact1relationship,
-			contact1address,contact1phone1,contact2name,contact2relationship, contact2address,
-			contact2phone1,gpname,referrer,note,referrer_other,timeslot,addedby,modifiedby)
-			VALUES ("'. $clean['firstname'] . '", "' . $clean['lastname'] . '", "' . $clean['title'] . '", "'
-			 . $clean['gender'] . '", "' . $clean['address'] . '", "' . $clean['area'] . '", "'
-			 . $clean['districtid'] . '", "' 
-			 . $clean['phone1'] . '", "'  . $clean['phone2'] . '", "' . $clean['housetype'] . '", "'
-			 . $clean['dob'] . '", "' . $clean['alone'] . '", "' . $clean['ailments'] . '", "'
-			 . $clean['contact1name'] . '", "' . $clean['contact1relationship'] . '", "'
-			 . $clean['contact1address'] . '", "' . $clean['contact1phone1'] . '", "' . $clean['contact2name'] . '", "'
-			 . $clean['contact2relationship'] . '", "' . $clean['contact2address'] . '", "' 
-			 . $clean['contact2phone1'] . '", "' . $clean['gpname'] . '", "' . $clean['referrer'] . '", "'
-			 . $clean['note'] . '", "' . $clean['referrer_other'] . '", "'
-			 . $clean['timeslot'] . '", "' . $_SESSION['operatorid'] . '", "' . $_SESSION['operatorid'] . '")';
-
-	// run SQL against the DB
-	$result = mysql_query($sql);
-	if (!$result) {
-		if( mysql_errno() == 1062) {
-			print "<font size=\"3\" color=\"#FF0000\"><b>Duplicate entry!</b></font>
-					<p>Client with the same name and date of birth already exists on the system.<br>
-					Please use Edit Client screen to change details of existing client or check that you entered
-					name and date of birth of the new client correctly<p>";
-			
-			print  '<a href="' . $_SERVER['PHP_SELF'] . '">Add another client</a><p>';
-		}
-		else {
-			$message  = 'Invalid query: ' . mysql_error() . '<br>' . 'Query: ' . $sql;
-			die($message);
-		}
+	if( addClient($clean)) {
+		print "Record Added!<p>";
 	}
-	else {
-		echo "Record Added!<p>";
-		print  '<a href="' . $_SERVER['PHP_SELF'] . '">Add another client</a><p>';
-	}
-	
-	dbclose($dbConnect);
+	print  '<a href="' . $_SERVER['PHP_SELF'] . '">Add another client</a><p>';
 } // if ($submit)
 else {
 	print '<form name="add_client" 
