@@ -2,7 +2,7 @@
 session_start();
 require 'functions.inc';
 
-$settings = get_gmp_settings();
+$settings = get_ca_settings();
 ?>
 
 

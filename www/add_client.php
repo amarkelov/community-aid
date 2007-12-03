@@ -5,7 +5,7 @@ require 'functions.inc';
 $clean = array();
 $mysql = array();
 
-$settings = get_gmp_settings();
+$settings = get_ca_settings();
 
 print '<html><head>
 		<title>Add Client --  Friendly Call Service -- ' . $settings['location'] . '</title>

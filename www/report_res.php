@@ -5,7 +5,7 @@ require 'functions.inc';
 $clean = array();
 $mysql = array();
 
-$settings = get_gmp_settings();
+$settings = get_ca_settings();
 // START LOG IN CODE
 	$doWeExit = displayLogin(basename($_SERVER['PHP_SELF']), false);
 	if($doWeExit == true){
@@ -221,7 +221,7 @@ function setpagesenv( $query) {
 	$pages = 0;
 	
 // if debug flag is set, print the following info
-$settings = get_gmp_settings();
+$settings = get_ca_settings();
 if($settings['debug'] == 1){
 	print "<b>Query:</b><br>";
 	print $query . "<p>";

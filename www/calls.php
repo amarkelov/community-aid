@@ -11,7 +11,7 @@ require("functions.inc");
 $clean = array();
 $mysql = array();
 
-$settings = get_gmp_settings();
+$settings = get_ca_settings();
 
 /*
  * Cleaning the input data
