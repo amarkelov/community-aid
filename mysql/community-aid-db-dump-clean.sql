@@ -99,7 +99,7 @@ CREATE TABLE `districts` (
 
 LOCK TABLES `districts` WRITE;
 /*!40000 ALTER TABLE `districts` DISABLE KEYS */;
-INSERT INTO `districts` VALUES (1,'Blachardstown',NULL),(2,'Cabra',NULL),(3,'Stoneybatter',NULL),(4,'Inner City',NULL),(5,'Marino/Fairview',NULL),(6,'Clontarf',NULL),(7,'Finglas/Glasnevin',NULL),(8,'Darndale/Coolock',NULL),(9,'Baldoyle',NULL),(10,'Howth/Sutton',NULL),(11,'Portmarnock',NULL),(12,'Malahide',NULL),(13,'Skerries/Lusk/Rush',NULL),(14,'Donabate/Portrane',NULL),(15,'Swords',NULL),(16,'Santry',NULL),(17,'Ballymun',NULL);
+INSERT INTO `districts` VALUES (1,'Blachardstown',NULL),(2,'Cabra',NULL),(3,'Stoneybatter',NULL),(4,'Inner City',NULL),(5,'Marino/Fairview',NULL),(6,'Clontarf',NULL),(7,'Finglas/Glasnevin',NULL),(8,'Darndale/Coolock',NULL),(9,'Baldoyle',NULL),(10,'Howth/Sutton',NULL),(11,'Portmarnock',NULL),(12,'Malahide',NULL),(13,'Skerries/Lusk/Rush',NULL),(14,'Donabate/Portrane',NULL),(15,'Swords',NULL),(16,'Santry',NULL),(17,'Ballymun',NULL),(18,'Artaine',NULL);
 /*!40000 ALTER TABLE `districts` ENABLE KEYS */;
 UNLOCK TABLES;
 
