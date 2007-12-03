@@ -4,6 +4,7 @@ define(CONFIG_FILE, "../www/gmp.ini");
 
 define(ACTIVE_CLIENTS, 2);
 define(INACTIVE_CLIENTS, 4);
+define(ACTIVE_UNASSIGNED_CLIENTS, 6);
 define(ALL_CLIENTS, 8);
 
 $last_dow = 6;
@@ -966,14 +967,20 @@ function isOperatorSnr( $operatorid) {
 	return $isSnr;
 }
 
-function getClientsForOperator( $operatorid, &$clients) {
+function getClientsForOperator( $operatorid, $districtid, &$clients) {
 	$myrow = '';
 	$dbConnect = dbconnect();
 
 	$sql = 'SELECT clients.clientid,clients.firstname,clients.lastname,clients.initials 
 			FROM clients LEFT JOIN client2operator ON clients.clientid=client2operator.clientid 
-			WHERE client2operator.operatorid="' . $operatorid . '"  
-			ORDER BY clients.lastname, clients.firstname';
+			WHERE client2operator.operatorid="' . $operatorid . '"';
+
+
+	if( ctype_digit($districtid) && $districtid > 0) {
+		$sql .= ' AND clients.districtid="' . $districtid . '"';  
+	}
+	
+	$sql .= ' ORDER BY clients.lastname, clients.firstname';
 
 	$result = mysql_query( $sql, $dbConnect);
 	if ( !$result) {
@@ -1019,21 +1026,30 @@ function getClientTimeSlot( $clientid) {
 	return $timeslot;
 }
 
-function getClients( &$clients, $what_clients) {
+function getClients( &$clients, $districtid, $what_clients = ALL_CLIENTS) {
 	$myrow = '';
 	$dbConnect = dbconnect();
 	
+	$sql = "SELECT clientid,firstname,lastname,initials FROM clients ";
+
+	// if none of the below, we get all clients
 	switch( $what_clients) {
 	case ACTIVE_CLIENTS:
-			$sql = "SELECT clientid,firstname,lastname,initials FROM clients WHERE active='1' ORDER BY lastname";
+			$sql .= " WHERE active='1'";
 			break;
 	case INACTIVE_CLIENTS:
-			$sql = "SELECT clientid,firstname,lastname,initials FROM clients WHERE active='0' ORDER BY lastname";
+			$sql .= " WHERE active='0'";
 			break;
-	case ALL_CLIENTS:
-			$sql = "SELECT clientid,firstname,lastname,initials FROM clients ORDER BY lastname";
+	case ACTIVE_UNASSIGNED_CLIENTS:
+			$sql .= " WHERE clientid NOT IN (SELECT clientid FROM client2operator)";
 			break;
 	}
+
+	if( ctype_digit($districtid) && $districtid > 0) {
+		$sql .= ' AND districtid="' . $districtid . '" ';  
+	}
+	
+	$sql .= " ORDER BY lastname";
 	
 	$result = mysql_query( $sql,$dbConnect);
 	if ( !$result) {
@@ -1057,8 +1073,13 @@ function getClients( &$clients, $what_clients) {
 	return $result;
 }
 
-function getActiveClients( &$clients) {
-	return getClients( $clients, ACTIVE_CLIENTS);
+function getActiveClients( &$clients, $districtid, $unassigned_only = 0) {
+	if( $unassigned_only == 1 ) {
+		return getClients( $clients, $districtid, ACTIVE_UNASSIGNED_CLIENTS);
+	}
+	else {
+		return getClients( $clients, $districtid, ACTIVE_CLIENTS);
+	}
 }
 
 function getInactiveClients( &$clients) {
@@ -2160,6 +2181,39 @@ function getClientData( &$clean) {
 	$clean['referrer_other']		= htmlentities($myrow['referrer_other'], ENT_QUOTES);
 
 	dbclose($dbConnect);
+}
+
+function getClientToDistrictArray( &$aClientToDistrict, $districtid, $unassigned_only = 0) {
+	$retval = true;
+	
+	$dbConnect = dbconnect();
+
+	$sql = "SELECT clients.clientid,districts.district_name FROM clients, districts 
+				WHERE clients.districtid=districts.districtid 
+				AND clients.active='1'";
+	
+	if( $unassigned_only == 1) {
+		$sql .= " AND clients.clientid NOT IN (SELECT clientid FROM client2operator)";
+	}
+
+	if( ctype_digit($districtid) && $districtid > 0) {
+		$sql .= ' AND clients.districtid="' . $districtid . '"';  
+	}
+	
+	$result = mysql_query($sql, $dbConnect);
+	if (!$result) {
+		$message  = "Invalid query: " . mysql_error() . "\n";
+		$message .= "Whole query: " . $sql . "\n";
+		$retval = false;
+	}
+	
+	while( $myrow = mysql_fetch_array($result)) {
+		$aClientToDistrict[$myrow['clientid']] = htmlentities($myrow['district_name'], ENT_QUOTES);
+	}
+	
+	dbclose($dbConnect);
+	
+	return $retval;
 }
 
 // pdf stuff begin
