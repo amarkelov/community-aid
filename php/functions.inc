@@ -1,6 +1,6 @@
 <?php
 
-define(CONFIG_FILE, "../www/gmp.ini");
+define(CONFIG_FILE, "../conf/community-aid.ini");
 
 define(ACTIVE_CLIENTS, 2);
 define(INACTIVE_CLIENTS, 4);
@@ -34,27 +34,6 @@ function checkValues($fname, $uname, $pass, $pass2){
 	return $isOK;
 }
 
-function addUser($uname, $fname, $pass, $isadmin){
-	$success = false;
-	$link = dbConnect();
-	if(checkIsAdmin($_SESSION['s_username'])){
-			$sql = "INSERT INTO `operators` (`operatorid`, `loginname`, `fullname`,".
-					" `saltypwd`, `isAdmin`) VALUES ('', '$uname', '$fname', '"
-					.salt($pass)."','$isadmin')";
-			$query = mysql_query($sql, $link);
-			
-			if (mysql_errno($link)=='0'){
-				//Print Success
-				$success = true;
-			}else{
-				//echo mysql_error($link);
-			}
-		}
-		dbclose($link);
-	
-	return $success;
-}
-
 function checkIsAdmin( $loginname){
 	if($loginname == ""){
 		return false;
@@ -71,38 +50,6 @@ function checkIsAdmin( $loginname){
 	return false;
 }
 
-function deleteUser($loginname){
-	$success = false;
-	if(checkIsAdmin($_SESSION['s_username'])){
-		$link = dbConnect();
-		$sql = mysql_query("DELETE FROM operators WHERE loginname='$loginname' LIMIT 1") or die (mysql_error($link));
-		//$data = mysql_fetch_array($sql);
-		if (mysql_errno($link)=='0'){
-		$success = true;
-		}
-		dbclose($link);
-	}
-	return $success;
-}
-
-function updateUser($loginname, $newloginname, $newfullname, $newisadmin){
-	$success = false;
-	if(checkIsAdmin($_SESSION['s_username'])){
-		$link = dbConnect();
-		$sql = mysql_query("UPDATE operators SET loginname = '$newloginname',
-							`fullname` = '$newfullname', `isAdmin` = '$newisadmin'
-							WHERE `loginname` = '$loginname' LIMIT 1") 
-				or die (mysql_error($link));		//not the best idea for deployment
-		//$data = mysql_fetch_array($sql);
-		if (mysql_errno($link)=='0'){
-		$success = true;
-		}
-		dbclose($link);
-	}
-	return $success;
-}
-
-
 /* 
  * $page Page calling this method
  * $check4Admin shoule be either true, false or null;
@@ -111,7 +58,7 @@ function updateUser($loginname, $newloginname, $newfullname, $newisadmin){
  */
 function displayLogin($page, $check4Admin){
 	$settings = array();
-	$settings = get_gmp_settings();
+	$settings = get_ca_settings();
 	
 	if (!isset($page)){
 		$page = $settings['start_page'];
@@ -147,7 +94,7 @@ function displayLogin($page, $check4Admin){
 		if($check4Admin and !checkIsAdmin($_SESSION['s_username'])){
 			//if logged in, need to check for admin and IS NOT admin 
 			$out .= '<div align=left>Sorry you do not have sufficent priviledges to access this page<br /><br/>
-					<a href=gmp.php>Click here to return to main page</a></div></td></tr></table>';
+					<a href="' . $settings['start_page'] . '">Click here to return to main page</a></div></td></tr></table>';
 			echo $out;
 			return true;
 			echo "I shouldn't have got here";
@@ -159,14 +106,14 @@ function displayLogin($page, $check4Admin){
 			
 			// display link back to main menu only if we are not on the main page already
 			if( ltrim($_SERVER['PHP_SELF'], '/') != $settings['start_page']) {
-				$out .= '<br><br><a href=gmp.php>Click here to return to main menu</a>';
+				$out .= '<br><br><a href="' . $settings['start_page'] . '">Click here to return to main menu</a>';
 			}	
 			
 			$out .= '</div></td>';
 		}
 	}
 	$out .= '<td><div align="right">
-			<a href="/gmp.php"><img src="/images/header.png" border="0" alt="Friendly Call Service"></a>';
+			<a href="' . $page . '"><img src="/images/header.png" border="0" alt="Friendly Call Service"></a>';
 	$out .= '<br>';
 	$out .= '<br><b>Registered clients todate:</b> ' . getNumberOfRegisteredClients();
 	$out .= '<br><b>Active clients today:</b> ' . getNumberOfActiveClients();
@@ -222,7 +169,7 @@ function getNumberOfActiveClients() {
 function print_debug( $clean, $settings) {
 // if debug flag is set, print the following info
 	$s = array();
-	$s = get_gmp_settings();
+	$s = get_ca_settings();
 	if($s['debug'] >0){
 		print "<b>\$_POST:</b><br>";
 		print_r( $_POST);
@@ -254,7 +201,7 @@ function print_debug( $clean, $settings) {
 	}
 }
 	
-function get_gmp_settings(){
+function get_ca_settings(){
 	$settings = array();
 	
 	$settings = parse_ini_file(CONFIG_FILE);
@@ -264,35 +211,35 @@ function get_gmp_settings(){
 	}
 
 	if(!isset($settings['start_page'])) {
-		$settings['start_page'] = 'gmp.php';	
+		$settings['start_page'] = 'community-aid.php';	
 	}
 	
 	if(isset($_SERVER['Operator'])) {
 		$settings['operator'] = $_SERVER['Operator'];
 	}
 	else {
-		$settings['operator'] = 'gmoperator';
+		$settings['operator'] = 'caoperator';
 	}
 	
 	if(isset($_SERVER['Operator_Password'])) {
 		$settings['operator_password'] = $_SERVER['Operator_Password'];
 	}
 	else {
-		$settings['operator_password'] = 'gmoperatorpwd';
+		$settings['operator_password'] = 'caoperatorpwd';
 	}
 	
 	if(isset($_SERVER['Admin'])) {
 		$settings['admin'] = $_SERVER['Admin'];
 	}
 	else {
-		$settings['admin'] = 'gmadmin';
+		$settings['admin'] = 'caadmin';
 	}
 	
 	if(isset($_SERVER['Admin_Password'])) {
 		$settings['admin_password'] = $_SERVER['Admin_Password'];
 	}
 	else {
-		$settings['admin_password'] = 'gmadminpwd';
+		$settings['admin_password'] = 'caadminpwd';
 	}
 	
 	if(isset($_SERVER['DbHost'])) {
@@ -309,7 +256,7 @@ function preLoginDBConnect()
 {
 	$settings = array();
 	
-	$settings = get_gmp_settings();
+	$settings = get_ca_settings();
 	
 	$dbLoginName = $settings['operator'];
 	$dbLoginPwd = $settings['operator_password'];
@@ -340,7 +287,7 @@ function dbconnect()
 	
 	$settings = array();
 	
-	$settings = get_gmp_settings();
+	$settings = get_ca_settings();
 	
 	if( !checkIsAdmin( $dbLoginName)) {
 		$dbLoginName = $settings['operator'];
@@ -1026,7 +973,7 @@ function getClientTimeSlot( $clientid) {
 	return $timeslot;
 }
 
-function getClients( &$clients, $districtid, $what_clients = ALL_CLIENTS) {
+function getClients( &$clients, $districtid = 0, $what_clients = ALL_CLIENTS) {
 	$myrow = '';
 	$dbConnect = dbconnect();
 	
@@ -1045,6 +992,7 @@ function getClients( &$clients, $districtid, $what_clients = ALL_CLIENTS) {
 			break;
 	}
 
+	// if $districtid=0, we want to see all active clients
 	if( ctype_digit($districtid) && $districtid > 0) {
 		$sql .= ' AND districtid="' . $districtid . '" ';  
 	}
@@ -1073,7 +1021,7 @@ function getClients( &$clients, $districtid, $what_clients = ALL_CLIENTS) {
 	return $result;
 }
 
-function getActiveClients( &$clients, $districtid, $unassigned_only = 0) {
+function getActiveClients( &$clients, $districtid = 0, $unassigned_only = 0) {
 	if( $unassigned_only == 1 ) {
 		return getClients( $clients, $districtid, ACTIVE_UNASSIGNED_CLIENTS);
 	}
@@ -1082,8 +1030,8 @@ function getActiveClients( &$clients, $districtid, $unassigned_only = 0) {
 	}
 }
 
-function getInactiveClients( &$clients) {
-	return getClients( $clients, INACTIVE_CLIENTS);
+function getInactiveClients( &$clients, $districtid = 0, $unassigned_only = 0) {
+	return getClients( $clients, $districtid, INACTIVE_CLIENTS);
 }
 
 function getAllClients( &$clients) {
