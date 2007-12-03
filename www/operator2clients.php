@@ -37,7 +37,21 @@ else if(isset($_POST['edit'])) {
 	$clean['edit'] = $_POST['edit'];
 }
 if(isset($_POST['operatorid_edit'])){
-	$clean['operatorid_edit'] = $_POST['operatorid_edit']; 
+	if(ctype_digit($_POST['operatorid_edit'])) {
+		$clean['operatorid_edit'] = $_POST['operatorid_edit'];
+	} 
+}
+if(isset($_POST['unassigned_only'])) {
+	if(isset($_POST['unassigned_only'])) {
+		switch(strtoupper($_POST['unassigned_only'])) {
+			case "ON":
+				$clean['unassigned_only'] = 1;
+				break;
+			default:
+				$clean['unassigned_only'] = 0;
+				break;
+		}
+	}
 }
 
 if(isset($_SESSION['operatorid'])){
@@ -45,6 +59,13 @@ if(isset($_SESSION['operatorid'])){
 		$clean['operatorid'] = $_SESSION['operatorid'];
 	}
 }
+
+if(isset($_POST['districtid'])){
+	if(ctype_digit($_POST['districtid'])) {
+		$clean['districtid'] = $_POST['districtid'];
+	}
+}
+
 if($settings['debug'] == 1){
 	print "<b>\$clean:</b><br>";
 	print_r( $clean);
@@ -78,9 +99,12 @@ else if( $clean['edit']) {
 		$aActiveClients = array();
 		$aAssignedClients = array();
 		$aOperatorNames = array();
+		$aClientToDistrict = array();
 		
-		if( getClientsForOperator( $clean['operatorid_edit'], $aAssignedClients)) {
-			if( getActiveClients( $aActiveClients)) {	
+		getClientToDistrictArray( &$aClientToDistrict, $clean['districtid'], $clean['unassigned_only']);
+		
+		if( getClientsForOperator( $clean['operatorid_edit'], $clean['districtid'], $aAssignedClients)) {
+			if( getActiveClients( $aActiveClients, $clean['districtid'], $clean['unassigned_only'])) {	
 				print '<b>You are now assigning clients for operator: ' . getOperatorName( $clean['operatorid_edit']) . '</b>
 						<p>To assign client to operator, use the checkboxes to the left from
 						the client names. Checked checkbox means the client will be assigned
@@ -93,7 +117,8 @@ else if( $clean['edit']) {
 						<td></td>
 						<td><b>Client ID</b></td>
 						<td><b>Client Name</b></td>
-						<td><b>Client\'s timeslot</b></td>
+						<td align="center"><b>District</b></td>
+						<td align="center"><b>Client\'s timeslot</b></td>
 						<td align="center"><b>Client assigned to</b></td>
 					   </tr>';
 				
@@ -106,7 +131,8 @@ else if( $clean['edit']) {
 					print '></input></td>
 							<td width="10%" valign="top">' . $cid . '</td>
 							<td width="30%" valign="top">' . strtoupper( $value) . '</td>
-							<td width="10%" valign="top" align="center">' . getClientTimeSlot( $cid) . '</td>';
+							<td width="10%" valign="top" align="center">' . $aClientToDistrict[$cid] . '</td>
+							<td width="30%" valign="top" align="center">' . getClientTimeSlot( $cid) . '</td>';
 					
 					print '<td width="100%" valign="top" align="center">';
 					getOperatorNameAssignedToClient( $cid, &$aOperatorNames);
@@ -122,7 +148,7 @@ else if( $clean['edit']) {
 					else {
 						print '&nbsp;';
 					}
-					print '</td>';
+					print '</td></tr>';
 				}
 				
 				
@@ -141,14 +167,15 @@ else {	// this part happens if we don't press submit
 	if ( $clean['operatorid']) {
 		// pull the list of operators
 		$operators = array();
+		$arDistricts = array();
 		
 		if( getOperators( $operators)) {
 			print '<form method="post" action="' . $_SERVER['PHP_SELF'] . '">
-					<font face="Verdana, Arial, Helvetica, sans-serif">
+					<font face="Verdana, Arial, Helvetica, sans-serif" size=1>
 					<div align="left">
 					<table>';
 	
-			print '<tr><td><select name="operatorid_edit">';
+			print '<tr><td width="10%">Operator:</td><td><select name="operatorid_edit">';
 			
 			foreach ( $operators as $oid => $value) {
 				print '<option value="' . $oid . '">'
@@ -158,12 +185,20 @@ else {	// this part happens if we don't press submit
 			}
 	
 			print '</select></td></tr>';
-			print '<tr><td><font face="Verdana, Arial, Helvetica, sans-serif">
-					<input type="Submit" name="edit" value="Assign clients">
-					</font>
-					</div></td></tr>';
-			
-			print '</table></form>';
+			print '<tr><td width="10%">District:</td><td>';
+					
+			if( getDistrictList( $arDistricts)) {
+				print '<select name="districtid">';
+				foreach( $arDistricts as $did => $district_name) {
+						print '<option value="' . $did . '">' . $district_name . '</option>';
+				}
+				print '</select>';
+			}
+			print '</td></tr></table>';
+			print '<br><font face="Verdana, Arial, Helvetica, sans-serif" size="2">
+					<input type="checkbox" name="unassigned_only">Show unassigned clients only</input></font>
+					<br><br><input type="Submit" name="edit" value="Assign clients">
+					</div></form>';
 		}
 	}
 }
