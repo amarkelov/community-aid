@@ -2,11 +2,11 @@
 	session_start();
 	require("functions.inc");
 	
-/*	$settings = get_ca_settings();
+	$settings = get_ca_settings();
 	
 	if ($settings['debug'] > 0) {
 		print_debug( $clean, $settings);
-	}*/
+	}
 		
 	if (isset($_SESSION['s_username'])) {
 		header("Location: ".$_GET['f'] ."?a"); //already logged in
@@ -47,6 +47,6 @@
 		header("Location: ".$_GET['f']);  // return to page we came from
 		
 	}else{
-		header("Location: gmp.php"); // dont know where to go!
+		header("Location: " . $settings['start_page']); // dont know where to go!
 	} 
 ?>   

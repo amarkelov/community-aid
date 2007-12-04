@@ -7,21 +7,19 @@ $mysql = array();
 
 $settings = get_ca_settings();
 
-print '<html><head>
-		<title>Edit Client List -- Good Morning ' . $settings['location'] . '</title>
-		<meta http-equiv="expires" content="-1">
-		<meta http-equiv="Cache-Control" content="no-cache">';
+// Page Header ...
+printHeader( "Edit Client", 0, "printAddEditClientJavaScript");
 
-printAddEditClientJavaScript();
-
-print '</head>
-		<body bgcolor="#BEC8FD"><p>';
+// if debug flag is set, print the following info
+if ($settings['debug'] > 0) {
+	print_debug();
+}
 
 // START LOG IN CODE
-	$doWeExit = displayLogin(basename($_SERVER['PHP_SELF']), true);
-	if($doWeExit == true){
-		exit;
-	}
+$doWeExit = displayLogin(basename($_SERVER['PHP_SELF']), true);
+if($doWeExit == true){
+	exit;
+}
 // END LOG IN CODE
 
 /*

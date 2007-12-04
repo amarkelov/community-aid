@@ -3,31 +3,23 @@ session_start();
 require 'functions.inc';
 
 $settings = get_ca_settings();
+
+// Page Header ...
+printHeader( "Main menu", 0);
+
+if ($settings['debug'] > 0) {
+	print_debug( $clean, $settings);
+}
+
+// START LOG IN CODE
+$doWeExit = displayLogin(basename($_SERVER['PHP_SELF']), false);
+if($doWeExit == true){
+	exit;
+}
+// END LOG IN CODE
+
 ?>
-
-
-<html>
-<head>
-<title> Main menu -- Good Morning <?php echo $settings['location'] ?></TITLE>
-<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-</head>
-
-
-<body bgcolor="#BEC8FD" link="#0000FF" vlink="#0000FF" alink="#0000FF">
-<font face="Verdana" size="2">
-<?php 
-	if ($settings['debug'] > 0) {
-		print_debug( $clean, $settings);
-	}
-
-	// START LOG IN CODE
-		$doWeExit = displayLogin(basename($_SERVER['PHP_SELF']), false);
-		if($doWeExit == true){
-			exit;
-		}
-	// END LOG IN CODE
-?>
-
+<font face="verdana, arial, helvetica" size="2">
 <table>
 <tr>
 	<td><a href='calls.php'>Calls</a></td>
@@ -73,6 +65,7 @@ $settings = get_ca_settings();
 	<?php }?>
 </tr>
 </table>
+</font>
 
 </body>
 </html>

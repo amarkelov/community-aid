@@ -7,27 +7,20 @@ $mysql = array();
 
 $settings = get_ca_settings();
 
-print '<html><head>
-		<title>Add Client --  Friendly Call Service -- ' . $settings['location'] . '</title>
-		<meta http-equiv="expires" content="-1">
-		<meta http-equiv="Cache-Control" content="no-cache">';
-
-printAddEditClientJavaScript();
-
-print '</head>
-		<body bgcolor="#BEC8FD"><p>';
+// Page Header ...
+printHeader( "Add Client", 0, "printAddEditClientJavaScript");
 
 // if debug flag is set, print the following info
 if ($settings['debug'] > 0) {
 	print_debug();
 }
 
-	// START LOG IN CODE
-		$doWeExit = displayLogin(basename($_SERVER['PHP_SELF']), true);
-		if($doWeExit == true){
-			exit;
-		}
-	// END LOG IN CODE
+// START LOG IN CODE
+$doWeExit = displayLogin(basename($_SERVER['PHP_SELF']), true);
+if($doWeExit == true){
+	exit;
+}
+// END LOG IN CODE
 
 /*
  * Start filtering input
@@ -251,10 +244,6 @@ else {
 				return verify(this);"
 				method="post" 
 				action="' . $_SERVER['PHP_SELF'] . '">';
-	
-	//<!------------------->
-	//<!----HTML LAYOUT---->
-	//<!------------------->
 	
 	printAddEditClientTable( $clean);
 	

@@ -7,25 +7,20 @@ $mysql = array();
 
 $settings = get_ca_settings();
 
-print '<html><head>
-		<title>Edit Operator --  Friendly Call Service -- ' . $settings['location'] . '</title>
-		<meta http-equiv="expires" content="-1">
-		<meta http-equiv="Cache-Control" content="no-cache">
-		</head>
-		<body bgcolor="#BEC8FD">
-		<font face="Verdana" size="2">';
- 
+// Page Header ...
+printHeader( "Edit Operator", 0);
+
 // if debug flag is set, print the following info
 if ($settings['debug'] > 0) {
 	print_debug();
 }
 
-	// START LOG IN CODE
-		$doWeExit = displayLogin(basename($_SERVER['PHP_SELF']), true);
-		if($doWeExit == true){
-			exit;
-		}
-	// END LOG IN CODE
+// START LOG IN CODE
+$doWeExit = displayLogin(basename($_SERVER['PHP_SELF']), true);
+if($doWeExit == true){
+	exit;
+}
+// END LOG IN CODE
 
 /*
  * Start filtering input
@@ -105,15 +100,15 @@ if ($clean['submit']) {
 }
 else  if( $clean['edit']){
 	if ( $clean['operatorid_edit']) {
-		print '<div align="left">
+		print '<div align="left"><font face="Verdana, Arial, Helvetica, sans-serif" size="2">
 			<table>
 			<form method="post" action="' . $_SERVER['PHP_SELF'] . '" onsubmit="return(this.password = SHA1(this.password + \"' . getTheSalt() . '\"));">
 			<tr><td>Operator\'s login name: </td>
-				<td><input name="loginname" type="text" size="20" maxlength="64" value="' . getOperatorLoginName($clean['operatorid_edit']) .'" /></td></tr>
+				<td><input name="loginname" type="text" size="20" maxlength="64" value="' . getOperatorLoginName($clean['operatorid_edit']) .'"></td></tr>
 			<tr><td>Operator\'s full name: </td>
-				<td><input name="fullname" type="text" size="20" maxlength="64" value="' . getOperatorName($clean['operatorid_edit']) .'"/></td></tr>
+				<td><input name="fullname" type="text" size="20" maxlength="64" value="' . getOperatorName($clean['operatorid_edit']) .'"></td></tr>
 			<tr><td>Password: </td>
-				<td><input name="password" type="password" size="20" maxlength="64" /></td></tr>
+				<td><input name="password" type="password" size="20" maxlength="64"></td></tr>
 			<tr><td>Administrator: </td>';
 		
 		if(isOperatorAdmin($clean['operatorid_edit'])) {
@@ -136,8 +131,8 @@ else  if( $clean['edit']){
 		print '<td><<<< Check the checkbox if you want to make the operator the Senior Operator</td>
 			</tr>
 			<tr><td><input name="submit" type="submit" value="Submit" /></td></tr>
-			<input type="hidden" name="operatorid_edit" value="' . $clean['operatorid_edit'] . '" />
-			</form></div></tr></td></table>';
+			<input type="hidden" name="operatorid_edit" value="' . $clean['operatorid_edit'] . '">
+			</form></tr></td></table></div></font>';
 	}
 }
 else {

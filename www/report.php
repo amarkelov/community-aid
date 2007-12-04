@@ -6,30 +6,26 @@ $clean = array();
 $mysql = array();
 
 $settings = get_ca_settings();
-?>
 
+// Page Header ...
+printHeader( "Report", 0);
 
-<html>
-<head>
-<title> Report -- Good Morning <?php echo $settings['location'] ?></TITLE>
-<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-</head>
+// if debug flag is set, print the following info
+if ($settings['debug'] > 0) {
+	print_debug();
+}
 
-
-<body bgcolor="#BEC8FD" link="#0000FF" vlink="#0000FF" alink="#0000FF">
-<font face="Verdana" size="2">
-<?php 
-	// START LOG IN CODE
-		$doWeExit = displayLogin(basename($_SERVER['PHP_SELF']), false);
-		if($doWeExit == true){
-			exit;
-		}
-	// END LOG IN CODE
+// START LOG IN CODE
+$doWeExit = displayLogin(basename($_SERVER['PHP_SELF']), true);
+if($doWeExit == true){
+	exit;
+}
+// END LOG IN CODE
 ?>
 <h1>Report</h1>
-
+<font face="Verdana, Arial, Helvetica, sans-serif" size="2">
 Please, choose criteria for the report and press 'Submit' button.
-
+</font>
 <p>
 
 <form method="post" action="report_res.php" >
@@ -42,9 +38,7 @@ Please, choose criteria for the report and press 'Submit' button.
 
     <td>
     by Classification: 
-    <select name="class" size="1">
     <?php draw_classification() ?>
-    </select>
     </td>
 </tr>
 <tr>

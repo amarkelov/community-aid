@@ -7,24 +7,20 @@ $mysql = array();
 
 $settings = get_ca_settings();
 
-print '<html><head>
-		<title>De-activate Client --  Friendly Call Service -- ' . $settings['location'] . '</title>
-		<meta http-equiv="expires" content="-1">
-		<meta http-equiv="Cache-Control" content="no-cache">
-		</head>
-		<body bgcolor="#BEC8FD"><p>';
+// Page Header ...
+printHeader( "De-activate Client", 0);
 
 // if debug flag is set, print the following info
 if ($settings['debug'] > 0) {
 	print_debug();
 }
 
-	// START LOG IN CODE
-		$doWeExit = displayLogin(basename($_SERVER['PHP_SELF']), true);
-		if($doWeExit == true){
-			exit;
-		}
-	// END LOG IN CODE
+// START LOG IN CODE
+$doWeExit = displayLogin(basename($_SERVER['PHP_SELF']), true);
+if($doWeExit == true){
+	exit;
+}
+// END LOG IN CODE
 
 /*
  * Start filtering input

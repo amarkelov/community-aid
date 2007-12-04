@@ -52,7 +52,7 @@ if (isset($clean['report'])) {
     // (1) classification
     if(isset($_POST['class_cb'])) {
 		$multi = 1;
-		$sql .= "class= " . $_POST['class'];
+		$sql .= "class= " . $_POST['mclass'];
     }
     // (2) date
     if(isset($_POST['date_cb'])) {
@@ -129,29 +129,22 @@ if (isset($clean['report'])) {
 		die($message);
 	}
 
-    $out  = "<hr noshade>";
-    $out .= "<table width='100%' border='1' cellpadding='0' cellspacing='0'>";
-    $out .= "<tr bgcolor='#00FF00'>";
-    $out .= "<td width='2%'><font size=$fs><b>Call ID</td>";
-    $out .= "<td width='2%'><font size=$fs><b>Client ID</td>";
-    $out .= "<td width='15%'><font size=$fs><b>Date & time</td>";
-    $out .= "<td><font size=$fs><b>Call details</td>";    
-    $out .= "</tr>";
+    $out  = '<hr noshade>';
+    $out .= '<font face="Verdana, Arial, Helvetica, sans-serif" size="2">';
+    $out .= '<table width="100%" border="1" cellpadding="0" cellspacing="0">';
+    $out .= '<tr bgcolor="#00FF00">';
+    $out .= '<td width="2%"><font size="' . $fs . '"><b>Call ID</td>';
+    $out .= '<td width="2%"><font size="' . $fs . '"><b>Client ID</td>';
+    $out .= '<td width="15%"><font size="' . $fs . '"><b>Date & time</td>';
+    $out .= '<td><font size="' . $fs . '"><b>Call details</td>';    
+    $out .= '</tr>';
 
 	if (!$big_report) {
-		print "<html>
-				<head>
-				<title> Report -- Good Morning " . $settings['location'] . "</TITLE>
-				<meta http-equiv=\"Content-Type\" content=\"text/html; charset=iso-8859-1\">
-				</head>
-				
-				
-				<body bgcolor=\"#BEC8FD\" link=\"#0000FF\" vlink=\"#0000FF\" alink=\"#0000FF\">
-				<font face=\"Verdana\" size=\"2\">
-				
-				<h1>Report</h1>
-				
-				<p>";
+
+		// Page Header ...
+		printHeader( "Report", 0);
+
+		print "<h1>Report</h1><p>";
 
 		print $out;
 
@@ -164,17 +157,17 @@ if (isset($clean['report'])) {
 			    $out = '<tr bgcolor="#DDDDDD">';	
 			}
 			
-			$out .= "<td><font size=$fs>";
+			$out .= '<td><font size="' . $fs . '">';
 			$out .= $row['callid'];
-			$out .= "</td><td width='2%'><font size=$fs>";
+			$out .= '</td><td width="2%"><font size="' . $fs . '">';
 			$out .= $row['clientid'];
-			$out .= "</td><td width='15%'><font size=$fs>";	
+			$out .= '</td><td width="15%"><font size="' . $fs . '">';	
 			$out .= $row[2];	// if you use time in brackets
 						// data in table if broken due to DATE_FORMAT()
 						// use. that's why it's index here.
-			$out .= "</td><td><font size=$fs>";	
+			$out .= '</td><td><font size="' . $fs . '">';	
 			if(0 == strlen($row['chat'])) {
-				$out .= "&nbsp";
+				$out .= '&nbsp';
 			}
 			else {
 				$out .= $row['chat'];

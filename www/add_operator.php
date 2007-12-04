@@ -7,25 +7,20 @@ $mysql = array();
 
 $settings = get_ca_settings();
 
-print '<html><head>
-		<title>Add Operator --  Friendly Call Service -- ' . $settings['location'] . '</title>
-		<meta http-equiv="expires" content="-1">
-		<meta http-equiv="Cache-Control" content="no-cache">
-		</head>
-		<body bgcolor="#BEC8FD">
-		<font face="Verdana" size="2">';
- 
+// Page Header ...
+printHeader( "Add Operator", 0);
+
 // if debug flag is set, print the following info
 if ($settings['debug'] > 0) {
 	print_debug();
 }
 
-	// START LOG IN CODE
-		$doWeExit = displayLogin(basename($_SERVER['PHP_SELF']), true);
-		if($doWeExit == true){
-			exit;
-		}
-	// END LOG IN CODE
+// START LOG IN CODE
+$doWeExit = displayLogin(basename($_SERVER['PHP_SELF']), true);
+if($doWeExit == true){
+	exit;
+}
+// END LOG IN CODE
 
 /*
  * Start filtering input
@@ -90,17 +85,17 @@ if ($clean['submit']) {
 }
 else {	// this part happens if we don't press submit
 	if ( $clean['operatorid']) {
-		print '<div align="left">
-			<table>
+		print '<div align="left"><font face="Verdana, Arial, Helvetica, sans-serif" size="2">
 			<form method="post" action="' . $_SERVER['PHP_SELF'] . '" onsubmit="return(this.password = SHA1(this.password + \"' . getTheSalt() . '\"));">
+			<table>
 			<tr>
-				<td>Operator\'s login name: </td><td><input name="loginname" type="text" size="20" maxlength="64" /></td>
+				<td>Operator\'s login name: </td><td><input name="loginname" type="text" size="20" maxlength="64"></td>
 			</tr>
 			<tr>
-				<td>Operator\'s full name: </td><td><input name="fullname" type="text" size="20" maxlength="64" /></td>
+				<td>Operator\'s full name: </td><td><input name="fullname" type="text" size="20" maxlength="64"></td>
 			</tr>
 			<tr>
-				<td>Password: </td><td><input name="password" type="password" size="20" maxlength="64" /></td>
+				<td>Password: </td><td><input name="password" type="password" size="20" maxlength="64"></td>
 			</tr>
 			<tr>
 				<td>Administrator: </td><td><input type="checkbox" name="isAdmin" size="5" maxlength="5"></td>
@@ -111,9 +106,9 @@ else {	// this part happens if we don't press submit
 				<td><<<< Check the checkbox if you want to make the operator the Senior Operator</td>
 			</tr>
 			<tr>
-				<td><input name="submit" type="submit" value="Add Operator" /></td>
+				<td><input name="submit" type="submit" value="Add Operator"></td>
 			</tr>
-			</form></div></tr></td></table>';
+			</tr></td></table></form></font></div>';
 	}
 }
 

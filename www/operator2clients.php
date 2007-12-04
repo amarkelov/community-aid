@@ -7,24 +7,20 @@ $mysql = array();
 
 $settings = get_ca_settings();
 
-print '<html><head>
-		<title>Assign Operator to Client --  Friendly Call Service -- ' . $settings['location'] . '</title>
-		<meta http-equiv="expires" content="-1">
-		<meta http-equiv="Cache-Control" content="no-cache">
-		</head>
-		<body bgcolor="#BEC8FD"><p>';
+// Page Header ...
+printHeader( "Assign Operator to Client", 0);
 
 // if debug flag is set, print the following info
 if ($settings['debug'] > 0) {
 	print_debug();
 }
 
-	// START LOG IN CODE
-		$doWeExit = displayLogin(basename($_SERVER['PHP_SELF']), true);
-		if($doWeExit == true){
-			exit;
-		}
-	// END LOG IN CODE
+// START LOG IN CODE
+$doWeExit = displayLogin(basename($_SERVER['PHP_SELF']), true);
+if($doWeExit == true){
+	exit;
+}
+// END LOG IN CODE
 
 /*
  * Start filtering input
@@ -170,8 +166,8 @@ else {	// this part happens if we don't press submit
 		$arDistricts = array();
 		
 		if( getOperators( $operators)) {
-			print '<form method="post" action="' . $_SERVER['PHP_SELF'] . '">
-					<font face="Verdana, Arial, Helvetica, sans-serif" size=1>
+			print '<font face="Verdana, Arial, Helvetica, sans-serif" size="2">
+					<form method="post" action="' . $_SERVER['PHP_SELF'] . '">
 					<div align="left">
 					<table>';
 	
@@ -195,10 +191,9 @@ else {	// this part happens if we don't press submit
 				print '</select>';
 			}
 			print '</td></tr></table>';
-			print '<br><font face="Verdana, Arial, Helvetica, sans-serif" size="2">
-					<input type="checkbox" name="unassigned_only">Show unassigned clients only</input></font>
+			print '<br><input type="checkbox" name="unassigned_only">Show unassigned clients only</input>
 					<br><br><input type="Submit" name="edit" value="Assign clients">
-					</div></form>';
+					</div></form></font>';
 		}
 	}
 }
