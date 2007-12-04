@@ -9,8 +9,32 @@ define(ALL_CLIENTS, 8);
 
 $last_dow = 6;
 
+function printHeader( $pageTitle, $refreshRate = 0, $javaScriptFuncName = NULL) {
+	$settings = array();
+	$settings = get_ca_settings();
+	
+	print '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" 
+			"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+			<html xmlns="http://www.w3.org/1999/xhtml">
+			<head>
+				<title>' . $pageTitle . ' --  Friendly Call Service -- ' . $settings['location'] . '</title>
+				<meta http-equiv="expires" content="-1">
+				<meta http-equiv="Cache-Control" content="no-cache">';
+	
+	if( $refreshRate > 0) {
+		print '<meta http-equiv="refresh" content="' . $refreshRate . '" url="http://' 
+					. $HTTP_ENV_VARS["HOSTNAME"]
+					. $_SERVER['PHP_SELF'] . '">';
+	}
+	
+	if( isset( $javaScriptFuncName)) {
+		$javaScriptFuncName();
+	}
+	
+	print '</head><body bgcolor="#BEC8FD"><font face="Verdana, Arial, Helvetica, sans-serif"><p>'; 
+}
 
- //THIS NEEDS TO BE SET
+//THIS NEEDS TO BE SET
 function getTheSalt(){
 	return "salt";
 }
@@ -64,7 +88,8 @@ function displayLogin($page, $check4Admin){
 		$page = $settings['start_page'];
 	}
 
-	$out = '<table width="100%" border="0" cellpadding="2"><tr>';
+	$out  = '<font face="verdana, arial, helvetica" size="2">';
+	$out .= '<table width="100%" border="0" cellpadding="2"><tr>';
 
 	if(!isset($_SESSION['s_username'])){   //we haven't logged in yet   
 		$out .= '<br />	<div align="left">';
@@ -113,11 +138,11 @@ function displayLogin($page, $check4Admin){
 		}
 	}
 	$out .= '<td><div align="right">
-			<a href="' . $page . '"><img src="/images/header.png" border="0" alt="Friendly Call Service"></a>';
+			<a href="' . $settings['start_page'] . '"><img src="/images/header.png" border="0" alt="Friendly Call Service"></a>';
 	$out .= '<br>';
 	$out .= '<br><b>Registered clients todate:</b> ' . getNumberOfRegisteredClients();
 	$out .= '<br><b>Active clients today:</b> ' . getNumberOfActiveClients();
-	$out .= '</div></td></tr></table>';
+	$out .= '</div></td></tr></table></font>';
 	
 	echo $out;
 }
@@ -435,9 +460,10 @@ function draw_calls( $clientid)
 
 function draw_classification()
 {
+	print '<select name="mclass" size="1">';
+	
 	$dbConnect = dbconnect();
 
-//      $sql = "SELECT mclass_id,mclass_name FROM call_mclass";
     $sql  = "SELECT m.mclass_id,s.sclass_id,m.mclass_name,s.sclass_name";
     $sql .= " FROM call_mclass AS m,call_sclass AS s";
     $sql .= " WHERE m.mclass_id=s.mclass_id ORDER BY m.mclass_id";
@@ -453,6 +479,8 @@ function draw_classification()
     }
     
     dbclose($dbConnect);
+    
+    print '</select>';
 }
 
 // this is for drop-down list of clients
@@ -1060,6 +1088,37 @@ function reactivate_client( $clientid) {
 	}
 	
 	dbclose( $dbConnect);
+}
+
+function printCallsJavaScript() {
+	print '<script type="text/javascript">
+		<!-- hide it from old browsers or from those with JavaScript disabled
+		function vtslot(time, form)
+		{
+			var ts = Array();
+			var ts = time.value.split(":");
+			var hour = Number(ts[0]);
+			var min = Number(ts[1]);
+
+			// if both hours and minutes are numeric and within the range => true		
+			if(!isNaN(hour) && !isNaN(min)) {
+			   if((hour>=0 && hour<=23) && (min>=0 && min<=59)) {
+			      return true;
+			   }
+			}
+			
+			// if the call is finished => true
+			if(form.call_finished.checked) {
+				return true;
+			}
+
+			// otherwise throw error message
+			msg = "Time has to be of 24 hours format (HH:MM)!\n";
+			alert( msg);
+			return false;
+		}
+		-->
+		</script>';
 }
 
 function printAddEditClientJavaScript() 
