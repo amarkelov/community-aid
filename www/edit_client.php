@@ -69,24 +69,46 @@ if ($clean['submit']) {
 		}
     }
 
+    mysql_real_escape_string( $clean['firstname'], $dbConnect),
 	// here if no ID then editing  else adding
 	if ( $clean['clientid']) {
-	    $sql  = "UPDATE clients SET firstname='" . $clean['firstname'] ."',
-		    lastname='" . $clean['lastname'] . "',title='" . $clean['title'] . "',gender ='" . $clean['gender'] . "',
-		    address='" . $clean['address'] . "', area='" . $clean['area'] . "',phone1='" . $clean['phone1'] . "',
-		    phone2='" . $clean['phone2'] . "',dob='" . $clean['dob'] . "',gpname='" . $clean['gpname'] . "',
-		    housetype='" . $clean['housetype'] . "',referrer='" . $clean['referrer'] . "',
-		    alone='" . $clean['alone'] . "',ailments='" . $clean['ailments'] . "',note='" . $clean['note'] . "',
-		    contact1name='" . $clean['contact1name'] . "',
-		    contact1relationship='" . $clean['contact1relationship'] . "',
-		    contact1address='" . $clean['contact1address'] . "',
-		    contact1phone1='" . $clean['contact1phone1'] . "',contact2name='" . $clean['contact2name'] . "',
-		    contact2relationship='" . $clean['contact2relationship'] . "',
-		    contact2address='" . $clean['contact2address'] . "',
-		    contact2phone1='" . $clean['contact2phone1'] . "', 
-		    timeslot='" . $clean['timeslot'] . "', changenote='" . $clean['reason'] . "', 
-			districtid='" . $clean['districtid'] . "',
-		    modifiedby='" . $clean['operatorid'] . "' WHERE clientid='" . $clean['clientid'] . "'";
+	    $sql  = sprintf("UPDATE clients SET firstname='%s',
+		    lastname='%s',title='%s',gender ='%s',address='%s',area='%s',
+			phone1='%s',phone2='%s',dob='%s',gpname='%s',housetype='%s',
+			referrer='%s',alone=%d,ailments='%s',note='%s',
+			contact1name='%s',contact1relationship='%s',
+		    contact1address='%s',contact1phone1='%s',
+			contact2name='%s',contact2relationship='%s',
+		    contact2address='%s',contact2phone1='%s', 
+		    timeslot='%s',changenote='%s',districtid=%d,modifiedby=%d WHERE clientid=%d",
+			mysql_real_escape_string( $clean['firstname'], $dbConnect)
+			mysql_real_escape_string( $clean['lastname'], $dbConnect),
+			mysql_real_escape_string( $clean['title'], $dbConnect),
+			mysql_real_escape_string( $clean['gender'], $dbConnect),
+			mysql_real_escape_string( $clean['address'], $dbConnect),
+			mysql_real_escape_string( $clean['area'], $dbConnect),
+			mysql_real_escape_string( $clean['phone1'], $dbConnect),
+			mysql_real_escape_string( $clean['phone2'], $dbConnect),
+			mysql_real_escape_string( $clean['dob'], $dbConnect),
+			mysql_real_escape_string( $clean['gpname'], $dbConnect),
+			mysql_real_escape_string( $clean['housetype'], $dbConnect),
+			mysql_real_escape_string( $clean['referrer'], $dbConnect),
+			mysql_real_escape_string( $clean['alone'], $dbConnect),
+			mysql_real_escape_string( $clean['ailments'], $dbConnect),
+			mysql_real_escape_string( $clean['note'], $dbConnect),
+			mysql_real_escape_string( $clean['contact1name'], $dbConnect),
+			mysql_real_escape_string( $clean['contact1relationship'], $dbConnect),
+			mysql_real_escape_string( $clean['contact1address'], $dbConnect),
+			mysql_real_escape_string( $clean['contact1phone1'], $dbConnect),
+			mysql_real_escape_string( $clean['contact2name'], $dbConnect),
+			mysql_real_escape_string( $clean['contact2relationship'], $dbConnect),
+			mysql_real_escape_string( $clean['contact2address'], $dbConnect),
+			mysql_real_escape_string( $clean['contact2phone1'], $dbConnect),
+			mysql_real_escape_string( $clean['timeslot'], $dbConnect),
+			mysql_real_escape_string( $clean['reason'], $dbConnect),
+			mysql_real_escape_string( $clean['districtid'], $dbConnect),
+			mysql_real_escape_string( $clean['operatorid'], $dbConnect),
+			mysql_real_escape_string( $clean['clientid'], $dbConnect));
 
 		// run SQL against the DB
 		$dbConnect = dbconnect();
