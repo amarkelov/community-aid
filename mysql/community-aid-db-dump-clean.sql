@@ -119,7 +119,6 @@ CREATE TABLE `clients` (
   `area` varchar(50) NOT NULL,
   `phone1` varchar(32) NOT NULL,
   `phone2` varchar(32) default NULL,
-  `referrer_other` varchar(50) default NULL,
   `housetype` varchar(20) default NULL,
   `dob` date NOT NULL,
   `alone` tinyint(1) default '0',
