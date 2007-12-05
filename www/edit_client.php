@@ -69,8 +69,7 @@ if ($clean['submit']) {
 		}
     }
 
-    mysql_real_escape_string( $clean['firstname'], $dbConnect),
-	// here if no ID then editing  else adding
+    // here if no ID then editing  else adding
 	if ( $clean['clientid']) {
 	    $sql  = sprintf("UPDATE clients SET firstname='%s',
 		    lastname='%s',title='%s',gender ='%s',address='%s',area='%s',
