@@ -64,8 +64,8 @@ else {
 				this.contact2name.optional = true;
 				this.contact2relationship.optional = true;
 				this.contact2address.optional = true;
-				this.contact2phone1.optional = true;
-				this.note.optional = true;
+				this.contact2phone.optional = true;
+				this.alerts.optional = true;
 				this.referrer_other.optional = true;
 				return verify(this);"
 				method="post" 
