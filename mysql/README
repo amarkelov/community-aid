@@ -15,3 +15,6 @@ mysql -u root -p mysql < community-aid-db-dump-clean.sql
 or, if MySQL server is a remote one:
 
 mysql -h <hostname> -u <mysql_user_name> -p mysql < community-aid-db-dump-clean.sql
+
+The most up to date information can be found at 
+http://community-aid.wiki.sourceforge.net
