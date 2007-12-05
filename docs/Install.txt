@@ -17,6 +17,8 @@ mysql-client php5-mysql cvsnt php-fpdf ssl-cert
 6) chmod o+x /srv/community-aid
 7) chgrp -R www-data /srv/community-aid/php
 8) chgrp -R www-data /srv/community-aid/www
+8a) chgrp www-data /srv/community-aid/conf
+8b) chgrp www-data /srv/community-aid/conf/community-aid.ini
 9) cp /srv/community-aid/conf/community-aid /etc/apache2/sites-available/
 10) a2dissite (input 000-default)
 11) a2ensite (input community-aid)
