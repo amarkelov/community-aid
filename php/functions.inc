@@ -513,9 +513,9 @@ function draw_client_details($clientid)
 	$dbConnect = dbconnect();
 
     if( $clientid and $dbConnect) {
-		$sql  = "SELECT phone1,phone2,alone,dob,ailments,note,area,
-					contact1name,contact1phone1,
-					contact2name,contact2phone1,
+		$sql  = "SELECT phone1,phone2,alone,dob,medical_notes,alerts,area,
+					contact1name,contact1phone,
+					contact2name,contact2phone,
 					gpname,
 					TIME_FORMAT(timeslot,'%H:%i') as timeslot from clients
 					WHERE clientid='$clientid' AND active='1'";
@@ -549,20 +549,20 @@ function draw_client_details($clientid)
 				$area = $myrow['area'];
 
 				$contact1name = $myrow['contact1name'];
-				$contact1phone1 = $myrow['contact1phone1'];
+				$contact1phone = $myrow['contact1phone'];
 
 				$contact2name = $myrow['contact2name'];
 				if(strlen(trim($contact2name)) == 0) $contact2name = 'N/A';
 
-				$contact2phone1 = $myrow['contact2phone1'];
-				if(strlen(trim($contact2phone1)) == 0) $contact2phone1 = 'N/A';
+				$contact2phone = $myrow['contact2phone'];
+				if(strlen(trim($contact2phone)) == 0) $contact2phone = 'N/A';
 
 				$gpname = $myrow['gpname'];
 				if(strlen(trim($gpname)) == 0) $gpname = 'N/A';
 				
 				$timeslot = $myrow['timeslot'];
-				$ailments = $myrow["ailments"];
-		       	$note = $myrow["note"];
+				$medical_notes = $myrow["medical_notes"];
+		       	$alerts = $myrow["alerts"];
 		       	$alone = $myrow["alone"];
 		    }
 		}
@@ -578,7 +578,7 @@ function draw_client_details($clientid)
     $out .= "<td width=\"30%\"><font size=" . $fs . "><b>Phone 2:</b></font></td>";
     $out .= "<td><font size=" . $fs . ">" . $phone2 . "</font></td>";
     $out .= "<td width=\"30%\"><font size=" . $fs ."><b>First Contact phone:</b></font></td>";
-    $out .= "<td><font size=" . $fs . ">" . $contact1phone1 . "</font></td>";
+    $out .= "<td><font size=" . $fs . ">" . $contact1phone . "</font></td>";
     $out .= '</tr><tr>';    
     $out .= "<td width=\"30%\"><font size=" . $fs . "><b>D.O.B. (DD/MM/YYYY):</b></font></td>";
     $out .= "<td><font size=" . $fs . ">" . $dob . "</font></td>";
@@ -588,7 +588,7 @@ function draw_client_details($clientid)
     $out .= "<td width=\"30%\"><font size=" . $fs . "><b>Area:</b></font></td>";
     $out .= "<td><font size=" . $fs . ">" . $area . "</font></td>";
     $out .= "<td width=\"30%\"><font size=" . $fs ."><b>Second Contact phone:</b></font></td>";
-    $out .= "<td><font size=" . $fs . ">" . $contact2phone1 . "</font></td>";
+    $out .= "<td><font size=" . $fs . ">" . $contact2phone . "</font></td>";
     $out .= '</tr><tr>';    
     $out .= "<td width=\"30%\"><font size=" . $fs . "><b>Time slot:</b></font></td>";
     $out .= "<td><font size=" . $fs . ">" . $timeslot . "</font></td>";
@@ -606,10 +606,10 @@ function draw_client_details($clientid)
 	$out .= "</font></td>";
     $out .= '</tr><tr>';
     $out .= "<td width=\"30%\"><font size=" . $fs . "><b>Medical notes:</b></font></td>";
-    $out .= "<td><font size=" . $fs .">" . $ailments . "</font></td>";
+    $out .= "<td><font size=" . $fs .">" . $medical_notes . "</font></td>";
     $out .= '</tr><tr>';
     $out .= "<td width=\"30%\"><font size=" . $fs . "><b>Alerts:</b></font></td>";
-    $out .= "<td><font size=" . $fs . ">" . $note . "</font></td>";
+    $out .= "<td><font size=" . $fs . ">" . $alerts . "</font></td>";
     $out .= '</tr></table>';
     
     print "$out";
@@ -744,10 +744,7 @@ function draw_clients_list($operator, $clientid)
 
 function filter_phone_number($phone) {
 	$filtered = ereg_replace( " |-", "", $phone);
-	if(ctype_digit($phone)) {
-		$filtered = $phone;
-	}
-	else {
+	if(!ctype_digit($filtered)) {
 		$filtered = "N/A";	
 	}
 	return $filtered;
@@ -870,26 +867,26 @@ function verifyClientData( &$arClientData, &$clean) {
 		}
 	}
 	
-	if(isset($arClientData['ailments'])) {
-		if(ctype_print($arClientData['ailments'])) {
-			$ailments = htmlentities($arClientData['ailments'], ENT_NOQUOTES );
+	if(isset($arClientData['medical_notes'])) {
+		if(ctype_print($arClientData['medical_notes'])) {
+			$medical_notes = htmlentities($arClientData['medical_notes'], ENT_NOQUOTES );
 			if( $magic) {
-				$clean['ailments'] = stripslashes( $ailments);
+				$clean['medical_notes'] = stripslashes( $medical_notes);
 			}
 			else {
-				$clean['ailments'] = $ailments;
+				$clean['medical_notes'] = $medical_notes;
 			}
 		}
 	}
 	
-	if(isset($arClientData['note'])) {
-		if(ctype_print($arClientData['note'])) {
-			$note = htmlentities($arClientData['note'], ENT_NOQUOTES );
+	if(isset($arClientData['alerts'])) {
+		if(ctype_print($arClientData['alerts'])) {
+			$alerts = htmlentities($arClientData['alerts'], ENT_NOQUOTES );
 			if( $magic) {
-				$clean['note'] = stripslashes( $note);
+				$clean['alerts'] = stripslashes( $alerts);
 			}
 			else {
-				$clean['note'] = $note;
+				$clean['alerts'] = $alerts;
 			}
 		}
 	}
@@ -954,8 +951,8 @@ function verifyClientData( &$arClientData, &$clean) {
 		}
 	}
 	
-	if(isset($arClientData['contact1phone1'])) {
-		$clean['contact1phone1'] = filter_phone_number($arClientData['contact1phone1']);
+	if(isset($arClientData['contact1phone'])) {
+		$clean['contact1phone'] = filter_phone_number($arClientData['contact1phone']);
 	}
 	
 	
@@ -995,24 +992,12 @@ function verifyClientData( &$arClientData, &$clean) {
 		}
 	}
 		
-	if(isset($arClientData['contact2phone1'])) {
-		$clean['contact2phone1'] = filter_phone_number($arClientData['contact2phone1']);
+	if(isset($arClientData['contact2phone'])) {
+		$clean['contact2phone'] = filter_phone_number($arClientData['contact2phone']);
 	}
 	
 	if(isset($arClientData['timeslot'])){
 		$clean['timeslot'] = verify_timeslot($arClientData['timeslot']);
-	}
-
-	if(isset($arClientData['reason'])) {
-		if(ctype_print($arClientData['reason'])) {
-			$reason = htmlentities($arClientData['reason'], ENT_NOQUOTES );
-			if( $magic) {
-				$clean['reason'] = stripslashes( $reason);
-			}
-			else {
-				$clean['reason'] = $reason;
-			}
-		}
 	}
 }
 
@@ -1337,7 +1322,7 @@ function getInactiveClients( &$clients, $districtid = 0, $unassigned_only = 0) {
 }
 
 function getAllClients( &$clients) {
-	return getClients( $clients, ALL_CLIENTS);
+	return getClients( $clients, 0, ALL_CLIENTS);
 }
 
 function deactivate_client( $clientid) {
@@ -1507,7 +1492,7 @@ function printAddEditClientJavaScript()
 				errors += "Date of birth format: DD/MM/YYYY\n";
 			}
 
-			if( !vphone(f.phone1) || !vphone(f.contact1phone1)) {
+			if( !vphone(f.phone1) || !vphone(f.contact1phone)) {
 				errors += "Phone numbers must consist of digits only!\n";
 			}
 
@@ -1537,7 +1522,7 @@ function printAddEditClientJavaScript()
 
 }
 
-function printAddEditClientTable( $clean)
+function printAddEditClientTable( $clean, $edit = 0)
 {
 	$arDistricts = array(); // array to populate district list
 	
@@ -1700,7 +1685,7 @@ function printAddEditClientTable( $clean)
 		<font face="verdana, arial, helvetica" size="-1">
 		<b>Alerts: </b><br>
 		</font>
-		<textarea name="note" cols="27" rows="4" >' . $clean['note'] . '</textarea>
+		<textarea name="alerts" cols="27" rows="4" >' . $clean['alerts'] . '</textarea>
 		</td>
 	
 		<td ALIGN="left" width="15%"  VALIGN="top">
@@ -1860,7 +1845,7 @@ function printAddEditClientTable( $clean)
 		<font face="verdana, arial, helvetica" size="-1">
 		<b>Medical notes: </b><br>
 		</font>
-		<textarea name="ailments" cols="27" rows="4" >' . $clean['ailments'] . '</textarea>
+		<textarea name="medical_notes" cols="27" rows="4" >' . $clean['medical_notes'] . '</textarea>
 		<font size="1" color="#FF0000">
 		<b> *</b>
 		</font>
@@ -1903,7 +1888,7 @@ function printAddEditClientTable( $clean)
 		<font face="verdana, arial, helvetica" size="-1">
 		<b>Phone <font size="1" color="#FF0000">(digits only!)</font>: </b>
 		</font>
-		<input type="text" name="contact1phone1" onchange="return vphone(this);" size="15" maxlength="15" value="' . $clean['contact1phone1'] . '">
+		<input type="text" name="contact1phone" onchange="return vphone(this);" size="15" maxlength="15" value="' . $clean['contact1phone'] . '">
 		<font size="1" color="#FF0000">
 		<b> *</b>
 		</font>
@@ -1960,7 +1945,7 @@ function printAddEditClientTable( $clean)
 		<font face="verdana, arial, helvetica" size="-1">
 		<b>Phone <font size="1" color="#FF0000">(digits only!)</font>: </b>
 		</font>
-		<input type="text" name="contact2phone1" onchange="return vphone(this);" size="15" maxlength="15" value="' . $clean['contact2phone1'] . '">
+		<input type="text" name="contact2phone" onchange="return vphone(this);" size="15" maxlength="15" value="' . $clean['contact2phone'] . '">
 		</td>
 	
 		<td ALIGN="left" width="15%"  VALIGN="top">
@@ -2031,6 +2016,40 @@ function printAddEditClientTable( $clean)
 	</tr>
 	</TABLE>';
 
+	if( $edit) {
+		print '<table width="100%" border="0" cellspacing="4" cellpadding="2">
+		<tr>
+			<td bgcolor="#EEEEEE" colspan="2">
+			<font face="verdana, arial, helvetica" size="-1">
+			<b>Why did you edit the client record?</b><br>
+			</font>
+			</td>
+		</tr>
+		</table>
+		
+		<TABLE BORDER=0 WIDTH=100%>
+		<tr>
+			<td ALIGN="right" width="15%" VALIGN="top">
+			</td>
+		
+			<td ALIGN="left"  width="30%" VALIGN="top">
+			<font face="verdana, arial, helvetica" size="-1">
+			<b>Change note: </b>
+			</font>
+			<font size="1" color="#FF0000">
+			<b>*</b>
+			</font>
+			<textarea name="changenote" cols="100" rows="2" ></textarea>
+			</td>
+		
+			<td ALIGN="right" width="10%" VALIGN="top">
+			</td>
+		
+			<td ALIGN="left" width="15%"  VALIGN="top">
+			</td>
+		</tr>
+		</TABLE>';
+	}		
 }
 
 function getDistrictList( &$arDistricts)
@@ -2317,9 +2336,10 @@ function addClient(&$clean) {
 	$dbConnect = dbconnect();
     
 	$sql = sprintf("INSERT INTO clients (firstname,lastname,title,gender,address,area,districtid,
-			phone1,phone2,housetype,dob,alone, ailments,contact1name,contact1relationship,
-			contact1address,contact1phone1,contact2name,contact2relationship, contact2address,
-			contact2phone1,gpname,referrer,note,timeslot,addedby,modifiedby)
+			phone1,phone2,housetype,dob,alone, medical_notes,
+			contact1name,contact1relationship,contact1address,contact1phone,
+			contact2name,contact2relationship, contact2address,contact2phone,
+			gpname,referrer,alerts,timeslot,addedby,modifiedby)
 			VALUES ('%s', '%s', '%s', '%s', '%s', '%s', %d, '%s', '%s', '%s', '%s', %d, '%s',
 			'%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s','%s', '%s', '%s', %d, %d)",  
 			mysql_real_escape_string( $clean['firstname'], $dbConnect),
@@ -2334,18 +2354,18 @@ function addClient(&$clean) {
 			mysql_real_escape_string( $clean['housetype'], $dbConnect),
 			mysql_real_escape_string( $clean['dob'], $dbConnect),
 			mysql_real_escape_string( $clean['alone'], $dbConnect),
-			mysql_real_escape_string( $clean['ailments'], $dbConnect),
+			mysql_real_escape_string( $clean['medical_notes'], $dbConnect),
 			mysql_real_escape_string( $clean['contact1name'], $dbConnect),
 			mysql_real_escape_string( $clean['contact1relationship'], $dbConnect),
 			mysql_real_escape_string( $clean['contact1address'], $dbConnect),
-			mysql_real_escape_string( $clean['contact1phone1'], $dbConnect),
+			mysql_real_escape_string( $clean['contact1phone'], $dbConnect),
 			mysql_real_escape_string( $clean['contact2name'], $dbConnect),
 			mysql_real_escape_string( $clean['contact2relationship'], $dbConnect),
 			mysql_real_escape_string( $clean['contact2address'], $dbConnect), 
-			mysql_real_escape_string( $clean['contact2phone1'], $dbConnect),
+			mysql_real_escape_string( $clean['contact2phone'], $dbConnect),
 			mysql_real_escape_string( $clean['gpname'], $dbConnect),
 			mysql_real_escape_string( $clean['referrer'], $dbConnect),
-			mysql_real_escape_string( $clean['note'], $dbConnect),
+			mysql_real_escape_string( $clean['alerts'], $dbConnect),
 			mysql_real_escape_string( $clean['timeslot'], $dbConnect),
 			mysql_real_escape_string( $_SESSION['operatorid'], $dbConnect),
 			mysql_real_escape_string( $_SESSION['operatorid'], $dbConnect));
@@ -2368,6 +2388,63 @@ function addClient(&$clean) {
 		}
 	}
 	
+	dbclose( $dbConnect);
+	
+	return $retval;
+}
+
+function updateClient( &$clean) {
+	$retval = true;
+	$dbConnect = dbconnect();
+
+	// here if no ID then editing  else adding
+	if ( $clean['clientid']) {
+	    $sql  = sprintf("UPDATE clients SET firstname='%s',
+		    lastname='%s',title='%s',gender ='%s',address='%s',area='%s',
+			phone1='%s',phone2='%s',dob='%s',gpname='%s',housetype='%s',
+			referrer='%s',alone=%d,medical_notes='%s',alerts='%s',
+			contact1name='%s',contact1relationship='%s',
+		    contact1address='%s',contact1phone='%s',
+			contact2name='%s',contact2relationship='%s',
+		    contact2address='%s',contact2phone='%s', 
+		    timeslot='%s',changenote='%s',districtid=%d,modifiedby=%d WHERE clientid=%d",
+			mysql_real_escape_string( $clean['firstname'], $dbConnect),
+			mysql_real_escape_string( $clean['lastname'], $dbConnect),
+			mysql_real_escape_string( $clean['title'], $dbConnect),
+			mysql_real_escape_string( $clean['gender'], $dbConnect),
+			mysql_real_escape_string( $clean['address'], $dbConnect),
+			mysql_real_escape_string( $clean['area'], $dbConnect),
+			mysql_real_escape_string( $clean['phone1'], $dbConnect),
+			mysql_real_escape_string( $clean['phone2'], $dbConnect),
+			mysql_real_escape_string( $clean['dob'], $dbConnect),
+			mysql_real_escape_string( $clean['gpname'], $dbConnect),
+			mysql_real_escape_string( $clean['housetype'], $dbConnect),
+			mysql_real_escape_string( $clean['referrer'], $dbConnect),
+			mysql_real_escape_string( $clean['alone'], $dbConnect),
+			mysql_real_escape_string( $clean['medical_notes'], $dbConnect),
+			mysql_real_escape_string( $clean['alerts'], $dbConnect),
+			mysql_real_escape_string( $clean['contact1name'], $dbConnect),
+			mysql_real_escape_string( $clean['contact1relationship'], $dbConnect),
+			mysql_real_escape_string( $clean['contact1address'], $dbConnect),
+			mysql_real_escape_string( $clean['contact1phone'], $dbConnect),
+			mysql_real_escape_string( $clean['contact2name'], $dbConnect),
+			mysql_real_escape_string( $clean['contact2relationship'], $dbConnect),
+			mysql_real_escape_string( $clean['contact2address'], $dbConnect),
+			mysql_real_escape_string( $clean['contact2phone'], $dbConnect),
+			mysql_real_escape_string( $clean['timeslot'], $dbConnect),
+			mysql_real_escape_string( $clean['changenote'], $dbConnect),
+			mysql_real_escape_string( $clean['districtid'], $dbConnect),
+			mysql_real_escape_string( $clean['operatorid'], $dbConnect),
+			mysql_real_escape_string( $clean['clientid'], $dbConnect));
+
+		$result = mysql_query($sql, $dbConnect);
+		if ( !$result) {
+			$message  = 'Invalid query: ' . mysql_error() . '<br>' . 'Query: ' . $sql;
+			print $message;
+			$retval = false;
+		}
+	}
+
 	dbclose( $dbConnect);
 	
 	return $retval;
@@ -2438,10 +2515,10 @@ function getClientData( &$clean) {
 
 	$sql = "SELECT firstname,lastname,
 					initials,title,gender,
-					address,phone1,phone2,housetype,dob,alone,ailments,
-					contact1name,contact1relationship,contact1address,contact1phone1,contact1phone2,
-					contact2name,contact2relationship,contact2address,contact2phone1,contact2phone2,
-					gpname,referrer,note,referrer_other,
+					address,area,districtid,phone1,phone2,housetype,dob,alone,medical_notes,
+					contact1name,contact1relationship,contact1address,contact1phone,
+					contact2name,contact2relationship,contact2address,contact2phone,
+					gpname,referrer,alerts,
 					TIME_FORMAT(timeslot,'%H:%i') as timeslot FROM clients WHERE (clients.clientid={$clean['clientid']})";
 	
 	$result = mysql_query($sql, $dbConnect);
@@ -2461,27 +2538,26 @@ function getClientData( &$clean) {
 	$clean['title']					= htmlentities($myrow['title'], ENT_QUOTES);
 	$clean['gender']				= htmlentities($myrow['gender'], ENT_QUOTES);
 	$clean['address']				= htmlentities($myrow['address'], ENT_QUOTES);
+	$clean['area']					= htmlentities($myrow['area'], ENT_QUOTES);
+	$clean['districtid']			= htmlentities($myrow['districtid'], ENT_QUOTES);
 	$clean['phone1']				= htmlentities($myrow['phone1'], ENT_QUOTES);
 	$clean['phone2']				= htmlentities($myrow['phone2'], ENT_QUOTES);
 	$clean['housetype']				= htmlentities($myrow['housetype'], ENT_QUOTES);
 	$clean['dob']					= htmlentities($myrow['dob'], ENT_QUOTES);
 	$clean['alone']					= htmlentities($myrow['alone'], ENT_QUOTES);
-	$clean['ailments']				= htmlentities($myrow['ailments'], ENT_QUOTES);
+	$clean['medical_notes']			= htmlentities($myrow['medical_notes'], ENT_QUOTES);
 	$clean['contact1name']			= htmlentities($myrow['contact1name'], ENT_QUOTES);
 	$clean['contact1relationship']	= htmlentities($myrow['contact1relationship'], ENT_QUOTES);
 	$clean['contact1address']		= htmlentities($myrow['contact1address'], ENT_QUOTES);
-	$clean['contact1phone1']		= htmlentities($myrow['contact1phone1'], ENT_QUOTES);
-	$clean['contact1phone2']		= htmlentities($myrow['contact1phone2'], ENT_QUOTES);
+	$clean['contact1phone']			= htmlentities($myrow['contact1phone'], ENT_QUOTES);
 	$clean['contact2name']			= htmlentities($myrow['contact2name'], ENT_QUOTES);
 	$clean['contact2relationship']	= htmlentities($myrow['contact2relationship'], ENT_QUOTES);
 	$clean['contact2address']		= htmlentities($myrow['contact2address'], ENT_QUOTES);
-	$clean['contact2phone1']		= htmlentities($myrow['contact2phone1'], ENT_QUOTES);
-	$clean['contact2phone2']		= htmlentities($myrow['contact2phone2'], ENT_QUOTES);
+	$clean['contact2phone']			= htmlentities($myrow['contact2phone'], ENT_QUOTES);
 	$clean['gpname']				= htmlentities($myrow['gpname'], ENT_QUOTES);
 	$clean['referrer']				= htmlentities($myrow['referrer'], ENT_QUOTES);
 	$clean['timeslot']				= htmlentities($myrow['timeslot'], ENT_QUOTES);
-	$clean['note']					= htmlentities($myrow['note'], ENT_QUOTES);
-	$clean['referrer_other']		= htmlentities($myrow['referrer_other'], ENT_QUOTES);
+	$clean['alerts']				= htmlentities($myrow['alerts'], ENT_QUOTES);
 
 	dbclose($dbConnect);
 }
