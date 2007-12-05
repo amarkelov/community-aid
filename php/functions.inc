@@ -17,7 +17,7 @@ function printHeader( $pageTitle, $refreshRate = 0, $javaScriptFuncName = NULL) 
 			"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 			<html xmlns="http://www.w3.org/1999/xhtml">
 			<head>
-				<title>' . $pageTitle . ' --  Friendly Call Service -- ' . $settings['location'] . '</title>
+				<title>' . $pageTitle . ' -- '  . $settings['org'] . ' -- ' . $settings['location'] . '</title>
 				<meta http-equiv="expires" content="-1">
 				<meta http-equiv="Cache-Control" content="no-cache">';
 	
@@ -63,7 +63,7 @@ function checkIsAdmin( $loginname){
 		return false;
 	}else{
 		$link = preLoginDBConnect();
-		$sql = mysql_query("SELECT isAdmin FROM operators WHERE loginname='$loginname'") 
+		$sql = mysql_query("SELECT isAdmin FROM operators WHERE loginname='$loginname'", $link) 
 				or die ("Error connecting to database");
 		$data = mysql_fetch_array($sql);
 		dbclose($link);
@@ -742,13 +742,287 @@ function draw_clients_list($operator, $clientid)
 	dbclose($dbConnect);
 }
 
+function filter_phone_number($phone) {
+	$filtered = ereg_replace( " |-", "", $phone);
+	if(ctype_digit($phone)) {
+		$filtered = $phone;
+	}
+	else {
+		$filtered = "N/A";	
+	}
+	return $filtered;
+}
+
+function verifyClientData( &$arClientData, &$clean) {
+	$magic = get_magic_quotes_gpc();
+
+	if(isset($arClientData['firstname'])) {
+		$firstname = htmlentities(strtoupper($arClientData['firstname']), ENT_QUOTES );
+		if( $magic) {
+			$clean['firstname'] = stripslashes( $firstname);
+		}
+		else {
+			$clean['firstname'] = $firstname;
+		}
+	}
+	
+	if(isset($arClientData['lastname'])) {
+		$lastname = htmlentities(strtoupper($arClientData['lastname']), ENT_NOQUOTES );
+		if( $magic) {
+			$clean['lastname'] = stripslashes( $lastname);
+		}
+		else {
+			$clean['lastname'] = $lastname;
+		}
+	}
+	
+	if(isset($arClientData['title'])) {
+		$title =  htmlentities($arClientData['title'], ENT_QUOTES );
+		if( $magic) {
+			$clean['title'] = stripslashes( $title);
+		}
+		else {
+			$clean['title'] = $title;
+		}
+	}
+	
+	if(isset($arClientData['gender'])) {
+		if(ctype_print($arClientData['gender'])) {
+			$clean['gender'] = htmlentities($arClientData['gender'], ENT_QUOTES );
+		}
+	}
+	
+	if(isset($arClientData['address'])) {
+		if(ctype_print($arClientData['address'])) {
+			$address = htmlentities($arClientData['address'], ENT_NOQUOTES );
+			if( $magic) {
+				$clean['address'] = stripslashes( $address);
+			}
+			else {
+				$clean['address'] = $address;
+			}
+		}
+	}
+	
+	if(isset($arClientData['area'])) {
+		if(ctype_print($arClientData['area'])) {
+			$area = htmlentities($arClientData['area'], ENT_NOQUOTES );
+			if( $magic) {
+				$clean['area'] = stripslashes( $area);
+			}
+			else {
+				$clean['area'] = $area;
+			}
+		}
+	}
+	
+	if(isset($arClientData['districtid'])) {
+		if(ctype_digit($arClientData['districtid'])) {
+			$clean['districtid'] = $arClientData['districtid'];
+		}
+	}
+	
+	if(isset($arClientData['phone1'])) {
+		$clean['phone1'] = filter_phone_number($arClientData['phone1']);
+	}
+	
+	if(isset($arClientData['phone2'])) {
+		$clean['phone2'] = filter_phone_number($arClientData['phone2']);
+	}
+	
+	if(isset($arClientData['dob'])) {
+		$reg = 0;
+		if(ereg( "([0-2]{1}[0-9]{1})/([0-1]{1}[0-9]{1})/([1-2]{1}[0-9]{3})", $arClientData['dob'], $reg)) {
+			$clean['dob'] = $reg[3] . "-" . $reg[2] . "-" . $reg[1];
+		}
+	}
+	
+	if(isset($arClientData['gpname'])) {
+		if(ctype_print($arClientData['gpname'])) {
+			$gpname = htmlentities($arClientData['gpname'], ENT_NOQUOTES );
+			if( $magic) {
+				$clean['gpname'] = stripslashes( $gpname);
+			}
+			else {
+				$clean['gpname'] = $gpname;
+			}
+		}
+	}
+	
+	if(isset($arClientData['housetype'])) {
+		if(ctype_print($arClientData['housetype'])) {
+			$housetype = htmlentities($arClientData['housetype'], ENT_QUOTES );
+			if( $magic) {
+				$clean['housetype'] = stripslashes( $housetype);
+			}
+			else {
+				$clean['housetype'] = $housetype;
+			}
+		}
+	}
+	
+	if(isset($arClientData['alone'])) {
+		if(strtoupper($arClientData['alone']) == "ON") {
+			$clean['alone'] = 1;
+		}
+		else {
+			$clean['alone'] = 0;
+		}
+	}
+	
+	if(isset($arClientData['ailments'])) {
+		if(ctype_print($arClientData['ailments'])) {
+			$ailments = htmlentities($arClientData['ailments'], ENT_NOQUOTES );
+			if( $magic) {
+				$clean['ailments'] = stripslashes( $ailments);
+			}
+			else {
+				$clean['ailments'] = $ailments;
+			}
+		}
+	}
+	
+	if(isset($arClientData['note'])) {
+		if(ctype_print($arClientData['note'])) {
+			$note = htmlentities($arClientData['note'], ENT_NOQUOTES );
+			if( $magic) {
+				$clean['note'] = stripslashes( $note);
+			}
+			else {
+				$clean['note'] = $note;
+			}
+		}
+	}
+	
+	if(isset($arClientData['referrer'])) {
+		if( ctype_print($arClientData['referrer'])) {
+			$referrer = htmlentities($arClientData['referrer'], ENT_NOQUOTES );
+			if( $magic) {
+				$clean['referrer'] = stripslashes($referrer);
+			}
+			else {
+				$clean['referrer'] = $referrer;
+			}
+		}
+	}
+	
+	if(isset($arClientData['referrer_other'])) {
+		if( ctype_print($arClientData['referrer_other'])) {
+			$referrer = htmlentities($arClientData['referrer_other'], ENT_NOQUOTES );
+			if( $magic) {
+				$clean['referrer'] = stripslashes($referrer);
+			}
+			else {
+				$clean['referrer'] = $referrer;
+			}
+		}
+	}
+	
+	if(isset($arClientData['contact1name'])) {
+		if(ctype_print($arClientData['contact1name'])) {
+			$contact1name = htmlentities($arClientData['contact1name'], ENT_NOQUOTES );
+			if( $magic) {
+				$clean['contact1name'] = stripslashes($contact1name);
+			}
+			else {
+				$clean['contact1name'] = $contact1name;
+			}
+		}
+	}
+	
+	if(isset($arClientData['contact1relationship'])) {
+		if(ctype_print($arClientData['contact1relationship'])) {
+			$contact1relationship = htmlentities($arClientData['contact1relationship'], ENT_QUOTES );
+			if( $magic) {
+				$clean['contact1relationship'] = stripslashes( $contact1relationship);
+			}
+			else {
+				$clean['contact1relationship'] = $contact1relationship;
+			}
+		}
+	}
+	
+	if(isset($arClientData['contact1address'])) {
+		if(ctype_print($arClientData['contact1address'])) {
+			$contact1address = htmlentities($arClientData['contact1address'], ENT_NOQUOTES );
+			if( $magic) {
+				$clean['contact1address'] = stripslashes( $contact1address);
+			}
+			else {
+				$clean['contact1address'] = $contact1address;
+			}
+		}
+	}
+	
+	if(isset($arClientData['contact1phone1'])) {
+		$clean['contact1phone1'] = filter_phone_number($arClientData['contact1phone1']);
+	}
+	
+	
+	if(isset($arClientData['contact2name'])) {
+		if(ctype_print($arClientData['contact2name'])) {
+			$contact2name = htmlentities($arClientData['contact2name'], ENT_NOQUOTES );
+			if( $magic) {
+				$clean['contact2name'] = stripslashes($contact2name);
+			}
+			else {
+				$clean['contact2name'] = $contact2name;
+			}
+		}
+	}
+	
+	if(isset($arClientData['contact2relationship'])) {
+		if(ctype_print($arClientData['contact2relationship'])) {
+			$contact2relationship = htmlentities($arClientData['contact2relationship'], ENT_QUOTES );
+			if( $magic) {
+				$clean['contact2relationship'] = stripslashes( $contact2relationship);
+			}
+			else {
+				$clean['contact2relationship'] = $contact2relationship;
+			}
+		}
+	}
+	
+	if(isset($arClientData['contact2address'])) {
+		if(ctype_print($arClientData['contact2address'])) {
+			$contact2address = htmlentities($arClientData['contact2address'], ENT_NOQUOTES );
+			if( $magic) {
+				$clean['contact2address'] = stripslashes( $contact2address);
+			}
+			else {
+				$clean['contact2address'] = $contact2address;
+			}
+		}
+	}
+		
+	if(isset($arClientData['contact2phone1'])) {
+		$clean['contact2phone1'] = filter_phone_number($arClientData['contact2phone1']);
+	}
+	
+	if(isset($arClientData['timeslot'])){
+		$clean['timeslot'] = verify_timeslot($arClientData['timeslot']);
+	}
+
+	if(isset($arClientData['reason'])) {
+		if(ctype_print($arClientData['reason'])) {
+			$reason = htmlentities($arClientData['reason'], ENT_NOQUOTES );
+			if( $magic) {
+				$clean['reason'] = stripslashes( $reason);
+			}
+			else {
+				$clean['reason'] = $reason;
+			}
+		}
+	}
+}
+
 function verify_timeslot($timeslot)
 {
 	$ts = "00:00";	
 	$vt = explode(":", $timeslot, 2);
-	
-	if(ctype_digit($vt[0]) && ctype_digit($vt[1])) {
-		if(($vt[0]>=0 && $vt[0]<=23) && ($vt[1]>=0 && $vt[1]<=59)){
+
+if(ctype_digit($vt[0]) && ctype_digit($vt[1])) {
+	if(($vt[0]>=0 && $vt[0]<=23) && ($vt[1]>=0 && $vt[1]<=59)){
 			$ts = "$vt[0]:$vt[1]";
 		}
 	}
@@ -1070,7 +1344,7 @@ function deactivate_client( $clientid) {
 	$dbConnect = dbconnect();
 
 	$sql = "UPDATE clients SET active='0' WHERE clientid='" . $clientid . "'";
-	$result = mysql_query($sql);
+	$result = mysql_query($sql, $dbConnect);
 	if (!$result) {
 		die('Invalid query: ' . mysql_error());
 	}
@@ -1082,7 +1356,7 @@ function reactivate_client( $clientid) {
 	$dbConnect = dbconnect();
 
 	$sql = "UPDATE clients SET active='1' WHERE clientid='" . $clientid . "'";
-	$result = mysql_query($sql);
+	$result = mysql_query($sql, $dbConnect);
 	if (!$result) {
 		die('Invalid query: ' . mysql_error());
 	}
@@ -1766,7 +2040,7 @@ function getDistrictList( &$arDistricts)
 	
 	$sql = "SELECT districtid,district_name,comments FROM districts";
 
-	$result = mysql_query( $sql,$dbConnect);
+	$result = mysql_query( $sql, $dbConnect);
 	if ( !$result) {
 		$message  = 'Invalid query: ' . mysql_error() . '<br>' . 'Query: ' . $sql;
 		die($message);
@@ -1800,7 +2074,7 @@ function addClientToOperator( &$arAssigned, &$clean) {
 	$sql = 'INSERT INTO client2operator VALUES ';
 	
 	foreach($arAssigned as $cid => $value) {
-		$sql .= '('. $cid . ','. $clean['operatorid_edit'] . '),';
+		$sql .= '('. $cid . ',' . mysql_real_escape_string( $clean['operatorid_edit'], $dbConnect) . '),';
 	}
 	
 	// trim trailing comma
@@ -1953,10 +2227,14 @@ function addOperator( &$clean) {
 	
 	$dbConnect = dbconnect();
 	
-	$sql = 'INSERT INTO operators (loginname,fullname,saltypwd,addedby,isAdmin,isSnr)
-			VALUES ("' . $clean['loginname'] . '","' . $clean['fullname'] . 
-			'",SHA1("' . $clean['password'] . getTheSalt() . '"),"' 
-			. $clean['operatorid'] . '","' . $clean['isAdmin'] . '","' . $clean['isSnr'] . '")';
+	$sql = sprintf("INSERT INTO operators (loginname,fullname,saltypwd,addedby,isAdmin,isSnr)
+			VALUES ('%s', '%s', SHA1('%s'), %d, %d, %d)", 
+			mysql_real_escape_string( $clean['loginname'], $dbConnect),
+			mysql_real_escape_string( $clean['fullname'], $dbConnect), 
+			mysql_real_escape_string( $clean['password'] . getTheSalt(), $dbConnect),
+			mysql_real_escape_string( $clean['operatorid'], $dbConnect),
+			mysql_real_escape_string( $clean['isAdmin'], $dbConnect),
+			mysql_real_escape_string( $clean['isSnr'], $dbConnect));
 			
 	$result = mysql_query( $sql,$dbConnect);
 	if ( !$result) {
@@ -2038,24 +2316,42 @@ function addClient(&$clean) {
 	$retval = true;
 	$dbConnect = dbconnect();
     
-	$sql = 'INSERT INTO clients (firstname,lastname,title,gender,address,area,districtid,
+	$sql = sprintf("INSERT INTO clients (firstname,lastname,title,gender,address,area,districtid,
 			phone1,phone2,housetype,dob,alone, ailments,contact1name,contact1relationship,
 			contact1address,contact1phone1,contact2name,contact2relationship, contact2address,
-			contact2phone1,gpname,referrer,note,referrer_other,timeslot,addedby,modifiedby)
-			VALUES ("'. $clean['firstname'] . '", "' . $clean['lastname'] . '", "' . $clean['title'] . '", "'
-			 . $clean['gender'] . '", "' . $clean['address'] . '", "' . $clean['area'] . '", "'
-			 . $clean['districtid'] . '", "' 
-			 . $clean['phone1'] . '", "'  . $clean['phone2'] . '", "' . $clean['housetype'] . '", "'
-			 . $clean['dob'] . '", "' . $clean['alone'] . '", "' . $clean['ailments'] . '", "'
-			 . $clean['contact1name'] . '", "' . $clean['contact1relationship'] . '", "'
-			 . $clean['contact1address'] . '", "' . $clean['contact1phone1'] . '", "' . $clean['contact2name'] . '", "'
-			 . $clean['contact2relationship'] . '", "' . $clean['contact2address'] . '", "' 
-			 . $clean['contact2phone1'] . '", "' . $clean['gpname'] . '", "' . $clean['referrer'] . '", "'
-			 . $clean['note'] . '", "' . $clean['referrer_other'] . '", "'
-			 . $clean['timeslot'] . '", "' . $_SESSION['operatorid'] . '", "' . $_SESSION['operatorid'] . '")';
+			contact2phone1,gpname,referrer,note,timeslot,addedby,modifiedby)
+			VALUES ('%s', '%s', '%s', '%s', '%s', '%s', %d, '%s', '%s', '%s', '%s', %d, '%s',
+			'%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s','%s', '%s', '%s', %d, %d)",  
+			mysql_real_escape_string( $clean['firstname'], $dbConnect),
+			mysql_real_escape_string( $clean['lastname'], $dbConnect),
+			mysql_real_escape_string( $clean['title'], $dbConnect),
+			mysql_real_escape_string( $clean['gender'], $dbConnect),
+			mysql_real_escape_string( $clean['address'], $dbConnect),
+			mysql_real_escape_string( $clean['area'], $dbConnect),
+			mysql_real_escape_string( $clean['districtid'], $dbConnect), 
+			mysql_real_escape_string( $clean['phone1'], $dbConnect),
+			mysql_real_escape_string( $clean['phone2'], $dbConnect),
+			mysql_real_escape_string( $clean['housetype'], $dbConnect),
+			mysql_real_escape_string( $clean['dob'], $dbConnect),
+			mysql_real_escape_string( $clean['alone'], $dbConnect),
+			mysql_real_escape_string( $clean['ailments'], $dbConnect),
+			mysql_real_escape_string( $clean['contact1name'], $dbConnect),
+			mysql_real_escape_string( $clean['contact1relationship'], $dbConnect),
+			mysql_real_escape_string( $clean['contact1address'], $dbConnect),
+			mysql_real_escape_string( $clean['contact1phone1'], $dbConnect),
+			mysql_real_escape_string( $clean['contact2name'], $dbConnect),
+			mysql_real_escape_string( $clean['contact2relationship'], $dbConnect),
+			mysql_real_escape_string( $clean['contact2address'], $dbConnect), 
+			mysql_real_escape_string( $clean['contact2phone1'], $dbConnect),
+			mysql_real_escape_string( $clean['gpname'], $dbConnect),
+			mysql_real_escape_string( $clean['referrer'], $dbConnect),
+			mysql_real_escape_string( $clean['note'], $dbConnect),
+			mysql_real_escape_string( $clean['timeslot'], $dbConnect),
+			mysql_real_escape_string( $_SESSION['operatorid'], $dbConnect),
+			mysql_real_escape_string( $_SESSION['operatorid'], $dbConnect));
 
 	// run SQL against the DB
-	$result = mysql_query($sql);
+	$result = mysql_query($sql, $dbConnect);
 	if (!$result) {
 		if( mysql_errno() == 1062) {
 			print "<font size=\"3\" color=\"#FF0000\"><b>Duplicate entry!</b></font>
@@ -2084,7 +2380,7 @@ function setFirstCallDone( $clientid) {
 	
 	$sql = 'UPDATE client_timeslot_call SET timeslot_done="1" WHERE clientid="' . $clientid . '"';
 	
-	$result = mysql_query($sql);
+	$result = mysql_query($sql, $dbConnect);
 	if (!$result) {
 		$message  = "Invalid query: " . mysql_error() . "\n";
 		$message .= "Whole query: " . $sql . "\n";
@@ -2102,14 +2398,14 @@ function recordTheCall( &$clean) {
 	
 	$dbConnect = dbconnect();
 
-	$sql  = "INSERT INTO calls (clientid, time, nextcalltime, chat, class, call_finished, operatorid) 
-  		    VALUES ('" . $clean['clientid'] . "', 
-					NOW(), 
-					TIMESTAMP( CURDATE() , '" . $clean['nextcalltime'] . "'),
-					'" . $clean['chat'] . "', 
-					'" . $clean['mclass'] . "',
-					'" . $clean['call_finished'] . "', 
-					'" . $_SESSION['operatorid'] . "') ";
+	$sql  = sprintf("INSERT INTO calls (clientid, time, nextcalltime, chat, class, call_finished, operatorid) 
+  		    VALUES ( %d, NOW(), TIMESTAMP( CURDATE() , '%s'),  '%s', %d, %d, %d)",
+			mysql_real_escape_string( $clean['clientid'], $dbConnect), 
+			mysql_real_escape_string( $clean['nextcalltime'], $dbConnect),
+			mysql_real_escape_string( $clean['chat'], $dbConnect), 
+			mysql_real_escape_string( $clean['mclass'], $dbConnect),
+			mysql_real_escape_string( $clean['call_finished'], $dbConnect), 
+			mysql_real_escape_string( $_SESSION['operatorid'], $dbConnect));
 	
 	$result = mysql_query($sql, $dbConnect);
 	if (!$result) {

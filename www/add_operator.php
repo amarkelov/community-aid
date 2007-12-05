@@ -36,7 +36,13 @@ if(isset($_POST['submit'])) {
 	}
 	if(isset($_POST['fullname'])) {
 		if( ctype_print($_POST['fullname'])) {
-			$clean['fullname'] = $_POST['fullname'];
+			$fullname = htmlentities( $_POST['fullname'], ENT_NOQUOTES);
+			if( get_magic_quotes_gpc()) {
+				$clean['fullname'] = stripslashes($fullname);
+			}
+			else {
+				$clean['fullname'] = $fullname;
+			} 
 		}
 	}
 	if(isset($_POST['password'])){

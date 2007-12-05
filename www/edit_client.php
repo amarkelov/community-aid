@@ -26,14 +26,6 @@ if($doWeExit == true){
  * Start filtering input
  */
  
-function filter_phone_number($phone) {
-	$filtered = "N/A";
-	if(ctype_digit($phone)) {
-		$filtered = $phone;
-	}
-	return $filtered;
-}
-
 if(isset($_POST['clientid'])) {
 	if(ctype_digit($_POST['clientid'])) { 
 		$clean['clientid'] = $_POST['clientid'];
@@ -48,157 +40,6 @@ if(isset($_POST['edit'])) {
 	$clean['edit'] = $_POST['edit'];
 }
 
-if(isset($_POST['firstname'])) {
-	$clean['firstname'] = htmlentities(strtoupper($_POST['firstname']), ENT_QUOTES );
-}
-
-if(isset($_POST['lastname'])) {
-	if(ctype_print($_POST['lastname'])) {
-		$clean['lastname'] = htmlentities(strtoupper($_POST['lastname']), ENT_QUOTES );
-	}
-}
-
-if(isset($_POST['title'])) {
-	$clean['title'] = htmlentities($_POST['title'], ENT_QUOTES );
-}
-
-if(isset($_POST['gender'])) {
-	if(ctype_print($_POST['gender'])) {
-		$clean['gender'] = htmlentities($_POST['gender'], ENT_QUOTES );
-	}
-}
-
-if(isset($_POST['address'])) {
-	if(ctype_print($_POST['address'])) {
-		$clean['address'] = htmlentities($_POST['address'], ENT_QUOTES );
-	}
-}
-
-if(isset($_POST['area'])) {
-	if(ctype_print($_POST['area'])) {
-		$clean['area'] = htmlentities($_POST['area'], ENT_QUOTES );
-	}
-}
-
-if(isset($_POST['phone1'])) {
-	$clean['phone1'] = filter_phone_number($_POST['phone1']);
-}
-
-if(isset($_POST['phone2'])) {
-	$clean['phone2'] = filter_phone_number($_POST['phone2']);
-}
-
-if(isset($_POST['dob'])) {
-	$reg = 0;
-	if(ereg( "([0-2]{1}[0-9]{1})/([0-1]{1}[0-9]{1})/([1-2]{1}[0-9]{3})", $_POST['dob'], $reg)) {
-		$clean['dob'] = $reg[3] . "-" . $reg[2] . "-" . $reg[1];
-	}
-}
-
-if(isset($_POST['gpname'])) {
-	if(ctype_print($_POST['gpname'])) {
-		$clean['gpname'] = htmlentities($_POST['gpname'], ENT_QUOTES );
-	}
-}
-
-if(isset($_POST['housetype'])) {
-	if(ctype_print($_POST['housetype'])) {
-		$clean['housetype'] = htmlentities($_POST['housetype'], ENT_QUOTES );
-	}
-}
-
-if(isset($_POST['referrer'])) {
-	$clean['referrer'] = htmlentities($_POST['referrer'], ENT_QUOTES );
-}
-
-if(isset($_POST['alone'])) {
-	if(strtoupper($_POST['alone']) == "ON") {
-		$clean['alone'] = 1;
-	}
-	else {
-		$clean['alone'] = 0;
-	}
-}
-
-if(isset($_POST['ailments'])) {
-	if(ctype_print($_POST['ailments'])) {
-		$clean['ailments'] = htmlentities($_POST['ailments'], ENT_QUOTES );
-	}
-}
-
-if(isset($_POST['note'])) {
-	if(ctype_print(strtr($_POST['note'],"\n\t\r", "   "))) {
-		$clean['note'] = htmlentities($_POST['note'], ENT_QUOTES );
-	}
-}
-
-if(isset($_POST['referrer_other'])) {
-	if(ctype_print($_POST['referrer_other'])) {
-		$clean['referrer_other'] = htmlentities($_POST['referrer_other'], ENT_QUOTES );
-	}
-}
-
-if(isset($_POST['contact1name'])) {
-	if(ctype_print($_POST['contact1name'])) {
-		$clean['contact1name'] = htmlentities($_POST['contact1name'], ENT_QUOTES );
-	}
-}
-
-if(isset($_POST['contact1relationship'])) {
-	if(ctype_print($_POST['contact1relationship'])) {
-		$clean['contact1relationship'] = htmlentities($_POST['contact1relationship'], ENT_QUOTES );
-	}
-}
-
-if(isset($_POST['contact1address'])) {
-	if(ctype_print($_POST['contact1address'])) {
-		$clean['contact1address'] = htmlentities($_POST['contact1address'], ENT_QUOTES );
-	}
-}
-
-if(isset($_POST['contact1phone1'])) {
-	$clean['contact1phone1'] = filter_phone_number($_POST['contact1phone1']);
-}
-
-
-if(isset($_POST['contact2name'])) {
-	if(ctype_print($_POST['contact2name'])) {
-		$clean['contact2name'] = htmlentities($_POST['contact2name'], ENT_QUOTES );
-	}
-}
-
-if(isset($_POST['contact2relationship'])) {
-	if(ctype_print($_POST['contact2relationship'])) {
-		$clean['contact2relationship'] = htmlentities($_POST['contact2relationship'], ENT_QUOTES );
-	}
-}
-
-if(isset($_POST['contact2address'])) {
-	if(ctype_print($_POST['contact2address'])) {
-		$clean['contact2address'] = htmlentities($_POST['contact2address'], ENT_QUOTES );
-	}
-}
-
-if(isset($_POST['contact2phone1'])) {
-	$clean['contact2phone1'] = filter_phone_number($_POST['contact2phone1']);
-}
-
-if(isset($_POST['timeslot'])){
-	$clean['timeslot'] = verify_timeslot($_POST['timeslot']);
-}
-
-if(isset($_POST['reason'])) {
-	if(ctype_print($_POST['reason'])) {
-		$clean['reason'] = htmlentities($_POST['reason'], ENT_QUOTES );
-	}
-}
-
-if(isset($_POST['districtid'])) {
-	if(ctype_digit($_POST['districtid'])) {
-		$clean['districtid'] = $_POST['districtid'];
-	}
-}
-
 if(isset($_SESSION['operatorid'])) {
 	$clean['operatorid'] = $_SESSION['operatorid'];
 }
@@ -208,6 +49,9 @@ if($settings['debug'] == 1){
 	print_r( $clean);
 	print "<p>";
 }
+
+verifyClientData( $_POST, $clean);
+
 /*
  * End of filtering input
  */
@@ -233,7 +77,6 @@ if ($clean['submit']) {
 		    phone2='" . $clean['phone2'] . "',dob='" . $clean['dob'] . "',gpname='" . $clean['gpname'] . "',
 		    housetype='" . $clean['housetype'] . "',referrer='" . $clean['referrer'] . "',
 		    alone='" . $clean['alone'] . "',ailments='" . $clean['ailments'] . "',note='" . $clean['note'] . "',
-		    referrer_other='" . $clean['referrer_other'] . "',
 		    contact1name='" . $clean['contact1name'] . "',
 		    contact1relationship='" . $clean['contact1relationship'] . "',
 		    contact1address='" . $clean['contact1address'] . "',
@@ -286,7 +129,7 @@ else if( $clean['edit']) {
 		$sql = "SELECT firstname,lastname,initials,title,gender,address,area,phone1,phone2,housetype,
 				dob,alone,ailments,contact1name,contact1relationship,contact1address,contact1phone1,
 				contact1phone2,contact2name,contact2relationship,contact2address,contact2phone1,
-				contact2phone2,gpname,referrer,referrer_other,note,districtid,
+				contact2phone2,gpname,referrer,note,districtid,
 				TIME_FORMAT(timeslot,'%H:%i') as timeslot
 				FROM clients WHERE clientid='" . $clean['clientid'] . "'";
 		
@@ -329,7 +172,6 @@ else if( $clean['edit']) {
 		$clean['referrer']				= htmlentities($myrow['referrer'], ENT_QUOTES);
 		$clean['timeslot']				= htmlentities($myrow['timeslot'], ENT_QUOTES);
 		$clean['note']					= htmlentities($myrow['note'], ENT_QUOTES);
-		$clean['referrer_other']		= htmlentities($myrow['referrer_other'], ENT_QUOTES);
 		$clean['districtid']			= htmlentities($myrow['districtid'], ENT_QUOTES);
 	
 	//	$clientid = $myrow["clientid"];
