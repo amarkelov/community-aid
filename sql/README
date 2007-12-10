@@ -1,0 +1,29 @@
+The directory has a clean dump of PostgreSQL database for Community-Aid
+project.
+
+To setup the database:
+
+1) as PostgreSQL user (usually postgres) run createdb command from the shell:
+
+createdb -E utf8 community-aid "Community-aid project database"
+
+2) install the database, using the file provided under sql subdirectory. 
+Login as PostgreSQL user (usually postgres) and run psql command.
+
+postgres@tux:~$ psql -d community-aid
+Welcome to psql 8.1.9, the PostgreSQL interactive terminal.
+
+Type:  \copyright for distribution terms
+       \h for help with SQL commands
+       \? for help with psql commands
+       \g or terminate with semicolon to execute query
+       \q to quit
+
+community-aid=#
+postgres@ca-server$ psql
+postgres=# \i /srv/community-aid/sql/community-aid-db-dump-clean.sql
+
+It should install clean database for your system. Make sure posgres user has 
+access to /srv/community-aid/sql/community-aid-db-dump-clean.sql.
+
+The most up to date information can be found at http://community-aid.wiki.sourceforge.net
