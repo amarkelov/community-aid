@@ -27,43 +27,7 @@ if($doWeExit == true){
  */
 
 if(isset($_POST['submit'])) {
-	$clean['submit'] = $_POST['submit'];
-
-	if(isset($_POST['loginname'])) {
-		if( ctype_alnum( $_POST['loginname'])) {
-			$clean['loginname'] = $_POST['loginname'];
-		}
-	}
-	if(isset($_POST['fullname'])) {
-		if( ctype_print($_POST['fullname'])) {
-			$fullname = htmlentities( $_POST['fullname'], ENT_NOQUOTES);
-			if( get_magic_quotes_gpc()) {
-				$clean['fullname'] = stripslashes($fullname);
-			}
-			else {
-				$clean['fullname'] = $fullname;
-			} 
-		}
-	}
-	if(isset($_POST['password'])){
-		$clean['password'] = $_POST['password']; 
-	}
-	if(isset($_POST['isAdmin'])) {
-		if(strtoupper($_POST['isAdmin']) == "ON") {
-			$clean['isAdmin'] = 1;
-		}
-		else {
-			$clean['isAdmin'] = 0;
-		}
-	}
-	if(isset($_POST['isSnr'])) {
-		if(strtoupper($_POST['isSnr']) == "ON") {
-			$clean['isSnr'] = 1;
-		}
-		else {
-			$clean['isSnr'] = 0;
-		}
-	}
+	verifyOperatorData( $_POST, $clean);
 }
 else if(isset($_POST['edit'])) {
 	$clean['edit'] = $_POST['edit'];
@@ -118,20 +82,20 @@ else  if( $clean['edit']){
 			<tr><td>Administrator: </td>';
 		
 		if(isOperatorAdmin($clean['operatorid_edit'])) {
-			print '<td><input type="checkbox" name="isAdmin" size="5" maxlength="5" checked></td>';
+			print '<td><input type="checkbox" name="isadmin" size="5" maxlength="5" checked></td>';
 		}
 		else {
-			print '<td><input type="checkbox" name="isAdmin" size="5" maxlength="5"></td>';
+			print '<td><input type="checkbox" name="isadmin" size="5" maxlength="5"></td>';
 		}
 		
 		print '<td><<<< Check the checkbox if you want to give the operator administrator privileges</td></tr>
 			   <tr><td>Senior Operator: </td>';
 		
 		if(isOperatorSnr($clean['operatorid_edit'])) {
-			print '<td><input type="checkbox" name="isSnr" size="5" maxlength="5" checked></td>';
+			print '<td><input type="checkbox" name="issnr" size="5" maxlength="5" checked></td>';
 		}
 		else {
-			print '<td><input type="checkbox" name="isSnr" size="5" maxlength="5"></td>';
+			print '<td><input type="checkbox" name="issnr" size="5" maxlength="5"></td>';
 		}
 		
 		print '<td><<<< Check the checkbox if you want to make the operator the Senior Operator</td>
