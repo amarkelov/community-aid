@@ -6,11 +6,12 @@ $clean = array();
 $mysql = array();
 
 $settings = get_ca_settings();
+
 // START LOG IN CODE
-	$doWeExit = displayLogin(basename($_SERVER['PHP_SELF']), false);
-	if($doWeExit == true){
-		exit;
-	}
+$doWeExit = displayLogin(basename($_SERVER['PHP_SELF']), false, true);
+if($doWeExit == true){
+	exit;
+}
 // END LOG IN CODE
 
 // if debug flag is set, print the following info
@@ -33,10 +34,6 @@ if(isset($_POST['report'])) {
 	$clean['report'] = $_POST['report'];
 }
 
-
-
-$dbConnect = dbconnect();
-
 if (isset($clean['report'])) {
     // flag for multiple selection
     $multi = 0;
@@ -45,7 +42,7 @@ if (isset($clean['report'])) {
     $sql = ""; // string for sql query
     $big_report = 0; // flag for output bigger than 100 lines
     
-    $sql_norm = "SELECT callid,clientid,DATE_FORMAT(time,'%d/%m/%Y %H:%i'),chat FROM calls where ";
+    $sql_norm = "SELECT callid,clientid,TO_CHAR(time,'DD/MM/YYYY HH24:MI') as time,chat FROM calls where ";
     $sql_count = "SELECT count(*) FROM calls where ";
     
     // check what fields are selected
@@ -122,11 +119,13 @@ if (isset($clean['report'])) {
 	$big_report = setpagesenv( $sql_count); 
 	
 	$sql_norm .= $sql;
-	$result = mysql_query($sql_norm);
+
+	$dbConnect = dbconnect();
+	
+	$result = pg_query( $dbConnect, $sql_norm);
 	if (!$result) {
-		$message  = 'Invalid query: ' . mysql_error() . "\n";
-		$message .= 'Whole query: ' . $sql_norm;
-		die($message);
+		$message  = 'Invalid query: ' . pg_result_error( $result) . '<br>' . 'Query: ' . $sql;
+		printErrorMessage( $message);
 	}
 
     $out  = '<hr noshade>';
@@ -149,7 +148,7 @@ if (isset($clean['report'])) {
 		print $out;
 
 		// report table itself    
-	    while( $row = mysql_fetch_array($result)) {
+	    while( $row = pg_fetch_array($result)) {
 			if ($rowclr % 2) {
 			    $out = '<tr bgcolor="#FFFFFF">';
 			}
@@ -162,9 +161,7 @@ if (isset($clean['report'])) {
 			$out .= '</td><td width="2%"><font size="' . $fs . '">';
 			$out .= $row['clientid'];
 			$out .= '</td><td width="15%"><font size="' . $fs . '">';	
-			$out .= $row[2];	// if you use time in brackets
-						// data in table if broken due to DATE_FORMAT()
-						// use. that's why it's index here.
+			$out .= $row['time'];
 			$out .= '</td><td><font size="' . $fs . '">';	
 			if(0 == strlen($row['chat'])) {
 				$out .= '&nbsp';
@@ -201,14 +198,14 @@ if (isset($clean['report'])) {
 		
 		$pdf->Output();
 	}
+	
+	dbclose($dbConnect);
 }
-
-dbclose($dbConnect);
 
 print "</body></html>";
 
 // return 1 if the report is bigger than $numofrecs
-function setpagesenv( $query) {
+function setpagesenv( $sql) {
 	$numofrecs = 25;
 	$big_report = 0;
 	$pages = 0;
@@ -217,22 +214,28 @@ function setpagesenv( $query) {
 $settings = get_ca_settings();
 if($settings['debug'] == 1){
 	print "<b>Query:</b><br>";
-	print $query . "<p>";
+	print $sql . "<p>";
 }
 	
-	$result = mysql_query($query);
+	$dbConnect = dbconnect();
+	
+	$result = pg_query($dbConnect, $sql);
 	if (!$result) {
-		$message  = 'Invalid query: ' . mysql_error() . '<br>';
-		$message .= 'Whole query: ' . $query;
-		die($message);
+		$message  = 'Invalid query: ' . pg_result_error( $result) . '<br>' . 'Query: ' . $sql;
+		printErrorMessage( $message);
 	}
 	
-	$row = mysql_fetch_array($result);
+	$row = pg_fetch_array($result);
 
 	if($row[0] > $settings['force_pdf_when_more_than']) {
 		$big_report = 1;
 //		print "Number of records: $row[0]<br>";
 	}
+
+	dbclose($dbConnect);
 	
 	return $big_report;
 }
+
+
+?>
