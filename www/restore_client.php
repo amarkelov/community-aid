@@ -63,27 +63,32 @@ else {	// this part happens if we don't press submit
 	$clients = array();
 	
 	if( getInactiveClients( $clients)) {
-		print '<form method="post" action="' . $_SERVER['PHP_SELF'] . '">
-				<font face="Verdana, Arial, Helvetica, sans-serif">
-				<div align="left">
-				<table>';
-
-		print '<tr><td><select name="clientid">';
-		
-		foreach ( $clients as $cid => $value) {
-			print '<option value="' . $cid . '">'
-				  . $value . ' (' . $cid . ')' . 
-				  '</option>';
-		
+		if( sizeof( $clients) > 0) {
+			print '<form method="post" action="' . $_SERVER['PHP_SELF'] . '">
+					<font face="Verdana, Arial, Helvetica, sans-serif">
+					<div align="left">
+					<table>';
+	
+			print '<tr><td><select name="clientid">';
+			
+			foreach ( $clients as $cid => $value) {
+				print '<option value="' . $cid . '">'
+					  . $value . ' (' . $cid . ')' . 
+					  '</option>';
+			
+			}
+	
+			print '</select></td></tr>';
+			print '<tr><td><font face="Verdana, Arial, Helvetica, sans-serif">
+					<input type="Submit" name="submit" value="Re-activate client">
+					</font>
+					</div></td></tr>';
+			
+			print '</table></form>';
 		}
-
-		print '</select></td></tr>';
-		print '<tr><td><font face="Verdana, Arial, Helvetica, sans-serif">
-				<input type="Submit" name="submit" value="Re-activate client">
-				</font>
-				</div></td></tr>';
-		
-		print '</table></form>';
+		else {
+			printMessage( 'No inactive clients in the system at the moment.');
+		}
 	}
 }
 
