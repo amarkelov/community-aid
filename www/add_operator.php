@@ -27,43 +27,7 @@ if($doWeExit == true){
  */
 
 if(isset($_POST['submit'])) {
-	$clean['submit'] = $_POST['submit'];
-
-	if(isset($_POST['loginname'])) {
-		if( ctype_alnum( $_POST['loginname'])) {
-			$clean['loginname'] = $_POST['loginname'];
-		}
-	}
-	if(isset($_POST['fullname'])) {
-		if( ctype_print($_POST['fullname'])) {
-			$fullname = htmlentities( $_POST['fullname'], ENT_NOQUOTES);
-			if( get_magic_quotes_gpc()) {
-				$clean['fullname'] = stripslashes($fullname);
-			}
-			else {
-				$clean['fullname'] = $fullname;
-			} 
-		}
-	}
-	if(isset($_POST['password'])){
-		$clean['password'] = $_POST['password']; 
-	}
-	if(isset($_POST['isAdmin'])) {
-		if(strtoupper($_POST['isAdmin']) == "ON") {
-			$clean['isAdmin'] = 1;
-		}
-		else {
-			$clean['isAdmin'] = 0;
-		}
-	}
-	if(isset($_POST['isSnr'])) {
-		if(strtoupper($_POST['isSnr']) == "ON") {
-			$clean['isSnr'] = 1;
-		}
-		else {
-			$clean['isSnr'] = 0;
-		}
-	}
+	verifyOperatorData( $_POST, $clean);
 }
 
 if(isset($_SESSION['operatorid'])){
@@ -104,11 +68,11 @@ else {	// this part happens if we don't press submit
 				<td>Password: </td><td><input name="password" type="password" size="20" maxlength="64"></td>
 			</tr>
 			<tr>
-				<td>Administrator: </td><td><input type="checkbox" name="isAdmin" size="5" maxlength="5"></td>
+				<td>Administrator: </td><td><input type="checkbox" name="isadmin" size="5" maxlength="5"></td>
 				<td><<<< Check the checkbox if you want to give the operator administrator privileges</td>
 			</tr>
 			<tr>
-				<td>Senior Operator: </td><td><input type="checkbox" name="isSnr" size="5" maxlength="5"></td>
+				<td>Senior Operator: </td><td><input type="checkbox" name="issnr" size="5" maxlength="5"></td>
 				<td><<<< Check the checkbox if you want to make the operator the Senior Operator</td>
 			</tr>
 			<tr>
