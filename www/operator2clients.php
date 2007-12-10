@@ -73,21 +73,21 @@ if($settings['debug'] == 1){
  
 if ($clean['submit']) {
 	if ($clean['operatorid_edit']) {
+		$assigned = array();
+		
 		//assign_client( $clean['operatorid'], ...);
 		if( is_array($_POST['assigned'])) {
-			$assigned = array();
 			$assigned = $_POST['assigned'];
-
-			if( addClientToOperator( $assigned, $clean)) {
-				print '<b>Clients assigned to operator!</b><p>';
-						
-			}
-			else {
-				print '<b><font color="#FF0000">Error occured while assigning client to operator!</font></b><p>';
-			}
-			
-			print '<a href="' . $_SERVER['PHP_SELF'] . '">Assign client(s) to another operator</a><p>';
 		}
+		
+		if( addClientToOperator( $assigned, $clean)) {
+			printMessage( 'Clients assigned to operator!');
+		}
+		else {
+			printErrorMessage( 'Error occured while assigning client to operator');
+		}
+		
+		printMessage('<a href="' . $_SERVER['PHP_SELF'] . '">Assign client(s) to another operator</a>');
 	}
 }
 else if( $clean['edit']) {
@@ -97,65 +97,75 @@ else if( $clean['edit']) {
 		$aOperatorNames = array();
 		$aClientToDistrict = array();
 		
-		getClientToDistrictArray( &$aClientToDistrict, $clean['districtid'], $clean['unassigned_only']);
-		
-		if( getClientsForOperator( $clean['operatorid_edit'], $clean['districtid'], $aAssignedClients)) {
-			if( getActiveClients( $aActiveClients, $clean['districtid'], $clean['unassigned_only'])) {	
-				print '<b>You are now assigning clients for operator: ' . getOperatorName( $clean['operatorid_edit']) . '</b>
-						<p>To assign client to operator, use the checkboxes to the left from
-						the client names. Checked checkbox means the client will be assigned
-						to the operator.<br>When finished, press "Submit" button.</p>';
+		if( getActiveClients( $aActiveClients, $clean['districtid'], $clean['unassigned_only'])) {
+			if( count( $aActiveClients) > 0) {
+				getClientToDistrictArray( &$aClientToDistrict, $clean['districtid'], $clean['unassigned_only']);
 			
-				print '<div align="left"><form method="post" action="' . $_SERVER['PHP_SELF'] . '">
-						<table frame="border" rules="rows" width="50%">';
+				if( getClientsForOperator( $clean['operatorid_edit'], $clean['districtid'], $aAssignedClients)) {
+					print '<b>You are now assigning clients for operator: ' . getOperatorName( $clean['operatorid_edit']) . '</b>
+							<p><font face="Verdana, Arial, Helvetica, sans-serif" size="2">
+							To assign client to operator, use the checkboxes to the left from
+							the client names. Checked checkbox means the client will be assigned
+							to the operator. When finished, press "Submit" button.</font></p>';
 				
-				print '<tr>
-						<td></td>
-						<td><b>Client ID</b></td>
-						<td><b>Client Name</b></td>
-						<td align="center"><b>District</b></td>
-						<td align="center"><b>Client\'s timeslot</b></td>
-						<td align="center"><b>Client assigned to</b></td>
-					   </tr>';
-				
-				foreach( $aActiveClients as $cid => $value) {
-					print '<tr><td witdth="10%" valign="top">
-						    <input type="checkbox" name="assigned['. $cid . ']"';
-					if(isset($aAssignedClients[$cid])) {
-						print 'checked';
-					}
-					print '></input></td>
-							<td width="10%" valign="top">' . $cid . '</td>
-							<td width="30%" valign="top">' . strtoupper( $value) . '</td>
-							<td width="10%" valign="top" align="center">' . $aClientToDistrict[$cid] . '</td>
-							<td width="30%" valign="top" align="center">' . getClientTimeSlot( $cid) . '</td>';
+					print '<div align="left"><form method="post" action="' . $_SERVER['PHP_SELF'] . '">
+							<font face="Verdana, Arial, Helvetica, sans-serif" size="2">
+							<table frame="border" rules="rows" width="50%">';
 					
-					print '<td width="100%" valign="top" align="center">';
-					getOperatorNameAssignedToClient( $cid, &$aOperatorNames);
+					print '<tr>
+							<td></td>
+							<td><b>Client ID</b></td>
+							<td><b>Client Name</b></td>
+							<td align="center"><b>District</b></td>
+							<td align="center"><b>Client\'s timeslot</b></td>
+							<td align="center"><b>Client assigned to</b></td>
+						   </tr>';
 					
-					if( count($aOperatorNames)) {
-						
-						foreach( $aOperatorNames as $operator_name => $cid) {
-							print $operator_name . "<br>";
+					foreach( $aActiveClients as $cid => $value) {
+						print '<tr><td witdth="10%" valign="top">
+							    <input type="checkbox" name="assigned['. $cid . ']"';
+						if(isset($aAssignedClients[$cid])) {
+							print 'checked';
 						}
-						// clean it up
-						$aOperatorNames = array();
+						print '></input></td>
+								<td width="10%" valign="top">' . $cid . '</td>
+								<td width="30%" valign="top">' . strtoupper( $value) . '</td>
+								<td width="10%" valign="top" align="center">' . $aClientToDistrict[$cid] . '</td>
+								<td width="30%" valign="top" align="center">' . getClientTimeSlot( $cid) . '</td>';
+						
+						print '<td width="100%" valign="top" align="center">';
+						getOperatorNameAssignedToClient( $cid, &$aOperatorNames);
+						
+						if( count($aOperatorNames)) {
+							
+							foreach( $aOperatorNames as $operator_name => $cid) {
+								print $operator_name . "<br>";
+							}
+							// clean it up
+							$aOperatorNames = array();
+						}
+						else {
+							print '&nbsp;';
+						}
+						print '</td></tr>';
 					}
-					else {
-						print '&nbsp;';
-					}
-					print '</td></tr>';
+					
+					
+					print '<input type="hidden" name="operatorid_edit" value="' . $clean['operatorid_edit'] . '" />
+							</table>
+							<p>
+							<input type="Submit" name="submit" value="Submit">
+							</font>
+							</div>
+							</form>';
 				}
-				
-				
-				print '<input type="hidden" name="operatorid_edit" value="' . $clean['operatorid_edit'] . '" />
-						</table>
-						<font face="Verdana, Arial, Helvetica, sans-serif">
-						<input type="Submit" name="submit" value="Submit">
-						</font>
-						</div>
-						</form>';
-			}			
+			}
+			else { // there is no unassigned clients
+				printMessage('There is no unassigned clients from ' 
+								. getDistrictName( $clean['districtid']) 
+								. ' area on the system at the moment.');
+				printMessage('<p><a href="' . $_SERVER['PHP_SELF'] . '">Assign client(s) to another operator</a></p>');
+			}
 		}
 	}
 }
@@ -185,6 +195,7 @@ else {	// this part happens if we don't press submit
 					
 			if( getDistrictList( $arDistricts)) {
 				print '<select name="districtid">';
+				print '<option value="0">All districts</option>';
 				foreach( $arDistricts as $did => $district_name) {
 						print '<option value="' . $did . '">' . $district_name . '</option>';
 				}
