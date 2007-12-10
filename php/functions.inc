@@ -34,13 +34,23 @@ function printHeader( $pageTitle, $refreshRate = 0, $javaScriptFuncName = NULL) 
 	print '</head><body bgcolor="#BEC8FD"><font face="Verdana, Arial, Helvetica, sans-serif"><p>'; 
 }
 
+function printMessage( $message) {
+	print '<p><b><font face="Verdana, Arial, Helvetica, sans-serif" size="2">' . 
+		$message . '</font></b></p>';
+}
+
+function printErrorMessage( $message) {
+	print '<p><b><font face="Verdana, Arial, Helvetica, sans-serif" size="2" color="#FF0000">' . 
+		$message . '</font></b></p>';
+}
+
 //THIS NEEDS TO BE SET
 function getTheSalt(){
 	return "salt";
 }
 
 function salt($passwd){
-	return sha1($passwd . getTheSalt());
+	return md5($passwd . getTheSalt());
 }
 
 function checkValues($fname, $uname, $pass, $pass2){
@@ -62,14 +72,22 @@ function checkIsAdmin( $loginname){
 	if($loginname == ""){
 		return false;
 	}else{
-		$link = preLoginDBConnect();
-		$sql = mysql_query("SELECT isAdmin FROM operators WHERE loginname='$loginname'", $link) 
-				or die ("Error connecting to database");
-		$data = mysql_fetch_array($sql);
-		dbclose($link);
-		if($data['isAdmin']){
+		$dbConnect = preLoginDBConnect();
+		$sql = "SELECT isadmin FROM operators WHERE loginname='" . $loginname . "'";
+
+		$result = pg_query( $dbConnect, $sql);
+
+		if ( !$result) {
+			$message  = 'Invalid query: ' . pg_result_error( $result) . '<br>' . 'Query: ' . $sql;
+			printErrorMessage($message);
+		}
+		
+		$data = pg_fetch_array( $result);
+		if( $data['isadmin'] == 't'){
 		  	return true;
 		}
+
+		dbclose($dbConnect);
 	}
 	return false;
 }
@@ -80,7 +98,7 @@ function checkIsAdmin( $loginname){
  * returns true or false. True idicates the page should stop executing after this method
  *
  */
-function displayLogin($page, $check4Admin){
+function displayLogin($page, $check4Admin, $quiet = FALSE){
 	$settings = array();
 	$settings = get_ca_settings();
 	
@@ -112,7 +130,7 @@ function displayLogin($page, $check4Admin){
 		</table>
 		<input name="Submit" type="submit" value="Login" />
 		</form></div></tr></td></table></body></html>';
-		echo $out;
+		print $out;
 		return true; //we need to exit code
 	}
 	else {  // we have logged in 
@@ -120,31 +138,35 @@ function displayLogin($page, $check4Admin){
 			//if logged in, need to check for admin and IS NOT admin 
 			$out .= '<div align=left>Sorry you do not have sufficent priviledges to access this page<br /><br/>
 					<a href="' . $settings['start_page'] . '">Click here to return to main page</a></div></td></tr></table>';
-			echo $out;
+			print $out;
 			return true;
-			echo "I shouldn't have got here";
 		}
 		else {
-			$out .= '<td  valign="top"><div align="left">
-			Logged in as <b>' . $_SESSION['s_username'] .'</b>. 
-			<a href="logout.php?f=' . $page . '">logout</a>';
-			
-			// display link back to main menu only if we are not on the main page already
-			if( ltrim($_SERVER['PHP_SELF'], '/') != $settings['start_page']) {
-				$out .= '<br><br><a href="' . $settings['start_page'] . '">Click here to return to main menu</a>';
-			}	
-			
-			$out .= '</div></td>';
+			if( !$quiet) {
+				$out .= '<td  valign="top"><div align="left">
+				Logged in as <b>' . $_SESSION['s_username'] .'</b>. 
+				<a href="logout.php?f=' . $page . '">logout</a>';
+				
+				// display link back to main menu only if we are not on the main page already
+				if( ltrim($_SERVER['PHP_SELF'], '/') != $settings['start_page']) {
+					$out .= '<br><br><a href="' . $settings['start_page'] . '">Click here to return to main menu</a>';
+				}	
+				
+				$out .= '</div></td>';
+			}
 		}
 	}
-	$out .= '<td><div align="right">
-			<a href="' . $settings['start_page'] . '"><img src="/images/header.png" border="0" alt="Friendly Call Service"></a>';
-	$out .= '<br>';
-	$out .= '<br><b>Registered clients todate:</b> ' . getNumberOfRegisteredClients();
-	$out .= '<br><b>Active clients today:</b> ' . getNumberOfActiveClients();
-	$out .= '</div></td></tr></table></font>';
 	
-	echo $out;
+	if( !$quiet) {
+		$out .= '<td><div align="right">
+				<a href="' . $settings['start_page'] . '"><img src="/images/header.png" border="0" alt="Friendly Call Service"></a>';
+		$out .= '<br>';
+		$out .= '<br><b>Registered clients todate:</b> ' . getNumberOfRegisteredClients();
+		$out .= '<br><b>Active clients today:</b> ' . getNumberOfActiveClients();
+		$out .= '</div></td></tr></table></font>';
+		
+		print $out;
+	}
 }
 
 function getNumberOfRegisteredClients() {
@@ -153,13 +175,13 @@ function getNumberOfRegisteredClients() {
 
 	$sql = "SELECT COUNT(clientid) FROM clients";
 	
-	$result = mysql_query( $sql, $dbConnect);
+	$result = pg_query( $dbConnect, $sql);
 	if ( !$result) {
-		$message  = 'Invalid query: ' . mysql_error() . '<br>' . 'Query: ' . $sql;
-		die($message);
+		$message  = 'Invalid query: ' . pg_result_error( $result) . '<br>' . 'Query: ' . $sql;
+		printErrorMessage($message);
 	}
 
-	$myrow = mysql_fetch_row($result);
+	$myrow = pg_fetch_row($result);
 	if($myrow != FALSE) {
 		$iNumberOfClients = $myrow[0];
 	}
@@ -175,13 +197,13 @@ function getNumberOfActiveClients() {
 
 	$sql = "SELECT COUNT(clientid) FROM clients WHERE active='1'";
 	
-	$result = mysql_query( $sql, $dbConnect);
+	$result = pg_query( $dbConnect, $sql);
 	if ( !$result) {
-		$message  = 'Invalid query: ' . mysql_error() . '<br>' . 'Query: ' . $sql;
-		die($message);
+		$message  = 'Invalid query: ' . pg_result_error( $result) . '<br>' . 'Query: ' . $sql;
+		printErrorMessage($message);
 	}
 
-	$myrow = mysql_fetch_row($result);
+	$myrow = pg_fetch_row($result);
 	if($myrow != FALSE) {
 		$iNumberOfClients = $myrow[0];
 	}
@@ -267,11 +289,8 @@ function get_ca_settings(){
 		$settings['admin_password'] = 'caadminpwd';
 	}
 	
-	if(isset($_SERVER['DbHost'])) {
-		$settings['dbhost'] = $_SERVER['DbHost'];
-	}
-	else {
-		$settings['dbhost'] = 'localhost';
+	if(!isset($settings['pghost'])) {
+		$settings['pghost'] = 'localhost';
 	}
 	
 	return $settings;
@@ -283,20 +302,13 @@ function preLoginDBConnect()
 	
 	$settings = get_ca_settings();
 	
-	$dbLoginName = $settings['operator'];
-	$dbLoginPwd = $settings['operator_password'];
-		
-	$dbConnect = mysql_connect($settings['dbhost'], $dbLoginName, $dbLoginPwd);
+	$connectstr = "host=" . $settings['pghost'] 
+					. " port=" . $settings['pgport'] . " dbname=" . $settings['database'] 
+					. " user=" . $settings['operator'] . " password=" . $settings['operator_password'];
+
+	$dbConnect = pg_connect($connectstr);
 	if (!$dbConnect) {
-		die('Could not connect: ' . mysql_error());
-	}
-	
-	//mysql_select_db($db, $dbConnect);
-	$db_selected = mysql_select_db($settings['database'], $dbConnect);
-	if($settings['debug'] > 0) {
-		if (!$db_selected) {
-		    die ('Can\'t use ' . $settings['database']. ': ' . mysql_error());
-		}
+		printErrorMessage('Could not connect: ' . pg_result_error( $result));
 	}
 	
 	return $dbConnect;
@@ -322,18 +334,13 @@ function dbconnect()
 		$dbLoginName = $settings['admin'];
 		$dbLoginPwd = $settings['admin_password'];
 	}
-		
-	$dbConnect = mysql_connect($settings['dbhost'], $dbLoginName, $dbLoginPwd);
+
+	$connectstr = "host=" . $settings['pghost'] 
+					. " port=" . $settings['pgport'] . " dbname=" . $settings['database'] 
+					. " user=" . $dbLoginName . " password=" . $dbLoginPwd;
+	$dbConnect = pg_connect($connectstr);
 	if (!$dbConnect) {
-		die('Could not connect: ' . mysql_error());
-	}
-	
-	//mysql_select_db($db, $dbConnect);
-	$db_selected = mysql_select_db($settings['database'], $dbConnect);
-	if($settings['debug'] > 0) {
-		if (!$db_selected) {
-		    die ('Can\'t use ' . $settings['database']. ': ' . mysql_error());
-		}
+		printErrorMessage('Could not connect: ' . pg_result_error( $result));
 	}
 	
 	return $dbConnect;
@@ -341,7 +348,7 @@ function dbconnect()
 
 function dbclose( $dbConnect)
 {
-	mysql_close($dbConnect);
+	pg_close($dbConnect);
 }
 
 function draw_calls( $clientid) 
@@ -355,34 +362,34 @@ function draw_calls( $clientid)
 				calls.chat as chat,
 				calls.class as class,
 				operators.loginname as operator FROM calls, operators
-				WHERE clientid='{$clientid}' AND 
-				time > (NOW() - INTERVAL 3 WEEK) AND 
+				WHERE clientid={$clientid} AND 
+				time > (NOW() - INTERVAL '3 WEEK') AND 
 				calls.operatorid=operators.operatorid 
 				ORDER BY callid DESC ";
     
-    $result = mysql_query( $sql, $dbConnect);
+    $result = pg_query( $dbConnect, $sql);
     if (!$result) {
-		$message  = 'Invalid query: ' . mysql_error() . "\n";
+		$message  = 'Invalid query: ' . pg_result_error( $result) . "\n";
 		$message .= 'Whole query: ' . $sql;
-		die($message);
+		printErrorMessage($message);
     }
 
     print ("<hr noshade>");
     print('<table border="0" width="100%" cellspacing="0" cellpadding="0">');
     $i=0; // need this to change cell bgcolor
 	$firstround = 1;
-    while ($myrow = mysql_fetch_array($result)) {
+    while ($myrow = pg_fetch_array($result)) {
 // select sclass short name
         $class_ = $myrow["class"];
 		$sql  = "SELECT sclass_sname FROM call_sclass WHERE";
 		$sql .= " sclass_id='$class_'";
-		$res = mysql_query( $sql, $dbConnect);
+		$res = pg_query( $dbConnect, $sql);
 		if (!$res) {
-		    $message  = 'Invalid query: ' . mysql_error() . "\n";
+		    $message  = 'Invalid query: ' . pg_result_error( $result) . "\n";
 		    $message .= 'Whole query: ' . $sql;
-		    die($message);
+		    printErrorMessage($message);
 		}
-		$class_row = mysql_fetch_row($res);
+		$class_row = pg_fetch_row($res);
 // select sclass short name (end)
 	
 		$i=$i + 1; // need this to change cell bgcolor
@@ -468,13 +475,13 @@ function draw_classification()
     $sql .= " FROM call_mclass AS m,call_sclass AS s";
     $sql .= " WHERE m.mclass_id=s.mclass_id ORDER BY m.mclass_id";
     
-    $result = mysql_query($sql, $dbConnect);
+    $result = pg_query( $dbConnect, $sql);
     if (!$result) {
-		$message  = 'Invalid query: ' . mysql_error() . "\n";
+		$message  = 'Invalid query: ' . pg_result_error( $result) . "\n";
 		$message .= 'Whole query: ' . $sql;
-		die($message);
+		printErrorMessage($message);
     }
-    while( $class = mysql_fetch_array($result)) {
+    while( $class = pg_fetch_array($result)) {
 		printf("<option value=\"%d\">%s -- %s</option>",$class[sclass_id],$class[mclass_name],$class[sclass_name]);
     }
     
@@ -490,13 +497,13 @@ function draw_clients()
 	
     $sql = "SELECT clientid,lastname,firstname FROM clients ORDER BY lastname";
     
-    $result = mysql_query($sql, $dbConnect);
+    $result = pg_query( $dbConnect, $sql);
     if (!$result) {
-		$message  = 'Invalid query: ' . mysql_error() . "\n";
+		$message  = 'Invalid query: ' . pg_result_error( $result) . "\n";
 		$message .= 'Whole query: ' . $sql;
-		die($message);
+		printErrorMessage($message);
     }
-    while( $client = mysql_fetch_array($result)) {
+    while( $client = pg_fetch_array($result)) {
 		printf("<option value=\"%d\">%s, %s (%d)</option>",
 	    $client[clientid],strtoupper($client[lastname]),
 	    strtoupper($client[firstname]),$client[clientid]);
@@ -517,17 +524,17 @@ function draw_client_details($clientid)
 					contact1name,contact1phone,
 					contact2name,contact2phone,
 					gpname,
-					TIME_FORMAT(timeslot,'%H:%i') as timeslot from clients
+					TO_CHAR(timeslot, 'HH24:MI') as timeslot from clients
 					WHERE clientid='$clientid' AND active='1'";
 		
-		$result = mysql_query( $sql, $dbConnect);
+		$result = pg_query( $dbConnect, $sql);
 		if (!$result) {
-		    $message  = 'Invalid query: ' . mysql_error() . "\n";
+		    $message  = 'Invalid query: ' . pg_result_error( $result) . "\n";
 		    $message .= 'Whole query: ' . $sql;
-		    die($message);
+		    printErrorMessage($message);
 		}
 		else {	
-	   	    while ($myrow = mysql_fetch_array($result)) {
+	   	    while ($myrow = pg_fetch_array($result)) {
 				if($myrow["phone1"]) {
 		        	    $phone1 = $myrow["phone1"]; 
 				}
@@ -597,7 +604,7 @@ function draw_client_details($clientid)
     $out .= '</tr><tr>';
     $out .= "<td width=\"30%\"><font size=" . $fs . "><b>Alone:</b></font></td>";
     $out .= "<td><font size=" . $fs . ">"; 
-		if( $alone = 1) {
+		if( $alone = 't') {
     		$out .= "Yes";
 		}
 		else {
@@ -623,46 +630,51 @@ function draw_clients_list($operator, $clientid)
 {
 	$clients = array();		// array to store clientids and the rest
 	$calltime = array();	// array to store timeslots
+	$nocalltime = array();	// array to store clientid's with no timeslot
+	$redcalltime = array();	// array to store timeslots that were missed 
+	$redcalltimemsg = array(); // array to hold red messages to append to timeslots
+	$redpastcalltime = array();	// array to store timeslots that were missed from yesterday 
+	$redpastcalltimemsg = array(); // array to hold redpast messages to append to timeslots
 	$nextcall = array();	// array to store nextcalls
 	$timeslot_done = array();	// to track if the timeslot call was made
- 
+	
 	$dbConnect = dbconnect();
 	
 	$fs = 1; // font size
 	
 	// getting client list first ...
     $sql  = "SELECT clientid,firstname,lastname,
-			TIME_FORMAT(timeslot,'%H:%i') AS timeslot
+			TO_CHAR(timeslot, 'HH24:MI') AS timeslot
 			FROM clients WHERE clientid IN (SELECT clientid FROM client2operator WHERE 
 			operatorid=(SELECT operatorid FROM operators WHERE loginname='{$operator}'))
 			AND active='1' ORDER BY timeslot, lastname";
     
-    $result = mysql_query( $sql, $dbConnect);
+    $result = pg_query( $dbConnect, $sql);
     if (!$result) {
-		$message  = 'Invalid query: ' . mysql_error() . '<br>' . 'Query: ' . $sql;
-		die($message);
+		$message  = 'Invalid query: ' . pg_result_error( $result) . '<br>' . 'Query: ' . $sql;
+		printErrorMessage($message);
     }
 
-	while ($myrow = mysql_fetch_array($result)) {
+	while ($myrow = pg_fetch_array($result)) {
 		$clients[$myrow['clientid']] = $myrow['lastname'] . ', ' . $myrow['firstname'];
 		$calltime[$myrow['clientid']] = $myrow['timeslot'];
 	}
 
 	// getting unfinished calls and nextcalltime for it
-	$sql = "SELECT clientid,DATE_FORMAT(nextcalltime,'%Y-%m-%d %H:%i:%s') as nextcalltime
+	$sql = "SELECT clientid,TO_CHAR(nextcalltime,'DD/MM/YYYY HH24:MI:SS') as nextcalltime
 			FROM calls WHERE clientid in 
 			(SELECT clientid FROM client2operator WHERE 
 			operatorid=(SELECT operatorid FROM operators WHERE loginname='{$operator}')) 
-			and call_finished='0'";
+			and call_finished='f'";
 	
-    $result = mysql_query( $sql, $dbConnect);
+    $result = pg_query( $dbConnect, $sql);
     if (!$result) {
-		$message  = 'Invalid query: ' . mysql_error() . '\n';
+		$message  = 'Invalid query: ' . pg_result_error( $result) . '\n';
 		$message .= 'Whole query: ' . $sql;
-		die($message);
+		printErrorMessage($message);
     }
 
-	while ($myrow = mysql_fetch_array($result)) {
+	while ($myrow = pg_fetch_array($result)) {
 		$nextcall[$myrow['clientid']] = $myrow['nextcalltime'];
 	}
 	
@@ -672,14 +684,14 @@ function draw_clients_list($operator, $clientid)
 			(SELECT clientid FROM client2operator WHERE 
 			operatorid=(SELECT operatorid FROM operators WHERE loginname='{$operator}'))";
 	
-    $result = mysql_query( $sql, $dbConnect);
+    $result = pg_query( $dbConnect, $sql);
     if (!$result) {
-		$message  = 'Invalid query: ' . mysql_error() . '\n';
+		$message  = 'Invalid query: ' . pg_result_error( $result) . '\n';
 		$message .= 'Whole query: ' . $sql;
-		die($message);
+		printErrorMessage($message);
     }
 
-	while ($myrow = mysql_fetch_array($result)) {
+	while ($myrow = pg_fetch_array($result)) {
 		$timeslot_done[$myrow['clientid']] = $myrow['timeslot_done'];
 	}
 
@@ -690,9 +702,12 @@ function draw_clients_list($operator, $clientid)
 	foreach( $calltime as $cid => $nctime) { // now go through it all and figure out the time....
 		$nct = -1;
 		if( isset($nextcall[$cid])) {
-			if( ereg( "([0-9]{4})-([0-9]{2})-([0-9]{2}) ([0-9]{2}):([0-9]{2}):([0-9]{2})", $nextcall[$cid], $regs )) {
-				$nct = mktime($regs[4],$regs[5],$regs[6],$regs[2],$regs[3],$regs[1]); // nextcalltime
+			if( ereg( "([0-9]{2})/([0-9]{2})/([0-9]{4}) ([0-9]{2}):([0-9]{2}):([0-9]{2})", $nextcall[$cid], $regs )) {
+				$nct = mktime($regs[4],$regs[5],$regs[6],$regs[2],$regs[1],$regs[3]); // nextcalltime
 			}
+/*--worked			if( ereg( "([0-9]{4})-([0-9]{2})-([0-9]{2}) ([0-9]{2}):([0-9]{2}):([0-9]{2})", $nextcall[$cid], $regs )) {
+				$nct = mktime($regs[4],$regs[5],$regs[6],$regs[2],$regs[3],$regs[1]); // nextcalltime
+			}---worked*/
 		}
 
 		$regs = 0;
@@ -704,38 +719,103 @@ function draw_clients_list($operator, $clientid)
 		}
 
 		if( ($mnt - $nct) > 0 && $nct > 0) { // we left unfinished call from yesterday. bad!
-			$calltime[$cid] = '<b><font color="#f11313">Unfinished call from the past. ' . $nextcall[$cid] . ' Call now!</font></b>';
+			$redpastcalltime[$cid] = $nextcall[$cid];
+			$redpastcalltimemsg[$cid] = 'Unfinished call from the past. Call now!';
+			unset( $calltime[$cid]);
 		}
-		else if( $tms < $now && $timeslot_done[$cid] == 0 ) { // we missed client's usual time slot. bad!
-			$calltime[$cid] = '<b><font color="#f11313">Missed time slot (' . $nctime . '). Call now!</font></b>';
+		else if( $tms < $now && $timeslot_done[$cid] == 'f' ) { // we missed client's usual time slot. bad!
+			$redcalltime[$cid] = $nctime;
+			$redcalltimemsg[$cid] = 'Missed time slot. Call now!';
+			unset( $calltime[$cid]);
+		}
+		else if( $nct < $now && $nct > 0) {
+			$redcalltime[$cid] = date( "H:i", $nct);
+			$redcalltimemsg[$cid] = 'Missed call time. Call now!';
+			unset( $calltime[$cid]);
 		}
 		else if( $nct > $now) {
 			$calltime[$cid] = date( "H:i", $nct);
 		}
+		
+/* --- worked		if( ($mnt - $nct) > 0 && $nct > 0) { // we left unfinished call from yesterday. bad!
+			$calltime[$cid] = '<b><font color="#f11313">Unfinished call from the past. ' . $nextcall[$cid] . ' Call now!</font></b>';
+		}
+		else if( $tms < $now && $timeslot_done[$cid] == 'f' ) { // we missed client's usual time slot. bad!
+			$calltime[$cid] = '<b><font color="#f11313">Missed time slot (' . $nctime . '). Call now!</font></b>';
+		}
 		else if( $nct < $now && $nct > 0) {
 			$calltime[$cid] = '<b><font color="#f11313">Missed call time ('. date( "H:i", $nct) . '). Call now!</font></b>';
 		}
+		else if( $nct > $now) {
+			$calltime[$cid] = date( "H:i", $nct);
+		} --- worked */
 		
 		else if( $tms < $now) {
-			$calltime[$cid] = '';
+			$nocalltime[$cid] = '';
+			unset( $calltime[$cid]);
 		}
 //		$calltime[$cid] .= '  --- nct: ' . date("Y-m-d H:i:s", $nct) . '; timeslot: ' . date("Y-m-d H:i:s", $tms) . '; ' . $nextcall[$cid] . '==' . $nct; 
 	}
     
 	// we need to sort the array now
-	
+	asort( $redcalltime);
+	asort( $calltime);
 
 	// print it all out ....
 	print("<table>");
 
-	foreach ( $clients as $cid => $name ) {
+	// redpasts first
+	foreach ( $redpastcalltime as $cid => $ts ) {
+		$out  = '<tr><td><a href="' . $PHP_SELF . '?clientid=' . $cid . '">';
+		$out .= '<font size="$fs">';
+		$out .= $clients[$cid] . '</a></font></td>';
+		$out .= '<td><b><font color="#f11313">' . $redpastcalltime[$cid] . '</font></b></td>';
+		$out .= '<td><b><font color="#f11313">' . $redpastcalltimemsg[$cid] . '</font></b></td>';
+		
+	    print $out . '</tr>';
+	}
+	
+	// reds then
+	foreach ( $redcalltime as $cid => $ts ) {
+		$out  = '<tr><td><a href="' . $PHP_SELF . '?clientid=' . $cid . '">';
+		$out .= '<font size="$fs">';
+		$out .= $clients[$cid] . '</a></font></td>';
+		$out .= '<td><b><font color="#f11313">' . $redcalltime[$cid] . '</font></b></td>';
+		$out .= '<td><b><font color="#f11313">' . $redcalltimemsg[$cid] . '</font></b></td>';
+		
+	    print $out . '</tr>';
+	}
+	
+	// normals then
+	foreach ( $calltime as $cid => $ts ) {
+		$out  = '<tr><td><a href="' . $PHP_SELF . '?clientid=' . $cid . '">';
+		$out .= '<font size="$fs">';
+		$out .= $clients[$cid] . '</a></font></td>';
+		$out .= '<td>' . $calltime[$cid] . '</td>';
+		$out .= '<td>&nbsp</td>';
+		
+	    print $out . '</tr>';
+	}
+	
+	// notimes first
+	foreach ( $nocalltime as $cid => $ts ) {
+		$out  = '<tr><td><a href="' . $PHP_SELF . '?clientid=' . $cid . '">';
+		$out .= '<font size="$fs">';
+		$out .= $clients[$cid] . '</a></font></td>';
+		$out .= '<td>' . $nocalltime[$cid] . '</td>';
+		$out .= '<td>&nbsp</td>';
+		
+	    print $out . '</tr>';
+	}
+	
+/* --- worked	foreach ( $clients as $cid => $name ) {
 		$out  = '<tr><td><a href="' . $PHP_SELF . '?clientid=' . $cid . '">';
 		$out .= '<font size="$fs">';
 		$out .= $name . '</a></font></td>';
 		$out .= '<td>' . $calltime[$cid] . '</td>';
 	    
 	    print $out . '</tr>';
-	}
+	}--- worked */
 
 	print("</table>");
 
@@ -748,6 +828,52 @@ function filter_phone_number($phone) {
 		$filtered = "N/A";	
 	}
 	return $filtered;
+}
+function verifyOperatorData( &$arOperatorData, &$clean) {
+	$clean['submit'] = $arOperatorData['submit'];
+
+	if(isset($arOperatorData['loginname'])) {
+		if( ctype_alnum( $arOperatorData['loginname'])) {
+			$clean['loginname'] = $arOperatorData['loginname'];
+		}
+	}
+	if(isset($arOperatorData['fullname'])) {
+		if( ctype_print($arOperatorData['fullname'])) {
+			$fullname = htmlentities( $arOperatorData['fullname'], ENT_NOQUOTES);
+			if( get_magic_quotes_gpc()) {
+				$clean['fullname'] = stripslashes($fullname);
+			}
+			else {
+				$clean['fullname'] = $fullname;
+			} 
+		}
+	}
+	if(isset($arOperatorData['password'])){
+		$clean['password'] = $arOperatorData['password']; 
+	}
+	if(isset($arOperatorData['isadmin'])) {
+		if(strtoupper($arOperatorData['isadmin']) == "ON") {
+			$clean['isadmin'] = 't';
+		}
+		else {
+			$clean['isadmin'] = 'f';
+		}
+	}
+	else {
+		$clean['isadmin'] = 'f';
+	}
+	
+	if(isset($arOperatorData['issnr'])) {
+		if(strtoupper($arOperatorData['issnr']) == "ON") {
+			$clean['issnr'] = 't';
+		}
+		else {
+			$clean['issnr'] = 'f';
+		}
+	}
+	else {
+		$clean['issnr'] = 'f';
+	}
 }
 
 function verifyClientData( &$arClientData, &$clean) {
@@ -829,7 +955,7 @@ function verifyClientData( &$arClientData, &$clean) {
 	
 	if(isset($arClientData['dob'])) {
 		$reg = 0;
-		if(ereg( "([0-2]{1}[0-9]{1})/([0-1]{1}[0-9]{1})/([1-2]{1}[0-9]{3})", $arClientData['dob'], $reg)) {
+		if(ereg( "([0-3]{1}[0-9]{1})/([0-1]{1}[0-9]{1})/([1-2]{1}[0-9]{3})", $arClientData['dob'], $reg)) {
 			$clean['dob'] = $reg[3] . "-" . $reg[2] . "-" . $reg[1];
 		}
 	}
@@ -860,11 +986,14 @@ function verifyClientData( &$arClientData, &$clean) {
 	
 	if(isset($arClientData['alone'])) {
 		if(strtoupper($arClientData['alone']) == "ON") {
-			$clean['alone'] = 1;
+			$clean['alone'] = 't';
 		}
 		else {
-			$clean['alone'] = 0;
+			$clean['alone'] = 'f';
 		}
+	}
+	else {
+		$clean['alone'] = 'f';
 	}
 	
 	if(isset($arClientData['medical_notes'])) {
@@ -1021,13 +1150,13 @@ function getOperators( &$operators) {
 
 	$sql = "SELECT operatorid,fullname FROM operators ORDER BY fullname";
 	
-	$result = mysql_query( $sql,$dbConnect);
+	$result = pg_query( $dbConnect, $sql);
 	if ( !$result) {
-		$message  = 'Invalid query: ' . mysql_error() . '<br>' . 'Query: ' . $sql;
-		die($message);
+		$message  = 'Invalid query: ' . pg_result_error( $result) . '<br>' . 'Query: ' . $sql;
+		printErrorMessage($message);
 	}
 	else {
-		while ( $myrow = mysql_fetch_array($result)) {
+		while ( $myrow = pg_fetch_array($result)) {
 			if(isset( $myrow['operatorid'])) {
 				if( ctype_digit($myrow['operatorid'])) { 
 					$operators[$myrow['operatorid']]= htmlentities($myrow['fullname'], ENT_QUOTES);
@@ -1049,13 +1178,13 @@ function getOperatorName( $operatorid) {
 
 	$sql = "SELECT fullname FROM operators WHERE operatorid='" . $operatorid . "'";
 	
-	$result = mysql_query( $sql,$dbConnect);
+	$result = pg_query( $dbConnect, $sql);
 	if ( !$result) {
-		$message  = 'Invalid query: ' . mysql_error() . '<br>' . 'Query: ' . $sql;
-		die($message);
+		$message  = 'Invalid query: ' . pg_result_error( $result) . '<br>' . 'Query: ' . $sql;
+		printErrorMessage($message);
 	}
 	else {
-		while ( $myrow = mysql_fetch_array($result)) {
+		while ( $myrow = pg_fetch_array($result)) {
 			if(isset( $myrow['fullname'])) {
 				$sOperatorName = $myrow['fullname'];
 			} 
@@ -1079,13 +1208,13 @@ function getOperatorNameAssignedToClient( $clientid, &$aOperatorNames) {
 	$sql = "SELECT loginname FROM operators WHERE operatorid IN 
 			(SELECT operatorid FROM client2operator WHERE clientid='" . $clientid . "');";
 	
-	$result = mysql_query( $sql,$dbConnect);
+	$result = pg_query( $dbConnect, $sql);
 	if ( !$result) {
-		$message  = 'Invalid query: ' . mysql_error() . '<br>' . 'Query: ' . $sql;
-		die($message);
+		$message  = 'Invalid query: ' . pg_result_error( $result) . '<br>' . 'Query: ' . $sql;
+		printErrorMessage($message);
 	}
 	else {
-		while ( $myrow = mysql_fetch_array($result)) {
+		while ( $myrow = pg_fetch_array($result)) {
 			if(isset( $myrow['loginname'])) {
 				$aOperatorNames[ $myrow['loginname']] = $clientid;
 			} 
@@ -1105,13 +1234,13 @@ function getOperatorLoginName( $operatorid) {
 
 	$sql = "SELECT loginname FROM operators WHERE operatorid='" . $operatorid . "'";
 	
-	$result = mysql_query( $sql,$dbConnect);
+	$result = pg_query( $dbConnect, $sql);
 	if ( !$result) {
-		$message  = 'Invalid query: ' . mysql_error() . '<br>' . 'Query: ' . $sql;
-		die($message);
+		$message  = 'Invalid query: ' . pg_result_error( $result) . '<br>' . 'Query: ' . $sql;
+		printErrorMessage($message);
 	}
 	else {
-		while ( $myrow = mysql_fetch_array($result)) {
+		while ( $myrow = pg_fetch_array($result)) {
 			if(isset( $myrow['loginname'])) {
 				$sOperatorName = $myrow['loginname'];
 			} 
@@ -1131,13 +1260,13 @@ function getOperatorPassword( $operatorid) {
 
 	$sql = "SELECT saltypwd FROM operators WHERE operatorid='" . $operatorid . "'";
 	
-	$result = mysql_query( $sql,$dbConnect);
+	$result = pg_query( $dbConnect, $sql);
 	if ( !$result) {
-		$message  = 'Invalid query: ' . mysql_error() . '<br>' . 'Query: ' . $sql;
-		die($message);
+		$message  = 'Invalid query: ' . pg_result_error( $result) . '<br>' . 'Query: ' . $sql;
+		printErrorMessage($message);
 	}
 	else {
-		while ( $myrow = mysql_fetch_array($result)) {
+		while ( $myrow = pg_fetch_array($result)) {
 			if(isset( $myrow['saltypwd'])) {
 				$sOperatorPwd = $myrow['saltypwd'];
 			} 
@@ -1151,54 +1280,54 @@ function getOperatorPassword( $operatorid) {
 
 function isOperatorAdmin( $operatorid) {
 	$myrow = '';
-	$isAdmin = false;
+	$isadmin = false;
 	
 	$dbConnect = dbconnect();
 
-	$sql = "SELECT isAdmin FROM operators WHERE operatorid='" . $operatorid . "'";
+	$sql = "SELECT isadmin FROM operators WHERE operatorid='" . $operatorid . "'";
 	
-	$result = mysql_query( $sql,$dbConnect);
+	$result = pg_query( $dbConnect, $sql);
 	if ( !$result) {
-		$message  = 'Invalid query: ' . mysql_error() . '<br>' . 'Query: ' . $sql;
-		print $message;
+		$message  = 'Invalid query: ' . pg_result_error( $result) . '<br>' . 'Query: ' . $sql;
+		printErrorMessage( $message);
 	}
 	else {
-		while ( $myrow = mysql_fetch_array($result)) {
-			if(isset( $myrow['isAdmin'])) {
-				$isAdmin = $myrow['isAdmin'];
+		while ( $myrow = pg_fetch_array($result)) {
+			if( $myrow['isadmin'] == 't') {
+				$isadmin = true;
 			} 
 		}
 	}
 	
 	dbclose( $dbConnect);
 	
-	return $isAdmin;
+	return $isadmin;
 }
 
 function isOperatorSnr( $operatorid) {
 	$myrow = '';
-	$isSnr = false;
+	$issnr = false;
 	
 	$dbConnect = dbconnect();
 
-	$sql = "SELECT isSnr FROM operators WHERE operatorid='" . $operatorid . "'";
+	$sql = "SELECT issnr FROM operators WHERE operatorid='" . $operatorid . "'";
 	
-	$result = mysql_query( $sql,$dbConnect);
+	$result = pg_query( $dbConnect, $sql);
 	if ( !$result) {
-		$message  = 'Invalid query: ' . mysql_error() . '<br>' . 'Query: ' . $sql;
-		print $message;
+		$message  = 'Invalid query: ' . pg_result_error( $result) . '<br>' . 'Query: ' . $sql;
+		printErrorMessage( $message);
 	}
 	else {
-		while ( $myrow = mysql_fetch_array($result)) {
-			if(isset( $myrow['isSnr'])) {
-				$isSnr = $myrow['isSnr'];
+		while ( $myrow = pg_fetch_array($result)) {
+			if( $myrow['issnr'] == 't') {
+				$issnr = true;
 			} 
 		}
 	}
 	
 	dbclose( $dbConnect);
 	
-	return $isSnr;
+	return $issnr;
 }
 
 function getClientsForOperator( $operatorid, $districtid, &$clients) {
@@ -1207,22 +1336,22 @@ function getClientsForOperator( $operatorid, $districtid, &$clients) {
 
 	$sql = 'SELECT clients.clientid,clients.firstname,clients.lastname,clients.initials 
 			FROM clients LEFT JOIN client2operator ON clients.clientid=client2operator.clientid 
-			WHERE client2operator.operatorid="' . $operatorid . '"';
+			WHERE client2operator.operatorid=' . $operatorid . ' ';
 
 
 	if( ctype_digit($districtid) && $districtid > 0) {
-		$sql .= ' AND clients.districtid="' . $districtid . '"';  
+		$sql .= ' AND clients.districtid=' . $districtid . ' ';  
 	}
 	
 	$sql .= ' ORDER BY clients.lastname, clients.firstname';
 
-	$result = mysql_query( $sql, $dbConnect);
+	$result = pg_query( $dbConnect, $sql);
 	if ( !$result) {
-		$message  = 'Invalid query: ' . mysql_error() . '<br>' . 'Query: ' . $sql;
-		die($message);
+		$message  = 'Invalid query: ' . pg_result_error( $result) . '<br>' . 'Query: ' . $sql;
+		printErrorMessage($message);
 	}
 	else {
-		while ( $myrow = mysql_fetch_array($result)) {
+		while ( $myrow = pg_fetch_array($result)) {
 			$clients[$myrow['clientid']] = $myrow['lastname'] . ', ' . $myrow['firstname'] . ' ' . $myrow['initials'];
 		}
 	}
@@ -1242,15 +1371,15 @@ function getClientTimeSlot( $clientid) {
 	
 	$dbConnect = dbconnect();
 
-	$sql = "SELECT TIME_FORMAT(timeslot,'%H:%i') as timeslot FROM clients WHERE clientid='" . $clientid . "'";  
+	$sql = "SELECT TO_CHAR(timeslot, 'HH24:MI') as timeslot FROM clients WHERE clientid=" . $clientid;  
 
-	$result = mysql_query( $sql, $dbConnect);
+	$result = pg_query( $dbConnect, $sql);
 	if ( !$result) {
-		$message  = 'Invalid query: ' . mysql_error() . '<br>' . 'Query: ' . $sql;
-		die($message);
+		$message  = 'Invalid query: ' . pg_result_error( $result) . '<br>' . 'Query: ' . $sql;
+		printErrorMessage($message);
 	}
 	else {
-		while ( $myrow = mysql_fetch_array($result)) {
+		while ( $myrow = pg_fetch_array($result)) {
 			$timeslot = $myrow['timeslot'];
 		}
 	}
@@ -1269,10 +1398,10 @@ function getClients( &$clients, $districtid = 0, $what_clients = ALL_CLIENTS) {
 	// if none of the below, we get all clients
 	switch( $what_clients) {
 	case ACTIVE_CLIENTS:
-			$sql .= " WHERE active='1'";
+			$sql .= " WHERE active='t'";
 			break;
 	case INACTIVE_CLIENTS:
-			$sql .= " WHERE active='0'";
+			$sql .= " WHERE active='f'";
 			break;
 	case ACTIVE_UNASSIGNED_CLIENTS:
 			$sql .= " WHERE clientid NOT IN (SELECT clientid FROM client2operator)";
@@ -1281,18 +1410,18 @@ function getClients( &$clients, $districtid = 0, $what_clients = ALL_CLIENTS) {
 
 	// if $districtid=0, we want to see all active clients
 	if( ctype_digit($districtid) && $districtid > 0) {
-		$sql .= ' AND districtid="' . $districtid . '" ';  
+		$sql .= " AND districtid=" . $districtid . " ";  
 	}
 	
 	$sql .= " ORDER BY lastname";
 	
-	$result = mysql_query( $sql,$dbConnect);
+	$result = pg_query( $dbConnect, $sql);
 	if ( !$result) {
-		$message  = 'Invalid query: ' . mysql_error() . '<br>' . 'Query: ' . $sql;
-		die($message);
+		$message  = 'Invalid query: ' . pg_result_error( $result) . '<br>' . 'Query: ' . $sql;
+		printErrorMessage($message);
 	}
 	else {
-		while ( $myrow = mysql_fetch_array($result)) {
+		while ( $myrow = pg_fetch_array($result)) {
 			if(isset( $myrow['clientid'])) {
 				if( ctype_digit($myrow['clientid'])) { 
 					$clients[$myrow['clientid']]= htmlentities($myrow['lastname'], ENT_QUOTES) . ', ' .
@@ -1329,9 +1458,9 @@ function deactivate_client( $clientid) {
 	$dbConnect = dbconnect();
 
 	$sql = "UPDATE clients SET active='0' WHERE clientid='" . $clientid . "'";
-	$result = mysql_query($sql, $dbConnect);
+	$result = pg_query( $dbConnect, $sql);
 	if (!$result) {
-		die('Invalid query: ' . mysql_error());
+		printErrorMessage('Invalid query: ' . pg_result_error( $result));
 	}
 	
 	dbclose( $dbConnect);
@@ -1341,9 +1470,9 @@ function reactivate_client( $clientid) {
 	$dbConnect = dbconnect();
 
 	$sql = "UPDATE clients SET active='1' WHERE clientid='" . $clientid . "'";
-	$result = mysql_query($sql, $dbConnect);
+	$result = pg_query( $dbConnect, $sql);
 	if (!$result) {
-		die('Invalid query: ' . mysql_error());
+		printErrorMessage('Invalid query: ' . pg_result_error( $result));
 	}
 	
 	dbclose( $dbConnect);
@@ -2057,15 +2186,15 @@ function getDistrictList( &$arDistricts)
 	$myrow = '';
 	$dbConnect = dbconnect();
 	
-	$sql = "SELECT districtid,district_name,comments FROM districts";
+	$sql = "SELECT districtid,district_name FROM districts";
 
-	$result = mysql_query( $sql, $dbConnect);
+	$result = pg_query( $dbConnect, $sql);
 	if ( !$result) {
-		$message  = 'Invalid query: ' . mysql_error() . '<br>' . 'Query: ' . $sql;
-		die($message);
+		$message  = 'Invalid query: ' . pg_result_error( $result) . '<br>' . 'Query: ' . $sql;
+		printErrorMessage($message);
 	}
 	else {
-		while ( $myrow = mysql_fetch_array($result)) {
+		while ( $myrow = pg_fetch_array($result)) {
 			if(isset( $myrow['districtid'])) {
 				if( ctype_digit($myrow['districtid'])) { 
 					$arDistricts[$myrow['districtid']]= htmlentities($myrow['district_name'], ENT_QUOTES);
@@ -2079,30 +2208,45 @@ function getDistrictList( &$arDistricts)
 	return $result;
 }
 
+function getDistrictName( $districtid)
+{
+	$row = array();
+	$dbConnect = dbconnect();
+	
+	$sql = "SELECT district_name FROM districts WHERE districtid=" . $districtid;
+
+	$result = pg_query( $dbConnect, $sql);
+	if ( !$result) {
+		$message  = 'Invalid query: ' . pg_result_error( $result) . '<br>' . 'Query: ' . $sql;
+		printErrorMessage( $message);
+	}
+	else {
+		$row = pg_fetch_array($result);
+	}
+	
+	dbclose( $dbConnect);
+	
+	return $row['district_name'];
+}
+
 function addClientToOperator( &$arAssigned, &$clean) {
 	$retval = true;
 	$dbConnect = dbconnect();
 	
-	$sql = 'DELETE FROM client2operator WHERE operatorid="' . $clean['operatorid_edit'] . '"';
-	$result = mysql_query( $sql,$dbConnect);
-	if ( !$result) {
-		$message  = 'Invalid query: ' . mysql_error() . '<br>' . 'Query: ' . $sql;
-		$retval = false;
-	}
-
-	$sql = 'INSERT INTO client2operator VALUES ';
+	$sql = "BEGIN;";
+	$sql .= "DELETE FROM client2operator WHERE operatorid=" . $clean['operatorid_edit'] . ";";
 	
 	foreach($arAssigned as $cid => $value) {
-		$sql .= '('. $cid . ',' . mysql_real_escape_string( $clean['operatorid_edit'], $dbConnect) . '),';
+		$sql .= 'INSERT INTO client2operator VALUES ';
+		$sql .= '('. $cid . ',' . pg_escape_string( $clean['operatorid_edit']) . ');';
 	}
 	
-	// trim trailing comma
-	$out = $sql;
-	$sql = rtrim( $out, ",");
-	
-	$result = mysql_query( $sql,$dbConnect);
+	$sql .= "COMMIT";
+
+	$result = pg_query( $dbConnect, $sql);
 	if ( !$result) {
-		$message  = 'Invalid query: ' . mysql_error() . '<br>' . 'Query: ' . $sql;
+		$message  = 'Invalid query: ' . pg_result_error( $result) . '<br>' . 'Query: ' . $sql;
+		printErrorMessage( $message);
 		$retval = false;
 	}
 	
@@ -2117,14 +2261,15 @@ function checkIsSnr( $operatorid){
 	$dbConnect = dbconnect();
 	
 	// let's see who is the senior operator at the moment
-	$sql = 'SELECT operatorid FROM operators WHERE isSnr="1"';
-	$result = mysql_query( $sql,$dbConnect);
+	$sql = "SELECT operatorid FROM operators WHERE issnr='t'";
+	$result = pg_query( $dbConnect, $sql);
 	if ( !$result) {
-		$message  = 'Invalid query: ' . mysql_error() . '<br>' . 'Query: ' . $sql;
+		$message  = 'Invalid query: ' . pg_result_error( $result) . '<br>' . 'Query: ' . $sql;
+		printErrorMessage( $message);
 		$retval = false;
 	}
 	else {
-		while ( $myrow = mysql_fetch_array($result)) {
+		while ( $myrow = pg_fetch_array($result)) {
 			if(isset( $myrow['operatorid'])) {
 				if( ctype_digit($myrow['operatorid'])) { 
 					if( $operatorid == $myrow['operatorid']){
@@ -2154,20 +2299,20 @@ function transferClientToSnrOperator( $clientid) {
 	
 	// we are not going to change anything if $snrID is not available
 	if( $snrID > 0) {
-		$sql = 'DELETE FROM client2operator WHERE clientid="' . $clientid . '"';
-		$result = mysql_query( $sql,$dbConnect);
+		$sql = "DELETE FROM client2operator WHERE clientid=" . $clientid;
+		$result = pg_query( $dbConnect, $sql);
 		if ( !$result) {
-			$message  = 'Invalid query: ' . mysql_error() . '<br>' . 'Query: ' . $sql;
-			print $message; 
+			$message  = 'Invalid query: ' . pg_result_error( $result) . '<br>' . 'Query: ' . $sql;
+			printErrorMessage( $message); 
 			$retval = false;
 		}
 	
 		$sql = 'INSERT INTO client2operator VALUES ('. $clientid . ','. $snrID . ')';
 		
-		$result = mysql_query( $sql,$dbConnect);
+		$result = pg_query( $dbConnect, $sql);
 		if ( !$result) {
-			$message  = 'Invalid query: ' . mysql_error() . '<br>' . 'Query: ' . $sql;
-			print $message;
+			$message  = 'Invalid query: ' . pg_result_error( $result) . '<br>' . 'Query: ' . $sql;
+			printErrorMessage( $message);
 			$retval = false;
 		}
 	}
@@ -2183,14 +2328,14 @@ function getSnrOperatorID() {
 	$dbConnect = dbconnect();
 	
 	// let's see who is the senior operator at the moment
-	$sql = 'SELECT operatorid FROM operators WHERE isSnr="1"';
-	$result = mysql_query( $sql,$dbConnect);
+	$sql = "SELECT operatorid FROM operators WHERE issnr='t'";
+	$result = pg_query( $dbConnect, $sql);
 	if ( !$result) {
-		$message  = 'Invalid query: ' . mysql_error() . '<br>' . 'Query: ' . $sql;
+		$message  = 'Invalid query: ' . pg_result_error( $result) . '<br>' . 'Query: ' . $sql;
 		$retval = false;
 	}
 	else {
-		$myrow = mysql_fetch_array($result);
+		$myrow = pg_fetch_array($result);
 		if(isset( $myrow['operatorid'])) {
 			if( ctype_digit($myrow['operatorid'])) { 
 				$snrID = $myrow['operatorid'];
@@ -2207,11 +2352,11 @@ function setSnrOperator( $operatorid) {
 	
 	$dbConnect = dbconnect();
 
-	$sql = 'UPDATE operators SET isSnr="1" WHERE operatorid="' . $operatorid . '"';
-	$result = mysql_query( $sql,$dbConnect);
+	$sql = "UPDATE operators SET issnr='t' WHERE operatorid=" . $operatorid;
+	$result = pg_query( $dbConnect, $sql);
 	if ( !$result) {
-		$message  = 'Invalid query: ' . mysql_error() . '<br>' . 'Query: ' . $sql;
-		print $message;
+		$message  = 'Invalid query: ' . pg_result_error( $result) . '<br>' . 'Query: ' . $sql;
+		printErrorMessage( $message);
 		$retval = false;
 	}
 	
@@ -2225,11 +2370,11 @@ function clearSnrOperator( $operatorid) {
 	
 	$dbConnect = dbconnect();
 
-	$sql = 'UPDATE operators SET isSnr="0" WHERE operatorid="' . $operatorid . '"';
-	$result = mysql_query( $sql,$dbConnect);
+	$sql = "UPDATE operators SET issnr='f' WHERE operatorid=" . $operatorid;
+	$result = pg_query( $dbConnect, $sql);
 	if ( !$result) {
-		$message  = 'Invalid query: ' . mysql_error() . '<br>' . 'Query: ' . $sql;
-		print $message;
+		$message  = 'Invalid query: ' . pg_result_error( $result) . '<br>' . 'Query: ' . $sql;
+		printErrorMessage( $message);
 		$retval = false;
 	}
 	
@@ -2246,34 +2391,35 @@ function addOperator( &$clean) {
 	
 	$dbConnect = dbconnect();
 	
-	$sql = sprintf("INSERT INTO operators (loginname,fullname,saltypwd,addedby,isAdmin,isSnr)
-			VALUES ('%s', '%s', SHA1('%s'), %d, %d, %d)", 
-			mysql_real_escape_string( $clean['loginname'], $dbConnect),
-			mysql_real_escape_string( $clean['fullname'], $dbConnect), 
-			mysql_real_escape_string( $clean['password'] . getTheSalt(), $dbConnect),
-			mysql_real_escape_string( $clean['operatorid'], $dbConnect),
-			mysql_real_escape_string( $clean['isAdmin'], $dbConnect),
-			mysql_real_escape_string( $clean['isSnr'], $dbConnect));
+	$sql = sprintf("INSERT INTO operators (loginname,fullname,saltypwd,addedby,modifiedby,isadmin,issnr)
+			VALUES ('%s', '%s', MD5('%s'), %d, %d, '%s', '%s')", 
+			pg_escape_string( $clean['loginname']),
+			pg_escape_string( $clean['fullname']), 
+			pg_escape_string( $clean['password'] . getTheSalt()),
+			pg_escape_string( $clean['operatorid']),
+			pg_escape_string( $clean['operatorid']),
+			pg_escape_string( $clean['isadmin']),
+			pg_escape_string( $clean['issnr']));
 			
-	$result = mysql_query( $sql,$dbConnect);
+	$result = pg_query( $dbConnect, $sql);
 	if ( !$result) {
-		if( mysql_errno() == 1062) {
+/*		if( pg_errno() == 1062) {
 			print "<font size=\"3\" color=\"#FF0000\"><b>Duplicate entry!</b></font>
 					<p>Operator with the same name already exists on the system.<br>
 					Please use a different login name<p>";
 			$retval = false;
 		}
-		else {
-			$message  = 'Invalid query: ' . mysql_error() . '<br>' . 'Query: ' . $sql;
-			print $message;
+		else {*/
+			$message  = 'Invalid query: ' . pg_result_error( $result) . '<br>' . 'Query: ' . $sql;
+			printErrorMessage( $message);
 			$retval = false;
-		}
+//		}
 	}
 
 	// this bit really has to be a part of transaction
 	if($retval) {
 		// strip current Senior Operator off her duty
-		if( $clean['isSnr'] == 1) {
+		if( $clean['issnr'] == 't') {
 			clearSnrOperator( $snrID);
 		}
 	}
@@ -2291,23 +2437,23 @@ function updateOperator( &$clean) {
 	
 	$dbConnect = dbconnect();
 	
-	$sql = 'UPDATE operators SET loginname="' . $clean['loginname'] . '",
-			fullname="' . $clean['fullname'] . '",';
+	$sql = "UPDATE operators SET loginname='" . $clean['loginname'] . "',
+			fullname='" . $clean['fullname'] . "',";
 	
 	if( strlen($clean['password']) > 0) {
-		$sql .= 'saltypwd=SHA1("' . $clean['password'] . getTheSalt() . '"),';
+		$sql .= "saltypwd=MD5('" . $clean['password'] . getTheSalt() . "'),";
 	}
 	
-	$sql .= 'isAdmin="' . $clean['isAdmin'] . '",' .
-			'isSnr="' . $clean['isSnr'] . '",
+	$sql .= "isadmin='" . $clean['isadmin'] . "'," .
+			"issnr='" . $clean['issnr'] . "',
 			modified=NOW(),
-			modifiedby="' . $clean['operatorid'] . '" 
-			WHERE operatorid="' . $clean['operatorid_edit'] . '"';
+			modifiedby=" . $clean['operatorid'] . " 
+			WHERE operatorid=" . $clean['operatorid_edit'];
 
-	$result = mysql_query( $sql,$dbConnect);
+	$result = pg_query( $dbConnect, $sql);
 	if ( !$result) {
-		$message  = 'Invalid query: ' . mysql_error() . '<br>' . 'Query: ' . $sql;
-		print $message;
+		$message  = 'Invalid query: ' . pg_result_error( $result) . '<br>' . 'Query: ' . $sql;
+		printErrorMessage( $message);
 		$retval = false;
 	}
 
@@ -2315,11 +2461,9 @@ function updateOperator( &$clean) {
 	
 	// check if there is no more Senior Operator on the system
 	// and make Administrator the Senior by default
-	if( $clean['isSnr'] == 0) {
-		if( $snrID == $clean['operatorid_edit']) {
-			// set admin (operatorid=1) as Senior
-			setSnrOperator(1);
-		}
+	if( $clean['issnr'] == 'f' and $snrID == $clean['operatorid_edit']) {
+		// set admin (operatorid=1) as Senior
+		setSnrOperator(1);
 	}
 	else {
 		// we need to clear current Senior
@@ -2340,40 +2484,40 @@ function addClient(&$clean) {
 			contact1name,contact1relationship,contact1address,contact1phone,
 			contact2name,contact2relationship, contact2address,contact2phone,
 			gpname,referrer,alerts,timeslot,addedby,modifiedby)
-			VALUES ('%s', '%s', '%s', '%s', '%s', '%s', %d, '%s', '%s', '%s', '%s', %d, '%s',
+			VALUES ('%s', '%s', '%s', '%s', '%s', '%s', %d, '%s', '%s', '%s', '%s', '%s', '%s',
 			'%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s','%s', '%s', '%s', %d, %d)",  
-			mysql_real_escape_string( $clean['firstname'], $dbConnect),
-			mysql_real_escape_string( $clean['lastname'], $dbConnect),
-			mysql_real_escape_string( $clean['title'], $dbConnect),
-			mysql_real_escape_string( $clean['gender'], $dbConnect),
-			mysql_real_escape_string( $clean['address'], $dbConnect),
-			mysql_real_escape_string( $clean['area'], $dbConnect),
-			mysql_real_escape_string( $clean['districtid'], $dbConnect), 
-			mysql_real_escape_string( $clean['phone1'], $dbConnect),
-			mysql_real_escape_string( $clean['phone2'], $dbConnect),
-			mysql_real_escape_string( $clean['housetype'], $dbConnect),
-			mysql_real_escape_string( $clean['dob'], $dbConnect),
-			mysql_real_escape_string( $clean['alone'], $dbConnect),
-			mysql_real_escape_string( $clean['medical_notes'], $dbConnect),
-			mysql_real_escape_string( $clean['contact1name'], $dbConnect),
-			mysql_real_escape_string( $clean['contact1relationship'], $dbConnect),
-			mysql_real_escape_string( $clean['contact1address'], $dbConnect),
-			mysql_real_escape_string( $clean['contact1phone'], $dbConnect),
-			mysql_real_escape_string( $clean['contact2name'], $dbConnect),
-			mysql_real_escape_string( $clean['contact2relationship'], $dbConnect),
-			mysql_real_escape_string( $clean['contact2address'], $dbConnect), 
-			mysql_real_escape_string( $clean['contact2phone'], $dbConnect),
-			mysql_real_escape_string( $clean['gpname'], $dbConnect),
-			mysql_real_escape_string( $clean['referrer'], $dbConnect),
-			mysql_real_escape_string( $clean['alerts'], $dbConnect),
-			mysql_real_escape_string( $clean['timeslot'], $dbConnect),
-			mysql_real_escape_string( $_SESSION['operatorid'], $dbConnect),
-			mysql_real_escape_string( $_SESSION['operatorid'], $dbConnect));
+			pg_escape_string( $clean['firstname']),
+			pg_escape_string( $clean['lastname']),
+			pg_escape_string( $clean['title']),
+			pg_escape_string( $clean['gender']),
+			pg_escape_string( $clean['address']),
+			pg_escape_string( $clean['area']),
+			pg_escape_string( $clean['districtid']), 
+			pg_escape_string( $clean['phone1']),
+			pg_escape_string( $clean['phone2']),
+			pg_escape_string( $clean['housetype']),
+			pg_escape_string( $clean['dob']),
+			pg_escape_string( $clean['alone']),
+			pg_escape_string( $clean['medical_notes']),
+			pg_escape_string( $clean['contact1name']),
+			pg_escape_string( $clean['contact1relationship']),
+			pg_escape_string( $clean['contact1address']),
+			pg_escape_string( $clean['contact1phone']),
+			pg_escape_string( $clean['contact2name']),
+			pg_escape_string( $clean['contact2relationship']),
+			pg_escape_string( $clean['contact2address']), 
+			pg_escape_string( $clean['contact2phone']),
+			pg_escape_string( $clean['gpname']),
+			pg_escape_string( $clean['referrer']),
+			pg_escape_string( $clean['alerts']),
+			pg_escape_string( $clean['timeslot']),
+			pg_escape_string( $_SESSION['operatorid']),
+			pg_escape_string( $_SESSION['operatorid']));
 
 	// run SQL against the DB
-	$result = mysql_query($sql, $dbConnect);
+	$result = pg_query( $dbConnect, $sql);
 	if (!$result) {
-		if( mysql_errno() == 1062) {
+/*		if( pg_errno() == 1062) {
 			print "<font size=\"3\" color=\"#FF0000\"><b>Duplicate entry!</b></font>
 					<p>Client with the same name and date of birth already exists on the system.<br>
 					Please use Edit Client screen to change details of existing client or check that you entered
@@ -2381,11 +2525,11 @@ function addClient(&$clean) {
 			
 			print  '<a href="' . $_SERVER['PHP_SELF'] . '">Add another client</a><p>';
 		}
-		else {
-			$message  = 'Invalid query: ' . mysql_error() . '<br>' . 'Query: ' . $sql;
-			print $message;
+		else {*/
+			$message  = 'Invalid query: ' . pg_result_error( $result) . '<br>' . 'Query: ' . $sql;
+			printErrorMessage( $message);
 			$retval = false;
-		}
+//		}
 	}
 	
 	dbclose( $dbConnect);
@@ -2402,45 +2546,45 @@ function updateClient( &$clean) {
 	    $sql  = sprintf("UPDATE clients SET firstname='%s',
 		    lastname='%s',title='%s',gender ='%s',address='%s',area='%s',
 			phone1='%s',phone2='%s',dob='%s',gpname='%s',housetype='%s',
-			referrer='%s',alone=%d,medical_notes='%s',alerts='%s',
+			referrer='%s',alone='%s',medical_notes='%s',alerts='%s',
 			contact1name='%s',contact1relationship='%s',
 		    contact1address='%s',contact1phone='%s',
 			contact2name='%s',contact2relationship='%s',
 		    contact2address='%s',contact2phone='%s', 
 		    timeslot='%s',changenote='%s',districtid=%d,modifiedby=%d WHERE clientid=%d",
-			mysql_real_escape_string( $clean['firstname'], $dbConnect),
-			mysql_real_escape_string( $clean['lastname'], $dbConnect),
-			mysql_real_escape_string( $clean['title'], $dbConnect),
-			mysql_real_escape_string( $clean['gender'], $dbConnect),
-			mysql_real_escape_string( $clean['address'], $dbConnect),
-			mysql_real_escape_string( $clean['area'], $dbConnect),
-			mysql_real_escape_string( $clean['phone1'], $dbConnect),
-			mysql_real_escape_string( $clean['phone2'], $dbConnect),
-			mysql_real_escape_string( $clean['dob'], $dbConnect),
-			mysql_real_escape_string( $clean['gpname'], $dbConnect),
-			mysql_real_escape_string( $clean['housetype'], $dbConnect),
-			mysql_real_escape_string( $clean['referrer'], $dbConnect),
-			mysql_real_escape_string( $clean['alone'], $dbConnect),
-			mysql_real_escape_string( $clean['medical_notes'], $dbConnect),
-			mysql_real_escape_string( $clean['alerts'], $dbConnect),
-			mysql_real_escape_string( $clean['contact1name'], $dbConnect),
-			mysql_real_escape_string( $clean['contact1relationship'], $dbConnect),
-			mysql_real_escape_string( $clean['contact1address'], $dbConnect),
-			mysql_real_escape_string( $clean['contact1phone'], $dbConnect),
-			mysql_real_escape_string( $clean['contact2name'], $dbConnect),
-			mysql_real_escape_string( $clean['contact2relationship'], $dbConnect),
-			mysql_real_escape_string( $clean['contact2address'], $dbConnect),
-			mysql_real_escape_string( $clean['contact2phone'], $dbConnect),
-			mysql_real_escape_string( $clean['timeslot'], $dbConnect),
-			mysql_real_escape_string( $clean['changenote'], $dbConnect),
-			mysql_real_escape_string( $clean['districtid'], $dbConnect),
-			mysql_real_escape_string( $clean['operatorid'], $dbConnect),
-			mysql_real_escape_string( $clean['clientid'], $dbConnect));
+			pg_escape_string( $clean['firstname']),
+			pg_escape_string( $clean['lastname']),
+			pg_escape_string( $clean['title']),
+			pg_escape_string( $clean['gender']),
+			pg_escape_string( $clean['address']),
+			pg_escape_string( $clean['area']),
+			pg_escape_string( $clean['phone1']),
+			pg_escape_string( $clean['phone2']),
+			pg_escape_string( $clean['dob']),
+			pg_escape_string( $clean['gpname']),
+			pg_escape_string( $clean['housetype']),
+			pg_escape_string( $clean['referrer']),
+			pg_escape_string( $clean['alone']),
+			pg_escape_string( $clean['medical_notes']),
+			pg_escape_string( $clean['alerts']),
+			pg_escape_string( $clean['contact1name']),
+			pg_escape_string( $clean['contact1relationship']),
+			pg_escape_string( $clean['contact1address']),
+			pg_escape_string( $clean['contact1phone']),
+			pg_escape_string( $clean['contact2name']),
+			pg_escape_string( $clean['contact2relationship']),
+			pg_escape_string( $clean['contact2address']),
+			pg_escape_string( $clean['contact2phone']),
+			pg_escape_string( $clean['timeslot']),
+			pg_escape_string( $clean['changenote']),
+			pg_escape_string( $clean['districtid']),
+			pg_escape_string( $clean['operatorid']),
+			pg_escape_string( $clean['clientid']));
 
-		$result = mysql_query($sql, $dbConnect);
+		$result = pg_query( $dbConnect, $sql);
 		if ( !$result) {
-			$message  = 'Invalid query: ' . mysql_error() . '<br>' . 'Query: ' . $sql;
-			print $message;
+			$message  = 'Invalid query: ' . pg_result_error( $result) . '<br>' . 'Query: ' . $sql;
+			printErrorMessage( $message);
 			$retval = false;
 		}
 	}
@@ -2455,13 +2599,12 @@ function setFirstCallDone( $clientid) {
 	
 	$dbConnect = dbconnect();
 	
-	$sql = 'UPDATE client_timeslot_call SET timeslot_done="1" WHERE clientid="' . $clientid . '"';
+	$sql = "UPDATE client_timeslot_call SET timeslot_done='t' WHERE clientid=" . $clientid;
 	
-	$result = mysql_query($sql, $dbConnect);
+	$result = pg_query( $dbConnect, $sql);
 	if (!$result) {
-		$message  = "Invalid query: " . mysql_error() . "\n";
-		$message .= "Whole query: " . $sql . "\n";
-		print $message;
+		$message  = 'Invalid query: ' . pg_result_error( $result) . '<br>' . 'Query: ' . $sql;
+		printErrorMessage( $message);
 		$retval = false;
 	}
 
@@ -2476,29 +2619,31 @@ function recordTheCall( &$clean) {
 	$dbConnect = dbconnect();
 
 	$sql  = sprintf("INSERT INTO calls (clientid, time, nextcalltime, chat, class, call_finished, operatorid) 
-  		    VALUES ( %d, NOW(), TIMESTAMP( CURDATE() , '%s'),  '%s', %d, %d, %d)",
-			mysql_real_escape_string( $clean['clientid'], $dbConnect), 
-			mysql_real_escape_string( $clean['nextcalltime'], $dbConnect),
-			mysql_real_escape_string( $clean['chat'], $dbConnect), 
-			mysql_real_escape_string( $clean['mclass'], $dbConnect),
-			mysql_real_escape_string( $clean['call_finished'], $dbConnect), 
-			mysql_real_escape_string( $_SESSION['operatorid'], $dbConnect));
+  		    VALUES ( %d, NOW(), CURRENT_DATE + TIME '%s',  '%s', %d, '%s', %d)",
+			pg_escape_string( $clean['clientid']), 
+			pg_escape_string( $clean['nextcalltime']),
+			pg_escape_string( $clean['chat']), 
+			pg_escape_string( $clean['mclass']),
+			pg_escape_string( $clean['call_finished']), 
+			pg_escape_string( $_SESSION['operatorid']));
 	
-	$result = mysql_query($sql, $dbConnect);
+	$result = pg_query( $dbConnect, $sql);
 	if (!$result) {
-		$message  = 'Invalid query: ' . mysql_error() . '<br>' . 'Query: ' . $sql;
+		$message  = 'Invalid query: ' . pg_result_error( $result) . '<br>' . 'Query: ' . $sql;
+		printErrorMessage( $message);
 		$retval = false;
 	}
-	else if( $clean['call_finished'] == 1) { 
+	else if( $clean['call_finished'] == 't') { 
 		// now we can set all unfinished calls to finished state, so the
 		// calculation of the next call time for the client can be correct
 		// NOTE: this is quick and dirty workaround for the moment!!!
-		$sql  = "UPDATE calls SET call_finished='1' 
-				WHERE clientid='" . $clean['clientid'] . "'";
+		$sql  = "UPDATE calls SET call_finished='t' 
+				WHERE clientid=" . $clean['clientid'];
 		
-		$result = mysql_query($sql, $dbConnect);
+		$result = pg_query( $dbConnect, $sql);
 		if (!$result) {
-			$message  = 'Invalid query: ' . mysql_error() . '<br>' . 'Query: ' . $sql;
+			$message  = 'Invalid query: ' . pg_result_error( $result) . '<br>' . 'Query: ' . $sql;
+			printErrorMessage( $message);
 			$retval = false;
 		}
 	}  
@@ -2519,15 +2664,15 @@ function getClientData( &$clean) {
 					contact1name,contact1relationship,contact1address,contact1phone,
 					contact2name,contact2relationship,contact2address,contact2phone,
 					gpname,referrer,alerts,
-					TIME_FORMAT(timeslot,'%H:%i') as timeslot FROM clients WHERE (clients.clientid={$clean['clientid']})";
+					TO_CHAR(timeslot, 'HH24:MI') as timeslot FROM clients WHERE (clients.clientid={$clean['clientid']})";
 	
-	$result = mysql_query($sql, $dbConnect);
+	$result = pg_query( $dbConnect, $sql);
 	if (!$result) {
-		$message  = "Invalid query: " . mysql_error() . "\n";
+		$message  = "Invalid query: " . pg_result_error( $result) . "\n";
 		$message .= "Whole query: " . $sql . "\n";
 		$retval = false;
 	}
-	$myrow = mysql_fetch_array($result);
+	$myrow = pg_fetch_array($result);
 
 /*
  * Cleaning input from the database
@@ -2569,24 +2714,24 @@ function getClientToDistrictArray( &$aClientToDistrict, $districtid, $unassigned
 
 	$sql = "SELECT clients.clientid,districts.district_name FROM clients, districts 
 				WHERE clients.districtid=districts.districtid 
-				AND clients.active='1'";
+				AND clients.active='t'";
 	
 	if( $unassigned_only == 1) {
 		$sql .= " AND clients.clientid NOT IN (SELECT clientid FROM client2operator)";
 	}
 
 	if( ctype_digit($districtid) && $districtid > 0) {
-		$sql .= ' AND clients.districtid="' . $districtid . '"';  
+		$sql .= " AND clients.districtid=" . $districtid;  
 	}
 	
-	$result = mysql_query($sql, $dbConnect);
+	$result = pg_query( $dbConnect, $sql);
 	if (!$result) {
-		$message  = "Invalid query: " . mysql_error() . "\n";
+		$message  = "Invalid query: " . pg_result_error( $result) . "\n";
 		$message .= "Whole query: " . $sql . "\n";
 		$retval = false;
 	}
 	
-	while( $myrow = mysql_fetch_array($result)) {
+	while( $myrow = pg_fetch_array($result)) {
 		$aClientToDistrict[$myrow['clientid']] = htmlentities($myrow['district_name'], ENT_QUOTES);
 	}
 	
@@ -2653,7 +2798,7 @@ class PDF extends FPDF
 	    $fill=0;
 	
 	
-	    while( $row = mysql_fetch_array($query_result))
+	    while( $row = pg_fetch_array($query_result))
 	    {
 	    	// call id
 	        $this->Cell($w[0],4,$row[0],$this->border,0,'L',$fill);
