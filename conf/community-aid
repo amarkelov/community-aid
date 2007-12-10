@@ -13,10 +13,10 @@ NameVirtualHost *:443
 	SSLEngine		On
 	SSLCertificateFile	/etc/apache2/ssl/apache.pem
 
-	SetENV   Operator          gmoperator
-	SetENV   Operator_Password gmoperator
-	SetENV   Admin					gmadmin
-	SetENV   Admin_Password		gmadmin
+	SetENV   Operator          caoperator
+	SetENV   Operator_Password caoperator
+	SetENV   Admin				caadmin
+	SetENV   Admin_Password		caadmin
 
 	<Directory "/srv/community-aid/www">
 
