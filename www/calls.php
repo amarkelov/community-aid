@@ -21,12 +21,15 @@ if(isset($_POST['submit'])) {
 	if(isset($_POST['call_finished'])){
 		switch(strtoupper($_POST['call_finished'])) {
 			case "ON":
-				$clean['call_finished'] = 1;
+				$clean['call_finished'] = 't';
 				break;
 			default:
-				$clean['call_finished'] = 0;
+				$clean['call_finished'] = 'f';
 				break;
 		}
+	}
+	else {
+		$clean['call_finished'] = 'f';
 	}
 
 	if(isset($_POST['transfer'])){
@@ -68,7 +71,6 @@ elseif(isset($_GET['clientid']) && !isset($_POST['submit'])) {
 	}
 }
 
-
 $clean['operator'] = $_SESSION['s_username'];
 $clean['operatorid'] = $_SESSION['operatorid'];
 
@@ -76,9 +78,9 @@ $clean['operatorid'] = $_SESSION['operatorid'];
  * Cleaning the input data (end)
  */
 
-// Page Header...
-// we only need to refresh pages when not working with a client!
-if ( !$clean['clientid']) {
+if( (!isset($clean['submit']) and !isset($clean['clientid'])) or
+	(isset($clean['submit']) and isset($clean['clientid']))) {
+	// we only need to refresh pages when not working with a client!
 	printHeader( "Calls", 12, "printCallsJavaScript");
 }
 else {
@@ -118,18 +120,17 @@ if (isset($clean['submit']) and $clean['clientid']) {
 	$clean['clientid'] = '';
 }
 
+// we only need client's data if we clicked on a client in the list
 if ($clean['clientid'] and !isset($clean['submit'])) {
 	getClientData( &$clean);	
-} // if ($clientid and !$submit)
 
-print '<form onsubmit="return(vtslot(this.nextcalltime, this));" 
-		method="post" action="' . $_SERVER['PHP_SELF'] . ' " >
-		<table width="100%" border="0" cellpadding="5">
-		<tr><td>';
+	$out = '<form onsubmit="return(vtslot(this.nextcalltime, this));" 
+			method="post" action="' . $_SERVER['PHP_SELF'] . ' " >
+			<table width="100%" border="0" cellpadding="5">
+			<tr><td>';
 
-if ( $clean['clientid'])   {
 	// Client name (bold and big) when one selected
-	$out = '<font size="4"><b>' . $clean['firstname'] . ' ' . $clean['lastname'] . '</b></font>
+	$out .= '<font size="4"><b>' . $clean['firstname'] . ' ' . $clean['lastname'] . '</b></font>
 			<p><font size="2"><a href="/calls.php">Back to list of clients</a></font></p>';
 
 	// don't display transfer checkbox if the operator is the Senior
@@ -139,30 +140,15 @@ if ( $clean['clientid'])   {
 				</input>';
 	}
 	
-	print $out;
-}
-else {
-	$out  = '<font face="verdana, arial, helvetica" size="4"><b>Welcome back, ';
-	$out .= $_SESSION['fullname'] . '!</b></font>';
-	$out .= '<p><font face="verdana, arial, helvetica" size="2">Below is the list of your clients for today.
-				<br>On the right from the name(s) is the time of next call for the client.
-				Click on the name to enter details of your next call.</font></p>';
-	print $out; 
-}
-
-print '</td></tr>
-		<tr> 
-		<td rowspan="3" width="25%" valign="top"> 
-		<font face="Verdana, Arial, Helvetica, sans-serif" size="2"><br/>';
-
-if( !$clean['clientid'])   {
-	draw_clients_list($clean['operator'], $clean['clientid']);
-}
-else {   
-    print '</font>
+	$out .= '</td></tr>
+			<tr> 
+			<td rowspan="3" width="25%" valign="top"> 
+			<font face="Verdana, Arial, Helvetica, sans-serif" size="2"><br/>';
+    $out .= '</font>
 		    </td>
 		    <td width="75%" valign="top" align="center" height="120" > 
 		    <b><div align="left">Client details:</div></b>';
+	print $out;
     
 	draw_client_details($clean['clientid']);
 
@@ -230,7 +216,25 @@ else {
 	if($clean['clientid']) {
 		draw_calls( $clean['clientid']);
 	} 
+	
+	print '</font></td></tr></table></form>';
+} // if ($clientid and !$submit)
+else {
+	$out = '<table width="100%" border="0" cellpadding="5">
+			<tr><td>';
+	$out .= '<font face="verdana, arial, helvetica" size="4"><b>Welcome back, ';
+	$out .= $_SESSION['fullname'] . '!</b></font>';
+	$out .= '<p><font face="verdana, arial, helvetica" size="2">Below is the list of your clients for today.
+				<br>On the right from the name(s) is the time of next call for the client.
+				Click on the name to enter details of your next call.</font></p>';
+	$out .= '</td></tr>
+			<tr><td rowspan="3" width="25%" valign="top"> 
+			<font face="Verdana, Arial, Helvetica, sans-serif" size="2"><br/>';
+	print $out; 
+	
+	draw_clients_list($clean['operator'], $clean['clientid']);
+	print '</font></td></tr></table>';
 }
 
-print '</font></td></tr></table></form></font></body></html>';
+print '</font></body></html>';
 ?>
