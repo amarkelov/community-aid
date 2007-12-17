@@ -3,8 +3,6 @@ session_start();
 require 'functions.inc';
 
 $clean = array();
-$mysql = array();
-
 $settings = get_ca_settings();
 
 // Page Header ...
@@ -48,9 +46,12 @@ if ($clean['submit']) {
 	if ($clean['operatorid']) {
 		
 		if( addOperator($clean)) {
-			print '<b>Operator ' . $clean['loginname'] . ' (' . $clean['fullname'] . ') added!</b><p>
-					<a href="' . $_SERVER['PHP_SELF'] . '">Add another operator</a><p>';
+			printMessage( 'Operator ' . $clean['loginname'] . ' (' . $clean['fullname'] . ') added!');
 		}
+		else {
+			printErrorMessage( 'Error occured while adding operator');
+		}
+		printMessage( '<a href="' . $_SERVER['PHP_SELF'] . '">Add another operator</a>');
 	}
 }
 else {	// this part happens if we don't press submit
