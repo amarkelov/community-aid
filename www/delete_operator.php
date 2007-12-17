@@ -3,8 +3,6 @@ session_start();
 require 'functions.inc';
 
 $clean = array();
-$mysql = array();
-
 $settings = get_ca_settings();
 
 // Page Header ...
@@ -52,33 +50,13 @@ if($settings['debug'] == 1){
  
 if ($clean['delete']) {
 	if ( $clean['operatorid']) {
-		if( $clean['operatorid_delete'] != 1) {
-			$loginname = getOperatorLoginName($clean['operatorid_delete']);
-			if( ctype_alnum($loginname)) {
-				$clean['loginname_delete'] = $loginname;
-			}
-			 
-			$dbConnect = dbconnect();
-			
-			$sql = 'DELETE FROM operators WHERE loginname="' . $clean['loginname_delete'] . '"';
-					
-			$result = mysql_query( $sql, $dbConnect);
-			if ( !$result) {
-				$message  = 'Invalid query: ' . mysql_error() . '<br>' . 'Query: ' . $sql;
-				die($message);
-			}
-			else {
-				print '<b>Operator ' . $clean['loginname_delete'] . ' deleted!</b><p>
-						<a href="' . $_SERVER['PHP_SELF'] . '">Delete another operator</a><p>';
-			}
-			
-			dbclose( $dbConnect);
+		if( deleteOperator( $clean)) {
+			printMessage( 'Operator ' . $clean['loginname_delete'] . ' deleted!');
 		}
 		else {
-			print '<b>You cannot delete default System Administrator!</b><p>
-					<a href="' . $_SERVER['PHP_SELF'] . '">Delete another operator</a><p>';
-		
+			printErrorMessage( 'Error occured while deleting operator!');
 		}
+		printMessage( '<a href="' . $_SERVER['PHP_SELF'] . '">Delete another operator</a>');
 	}
 }
 else {	// this part happens if we don't press delete
@@ -90,9 +68,8 @@ else {	// this part happens if we don't press delete
 			print '<form method="post" action="' . $_SERVER['PHP_SELF'] . '">
 					<font face="Verdana, Arial, Helvetica, sans-serif">
 					<div align="left">
-					<table>';
-	
-			print '<tr><td><select name="operatorid_delete">';
+					<table>
+					<tr><td><select name="operatorid_delete">';
 			
 			foreach ( $operators as $oid => $value) {
 				print '<option value="' . $oid . '">'
@@ -101,13 +78,12 @@ else {	// this part happens if we don't press delete
 			
 			}
 	
-			print '</select></td></tr>';
-			print '<tr><td><font face="Verdana, Arial, Helvetica, sans-serif">
+			print '</select></td></tr>
+					<tr><td><font face="Verdana, Arial, Helvetica, sans-serif">
 					<input type="Submit" name="delete" value="Delete Operator">
 					</font>
-					</div></td></tr>';
-			
-			print '</table></form>';
+					</div></td></tr>
+					</table></form>';
 		}
 	}
 }
