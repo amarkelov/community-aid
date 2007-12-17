@@ -2344,13 +2344,18 @@ function updateDistrictName( $districtid, $new_district_name) {
 	return $retval;
 }
 
-function getDistrictList( &$arDistricts)
+function getDistrictList( &$arDistricts, $getNullOne = false)
 {
 	$myrow = '';
 	$dbConnect = dbconnect();
 	
-	$sql = "SELECT districtid,district_name FROM districts";
-
+	if( $getNullOne) {
+		$sql = "SELECT districtid,district_name FROM districts";
+	}
+	else {
+		$sql = "SELECT districtid,district_name FROM districts WHERE districtid > 0";
+	}
+	
 	$result = pg_query( $dbConnect, $sql);
 	if ( !$result) {
 		$message  = 'Invalid query: ' . pg_result_error( $result) . '<br>' . 'Query: ' . $sql;
