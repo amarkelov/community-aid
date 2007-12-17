@@ -1,10 +1,9 @@
-<?php session_start();
+<?php 
+session_start();
 
 require("functions.inc");
 
 $clean = array();
-$mysql = array();
-
 $settings = get_ca_settings();
 
 /*
@@ -136,7 +135,9 @@ if ($clean['clientid'] and !isset($clean['submit'])) {
 	// don't display transfer checkbox if the operator is the Senior
 	if(!checkIsSnr( $clean['operatorid'])) {
 		$out .= '</td><td align="right"><input type="checkbox" name="transfer">
-				<b><font color="#FF0000">Transfer the client to Senior Operator</font></b>
+				<b><font face="Verdana, Arial, Helvetica, sans-serif" size="2" color="#FF0000">
+				Transfer the client to Senior Operator
+				</font></b>
 				</input>';
 	}
 	
@@ -146,14 +147,17 @@ if ($clean['clientid'] and !isset($clean['submit'])) {
 			<font face="Verdana, Arial, Helvetica, sans-serif" size="2"><br/>';
     $out .= '</font>
 		    </td>
-		    <td width="75%" valign="top" align="center" height="120" > 
+		    <td width="75%" valign="top" align="center" height="120" >
+			<font face="Verdana, Arial, Helvetica, sans-serif" size="2"> 
 		    <b><div align="left">Client details:</div></b>';
 	print $out;
     
 	draw_client_details($clean['clientid']);
 
 	print '<br>
-		    <b><div align="left" valign="top">Report:</div></b>
+		    <b><div align="left" valign="top">
+			<font face="Verdana, Arial, Helvetica, sans-serif" size="2">
+			Report:</div></b>
 		    <div align="left">
 			<textarea name="chat" cols="65" rows="4" wrap="physical"></textarea>
 			</div>
@@ -198,6 +202,7 @@ if ($clean['clientid'] and !isset($clean['submit'])) {
 			</td>
 			</tr>
 			</table>
+			</font>
 			<br><br>
 			
 			<div align="center">
