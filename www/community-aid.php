@@ -62,6 +62,11 @@ if($doWeExit == true){
 <tr>
 	<td><a href='report.php'>Report</a></td>
 	<td>Create call reports by Classification, date, client name (no names are displayed in the resulted report!) and district</td>
+</tr>
+<tr>
+	<td><a href='config.php'>System configuration</a></td>
+	<td>Change system configuration parameters (i.e. page titles, database name, etc.). Please, make sure you know what you are doing
+	before you change any parameters on this screen! It's easy to render the system unusable, if parameters set wrong.</td>
 	<?php }?>
 </tr>
 </table>
