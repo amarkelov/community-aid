@@ -3,8 +3,6 @@ session_start();
 require 'functions.inc';
 
 $clean = array();
-$mysql = array();
-
 $settings = get_ca_settings();
 
 // Page Header ...
@@ -62,10 +60,13 @@ if($settings['debug'] == 1){
 if ($clean['submit']) {
 	if ($clean['operatorid_edit']) {
 		if( updateOperator( $clean)){
-			print '<b>Operator ' . $clean['loginname'] . ' (' . $clean['fullname'] . ') changed!</b><p>';
+			printMessage('Operator ' . $clean['loginname'] . ' (' . $clean['fullname'] . ') updated!');
+		}
+		else {
+			printErrorMessage('Error occured while updating operator!');
 		}
 
-		print '<a href="' . $_SERVER['PHP_SELF'] . '">Edit another operator</a><p>';
+		printMessage('<a href="' . $_SERVER['PHP_SELF'] . '">Edit another operator</a>');
 	}
 }
 else  if( $clean['edit']){
