@@ -3,8 +3,6 @@ session_start();
 require 'functions.inc';
 
 $clean = array();
-$mysql = array();
-
 $settings = get_ca_settings();
 
 // Page Header ...
@@ -30,6 +28,7 @@ Please, choose criteria for the report and press 'Submit' button.
 
 <form method="post" action="report_res.php" >
 
+<font face="Verdana, Arial, Helvetica, sans-serif" size="2">
 <table border="0" cellpadding="5">
 <tr> 
     <td>
@@ -143,7 +142,7 @@ Please, choose criteria for the report and press 'Submit' button.
 <left><input type="submit" name="report" value="Submit"></input></left>
 <input type="hidden" name="debug" value="<?php echo $settings['debug'] ?>">
 
-</form>
 </font>
+</form>
 </body>
 </html>
