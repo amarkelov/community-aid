@@ -14,13 +14,13 @@ CREATE TABLE call_mclass (
 -- INSERT default data for table call_mclass
 --
 
-INSERT INTO call_mclass VALUES (1,'Antisocial behaviour');
-INSERT INTO call_mclass VALUES (2,'Health Service');
-INSERT INTO call_mclass VALUES (3,'Housing');
-INSERT INTO call_mclass VALUES (4,'Community Services');
-INSERT INTO call_mclass VALUES (5,'Financial Resources');
-INSERT INTO call_mclass VALUES (6,'Mobility');
-INSERT INTO call_mclass VALUES (7,'Others');
+INSERT INTO call_mclass (mclass_name) VALUES ('Antisocial behaviour');
+INSERT INTO call_mclass (mclass_name) VALUES ('Health Service');
+INSERT INTO call_mclass (mclass_name) VALUES ('Housing');
+INSERT INTO call_mclass (mclass_name) VALUES ('Community Services');
+INSERT INTO call_mclass (mclass_name) VALUES ('Financial Resources');
+INSERT INTO call_mclass (mclass_name) VALUES ('Mobility');
+INSERT INTO call_mclass (mclass_name) VALUES ('Others');
 
 --
 -- Table structure for table call_sclass
@@ -29,7 +29,7 @@ INSERT INTO call_mclass VALUES (7,'Others');
 DROP TABLE  call_sclass CASCADE;
 CREATE TABLE call_sclass (
   mclass_id bigserial,
-  sclass_id bigint NOT NULL,
+  sclass_id bigserial NOT NULL,
   sclass_name varchar(64) NOT NULL default '',
   sclass_sname varchar(16) NOT NULL default '',
   PRIMARY KEY  (mclass_id,sclass_name),
@@ -42,34 +42,34 @@ CREATE TABLE call_sclass (
 -- INSERT default data for table call_sclass
 --
 
-INSERT INTO call_sclass VALUES (1,1,'Bullying/Intimidation','AB:BI');
-INSERT INTO call_sclass VALUES (1,2,'Excess Noise','AB:EN');
-INSERT INTO call_sclass VALUES (1,4,'Others','AB:OR');
-INSERT INTO call_sclass VALUES (1,3,'Physical Abuse','AB:PA');
-INSERT INTO call_sclass VALUES (2,8,'Chiropodist','HS:CT');
-INSERT INTO call_sclass VALUES (2,12,'Condition of Health','HS:CH');
-INSERT INTO call_sclass VALUES (2,10,'Dental Care','HS:DC');
-INSERT INTO call_sclass VALUES (2,5,'Dr/Nurse','HS:DN');
-INSERT INTO call_sclass VALUES (2,6,'Health Centre','HS:HC');
-INSERT INTO call_sclass VALUES (2,7,'Hospital','HS:HL');
-INSERT INTO call_sclass VALUES (2,9,'Optician','HS:ON');
-INSERT INTO call_sclass VALUES (2,11,'Others','HS:OR');
-INSERT INTO call_sclass VALUES (3,13,'General Maintenance','HG:GM');
-INSERT INTO call_sclass VALUES (3,14,'Housing Aid','HG:HA');
-INSERT INTO call_sclass VALUES (3,16,'Others','HG:OR');
-INSERT INTO call_sclass VALUES (3,15,'Water','HG:WR');
-INSERT INTO call_sclass VALUES (4,19,'Carers Association','CS:CA');
-INSERT INTO call_sclass VALUES (4,17,'Home Help','CS:HH');
-INSERT INTO call_sclass VALUES (4,18,'Meals on Wheels','CS:MW');
-INSERT INTO call_sclass VALUES (4,21,'Others','CS:OR');
-INSERT INTO call_sclass VALUES (4,20,'Senior Clubs','CS:SC');
-INSERT INTO call_sclass VALUES (5,23,'Grants','FR:GT');
-INSERT INTO call_sclass VALUES (5,24,'Money Difficulties','FR:MD');
-INSERT INTO call_sclass VALUES (5,25,'Other','FR:OR');
-INSERT INTO call_sclass VALUES (5,22,'Pension','FR:PN');
-INSERT INTO call_sclass VALUES (6,27,'Other','MY:OR');
-INSERT INTO call_sclass VALUES (6,26,'Public Transport','MY:PT');
-INSERT INTO call_sclass VALUES (7,28,'Details','OR:DT');
+INSERT INTO call_sclass (mclass_id,sclass_name,sclass_sname) VALUES (1,'Bullying/Intimidation','AB:BI');
+INSERT INTO call_sclass (mclass_id,sclass_name,sclass_sname) VALUES (1,'Excess Noise','AB:EN');
+INSERT INTO call_sclass (mclass_id,sclass_name,sclass_sname) VALUES (1,'Others','AB:OR');
+INSERT INTO call_sclass (mclass_id,sclass_name,sclass_sname) VALUES (1,'Physical Abuse','AB:PA');
+INSERT INTO call_sclass (mclass_id,sclass_name,sclass_sname) VALUES (2,'Chiropodist','HS:CT');
+INSERT INTO call_sclass (mclass_id,sclass_name,sclass_sname) VALUES (2,'Condition of Health','HS:CH');
+INSERT INTO call_sclass (mclass_id,sclass_name,sclass_sname) VALUES (2,'Dental Care','HS:DC');
+INSERT INTO call_sclass (mclass_id,sclass_name,sclass_sname) VALUES (2,'Dr/Nurse','HS:DN');
+INSERT INTO call_sclass (mclass_id,sclass_name,sclass_sname) VALUES (2,'Health Centre','HS:HC');
+INSERT INTO call_sclass (mclass_id,sclass_name,sclass_sname) VALUES (2,'Hospital','HS:HL');
+INSERT INTO call_sclass (mclass_id,sclass_name,sclass_sname) VALUES (2,'Optician','HS:ON');
+INSERT INTO call_sclass (mclass_id,sclass_name,sclass_sname) VALUES (2,'Others','HS:OR');
+INSERT INTO call_sclass (mclass_id,sclass_name,sclass_sname) VALUES (3,'General Maintenance','HG:GM');
+INSERT INTO call_sclass (mclass_id,sclass_name,sclass_sname) VALUES (3,'Housing Aid','HG:HA');
+INSERT INTO call_sclass (mclass_id,sclass_name,sclass_sname) VALUES (3,'Others','HG:OR');
+INSERT INTO call_sclass (mclass_id,sclass_name,sclass_sname) VALUES (3,'Water','HG:WR');
+INSERT INTO call_sclass (mclass_id,sclass_name,sclass_sname) VALUES (4,'Carers Association','CS:CA');
+INSERT INTO call_sclass (mclass_id,sclass_name,sclass_sname) VALUES (4,'Home Help','CS:HH');
+INSERT INTO call_sclass (mclass_id,sclass_name,sclass_sname) VALUES (4,'Meals on Wheels','CS:MW');
+INSERT INTO call_sclass (mclass_id,sclass_name,sclass_sname) VALUES (4,'Others','CS:OR');
+INSERT INTO call_sclass (mclass_id,sclass_name,sclass_sname) VALUES (4,'Senior Clubs','CS:SC');
+INSERT INTO call_sclass (mclass_id,sclass_name,sclass_sname) VALUES (5,'Grants','FR:GT');
+INSERT INTO call_sclass (mclass_id,sclass_name,sclass_sname) VALUES (5,'Money Difficulties','FR:MD');
+INSERT INTO call_sclass (mclass_id,sclass_name,sclass_sname) VALUES (5,'Other','FR:OR');
+INSERT INTO call_sclass (mclass_id,sclass_name,sclass_sname) VALUES (5,'Pension','FR:PN');
+INSERT INTO call_sclass (mclass_id,sclass_name,sclass_sname) VALUES (6,'Other','MY:OR');
+INSERT INTO call_sclass (mclass_id,sclass_name,sclass_sname) VALUES (6,'Public Transport','MY:PT');
+INSERT INTO call_sclass (mclass_id,sclass_name,sclass_sname) VALUES (7,'Details','OR:DT');
 
 --
 -- Table structure for table operators
@@ -96,7 +96,7 @@ CREATE TABLE operators (
 -- INSERT default data for table operators
 --
 
-INSERT INTO operators VALUES (1,'admin','Administrator',md5('adminsalt'),'t','f',NOW(),1,NOW(),1);
+INSERT INTO operators (loginname,fullname,saltypwd,isadmin,issnr, addedby,modifiedby) VALUES ('admin','Administrator',md5('adminsalt'),'t','t',1,1);
 
 --
 -- Table structure for table districts
