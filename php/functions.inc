@@ -1,5 +1,4 @@
 <?php
-
 define(CONFIG_FILE, "../conf/community-aid.ini");
 
 define(ACTIVE_CLIENTS, 2);
@@ -294,6 +293,123 @@ function get_ca_settings(){
 	}
 	
 	return $settings;
+}
+
+function saveIniFile( $clean, $setDefaults = false) {
+	$retval = true;
+	$inifile = CONFIG_FILE;
+	$newConfig = '';
+
+	// we need to reset everything back to default values
+	if($setDefaults) {
+		$newConfig = "
+org = Friendly Call Service\t\t; header option for organisation name
+location = Blanchardstown\t\t; header option for project location
+start_page=community-aid.php\t\t; identifies system's main page
+
+;****************************
+; Database related parameters
+;****************************
+database = community-aid\t\t\t; name of the database
+pghost = localhost\t\t\t; host name of your database server
+pgport = 5432\t\t\t; port number the database server listens to
+
+;**************************
+; PDF parameters
+;**************************
+pdf_draw_cell_border = 1\t\t; set to 1, if you need cell borders
+\t\t\t\t\t; in the PDF report table
+
+force_pdf_when_more_than = 100\t\t; force PDF output, if report results
+\t\t\t\t\t; in more than n number of records
+;***************************
+; debug parameters
+;***************************
+debug = 0\t\t; debug set to 1 gives debug output at the top of each page.
+debug_pdf = 0\t; debug_pdf set to 1 gives debug output at the bottom of
+\t\t\t; PDF report.
+\t\t\t; when PDF is chosen for report output, make sure that
+\t\t\t; debug = 0. otherwise, you will have error message
+\t\t\t; 'FPDF error: Some data has already been
+\t\t\t; output to browser, can't send PDF file' and won't see
+\t\t\t; the PDF report
+
+;debug_sql_limit = 150\t; if you need a limited output, to save yourself
+\t\t\t; some time, set this to the number of records
+\t\t\t; you want to limit SELECT statement to.\n";	
+	}
+	else {
+		if(isset( $clean['org']) && ctype_print( $clean['org'])) {
+			$newConfig .= "org = " . $clean['org'] . "\n";
+		}
+		if(isset( $clean['location']) && ctype_print( $clean['location'])) {
+			$newConfig .= "location = " . $clean['location'] . "\n";
+		}
+		if(isset( $clean['start_page']) && ctype_print( $clean['start_page'])) {
+			$newConfig .= "start_page = " . $clean['start_page'] . "\n";
+		}
+		if(isset( $clean['database']) && ctype_print( $clean['database'])) {
+			$newConfig .= "database = " . $clean['database'] . "\n";
+		}
+		if(isset( $clean['pghost']) && ctype_print( $clean['pghost'])) {
+			$newConfig .= "pghost = " . $clean['pghost'] . "\n";
+		}
+		if(isset( $clean['pgport']) && ctype_digit( $clean['pgport'])) {
+			$newConfig .= "pgport = " . $clean['pgport'] . "\n";
+		}
+		if(isset( $clean['pdf_draw_cell_border']) && ctype_digit( $clean['pdf_draw_cell_border'])) {
+			if($clean['pdf_draw_cell_border'] > 0) {
+				$newConfig .= "pdf_draw_cell_border = 1\n";
+			}
+			else {
+				$newConfig .= "pdf_draw_cell_border = 0\n";
+			}
+		}
+		if(isset( $clean['force_pdf_when_more_than']) && ctype_digit( $clean['force_pdf_when_more_than'])) {
+			$newConfig .= "force_pdf_when_more_than = " . $clean['force_pdf_when_more_than'] . "\n";
+		}
+		if(isset( $clean['debug']) && ctype_digit( $clean['debug'])) {
+			if($clean['debug'] > 0) {
+				$newConfig .= "debug = 1\n";
+			}
+			else {
+				$newConfig .= "debug = 0\n";
+			}
+		}
+		if(isset( $clean['debug_pdf']) && ctype_digit( $clean['debug_pdf'])) {
+			if( $clean['debug_pdf'] > 0) {
+				$newConfig .= "debug_pdf = 1\n";
+			}
+			else {
+				$newConfig .= "debug_pdf = 0\n";
+			}
+		}
+		if(isset( $clean['debug_sql_limit']) && ctype_digit( $clean['debug_sql_limit'])) {
+			$newConfig .= "debug_sql_limit = " . $clean['debug_sql_limit'] . "\n";
+		}
+	}
+	
+	// Let's make sure the file exists and is writable first.
+	if (is_writable( $inifile)) {
+	    if ( !$fh = fopen( $inifile, 'w')) {
+	         printErrorMessage('Cannot open file ' . $inifile . '!');
+	         $retval = false;
+	    }
+	
+	    // Write $somecontent to our opened file.
+	    if ( fwrite( $fh, $newConfig) === FALSE) {
+	        printErrorMessage('Cannot write to file ' . $inifile . '!');
+	        $retval = false;
+	    }
+
+	    fclose( $fh);
+	
+	} else {
+	    printErrorMessage('File ' . $inifile . ' is not writable!');
+	    $retval = false;
+	}
+	
+	return $retval;
 }
 
 function preLoginDBConnect()
@@ -1148,7 +1264,7 @@ function getOperators( &$operators) {
 	$myrow = '';
 	$dbConnect = dbconnect();
 
-	$sql = "SELECT operatorid,fullname FROM operators ORDER BY fullname";
+	$sql = "SELECT operatorid,fullname FROM operators WHERE deleted='f' ORDER BY fullname";
 	
 	$result = pg_query( $dbConnect, $sql);
 	if ( !$result) {
@@ -2181,6 +2297,53 @@ function printAddEditClientTable( $clean, $edit = 0)
 	}		
 }
 
+function addDistrict( $arNewDistricts) {
+	$retval = true;
+	
+	if( count( $arNewDistricts) > 0) {
+		$dbConnect = dbconnect();
+		
+		$sql = 'BEGIN;';
+		
+		foreach( $arNewDistricts as $district) {
+			$sql .= "INSERT INTO districts (district_name) VALUES ('" . trim( $district) . "');";
+		}
+		
+		$sql .= "COMMIT";
+		
+		$result = pg_query( $dbConnect, $sql);
+		if ( !$result) {
+			$message  = 'Invalid query: ' . pg_result_error( $result) . '<br>' . 'Query: ' . $sql;
+			printErrorMessage($message);
+		}
+		
+		dbclose( $dbConnect);
+	}
+	
+	return $retval;
+}
+
+function updateDistrictName( $districtid, $new_district_name) {
+	$retval = true;
+	
+	if( $districtid > 0 && isset( $new_district_name)) {
+		$dbConnect = dbconnect();
+		
+		$sql = "UPDATE districts SET district_name='" . trim( $new_district_name) 
+				. "' WHERE districtid=" . $districtid;
+		
+		$result = pg_query( $dbConnect, $sql);
+		if ( !$result) {
+			$message  = 'Invalid query: ' . pg_result_error( $result) . '<br>' . 'Query: ' . $sql;
+			printErrorMessage($message);
+		}
+		
+		dbclose( $dbConnect);
+	}
+	
+	return $retval;
+}
+
 function getDistrictList( &$arDistricts)
 {
 	$myrow = '';
@@ -2391,39 +2554,39 @@ function addOperator( &$clean) {
 	
 	$dbConnect = dbconnect();
 	
-	$sql = sprintf("INSERT INTO operators (loginname,fullname,saltypwd,addedby,modifiedby,isadmin,issnr)
-			VALUES ('%s', '%s', MD5('%s'), %d, %d, '%s', '%s')", 
-			pg_escape_string( $clean['loginname']),
-			pg_escape_string( $clean['fullname']), 
-			pg_escape_string( $clean['password'] . getTheSalt()),
-			pg_escape_string( $clean['operatorid']),
-			pg_escape_string( $clean['operatorid']),
-			pg_escape_string( $clean['isadmin']),
-			pg_escape_string( $clean['issnr']));
-			
+	$sql = "SELECT * FROM operators WHERE loginname='" . $clean['loginname'] . "'";
 	$result = pg_query( $dbConnect, $sql);
 	if ( !$result) {
-/*		if( pg_errno() == 1062) {
-			print "<font size=\"3\" color=\"#FF0000\"><b>Duplicate entry!</b></font>
-					<p>Operator with the same name already exists on the system.<br>
-					Please use a different login name<p>";
-			$retval = false;
-		}
-		else {*/
-			$message  = 'Invalid query: ' . pg_result_error( $result) . '<br>' . 'Query: ' . $sql;
-			printErrorMessage( $message);
-			$retval = false;
-//		}
-	}
-
-	// this bit really has to be a part of transaction
-	if($retval) {
-		// strip current Senior Operator off her duty
-		if( $clean['issnr'] == 't') {
-			clearSnrOperator( $snrID);
-		}
+		$message  = pg_last_error( $dbConnect) . '<br>' . 'Query: ' . $sql;
+		printErrorMessage( $message);
+		$retval = false;
 	}
 	
+	$row = pg_fetch_array($result);
+	if(isset($row['loginname'])) {
+		printErrorMessage( 'Operator with name ' . $row['loginname'] . ' already exists on the system. 
+							Please use a different login name');
+		$retval = false;
+	}
+	else {
+		$sql = sprintf("INSERT INTO operators (loginname,fullname,saltypwd,addedby,modifiedby,isadmin,issnr)
+				VALUES ('%s', '%s', MD5('%s'), %d, %d, '%s', '%s')", 
+				pg_escape_string( $clean['loginname']),
+				pg_escape_string( $clean['fullname']), 
+				pg_escape_string( $clean['password'] . getTheSalt()),
+				pg_escape_string( $clean['operatorid']),
+				pg_escape_string( $clean['operatorid']),
+				pg_escape_string( $clean['isadmin']),
+				pg_escape_string( $clean['issnr']));
+				
+		$result = pg_query( $dbConnect, $sql);
+		if ( !$result) {
+			$message  = pg_last_error( $dbConnect) . '<br>' . 'Query: ' . $sql;
+			printErrorMessage( $message);
+			$retval = false;
+		}
+	}
+
 	dbclose( $dbConnect);
 	
 	return $retval;
@@ -2470,6 +2633,37 @@ function updateOperator( &$clean) {
 		if( $snrID > 0 && $snrID != $clean['operatorid_edit']) {
 			clearSnrOperator($snrID);
 		}
+	}
+	
+	return $retval;
+}
+
+function deleteOperator( &$clean) {
+	$retval = true;
+	
+	if( $clean['operatorid_delete'] != 1) {
+		$loginname = getOperatorLoginName($clean['operatorid_delete']);
+		if( ctype_alnum($loginname)) {
+			$clean['loginname_delete'] = $loginname;
+		}
+		 
+		$dbConnect = dbconnect();
+		
+		$sql = "DELETE FROM operators WHERE loginname='" . $clean['loginname_delete'] . "'";
+				
+		$result = pg_query( $dbConnect, $sql);
+		if ( !$result) {
+			$message  = 'Invalid query: ' . pg_result_error( $result) . '<br>' . 'Query: ' . $sql;
+			printErrorMessage($message);
+			$retval = false;
+		}
+		
+		dbclose( $dbConnect);
+	}
+	else {
+		print '<b>You cannot delete default System Administrator!</b><p>
+				<a href="' . $_SERVER['PHP_SELF'] . '">Delete another operator</a><p>';
+		$retval = false;	
 	}
 	
 	return $retval;
@@ -2736,6 +2930,59 @@ function getClientToDistrictArray( &$aClientToDistrict, $districtid, $unassigned
 	}
 	
 	dbclose($dbConnect);
+	
+	return $retval;
+}
+
+function getClassificationDictionary() {
+	$retval = true;
+	$dbConnect = dbconnect();
+
+	$sql  = "SELECT mc.mclass_name,sc.sclass_name,";
+	$sql .= "sc.sclass_sname FROM call_mclass AS mc, ";
+	$sql .= "call_sclass AS sc WHERE mc.mclass_id = sc.mclass_id";
+	
+	$result = pg_query( $dbConnect, $sql);
+	if (!$result) {
+		$message  = 'Invalid query: ' . pg_result_error( $result) . '<br>' . 'Query: ' . $sql;
+		printErrorMessage( $message);
+		$retval = false;
+	}
+		
+	$out  = '<font face="Verdana, Arial, Helvetica, sans-serif" size="2">';
+	$out .= '<table border="0" width="100%" cellspacing="0" cellpadding="0">';
+	$out .= '<tr>';
+	$out .= '<td width="40%"><b>Main Class name</b></font></td>';
+	$out .= '<td width="40%"><b>Sub Class name</b></td>';
+	$out .= '<td><small><b>Short Sub Class name</b></td>';
+	$out .= '</tr>';
+	
+	print($out);
+	
+	$i=0; // need this to change cell bgcolor
+	
+	while ($myrow = pg_fetch_array($result)) {
+	    // select sclass short name
+	    $mclass_name = $myrow[0];
+	    $sclass_name = $myrow[1];
+	    $sclass_sname = $myrow[2];
+	    
+	    $i=$i + 1; // need this to change cell bgcolor
+	
+	    if($i % 2) {
+		print('<tr bgcolor="#FFFFFF">');
+	    }
+	    else {
+		print('<tr bgcolor="#DDDDDD">');
+	    }
+	
+	    $out  = "<td>" . $mclass_name . "</td>";
+	    $out .= "<td>" . $sclass_name . "</td>";
+	    $out .= "<td>" . $sclass_sname . "</td>";
+	    $out .= "</tr>";
+	    
+	    print($out);
+	}
 	
 	return $retval;
 }
