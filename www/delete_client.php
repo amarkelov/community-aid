@@ -3,8 +3,6 @@ session_start();
 require 'functions.inc';
 
 $clean = array();
-$mysql = array();
-
 $settings = get_ca_settings();
 
 // Page Header ...
