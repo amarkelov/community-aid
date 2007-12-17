@@ -83,6 +83,7 @@ CREATE TABLE operators (
   saltypwd text NOT NULL,
   isadmin boolean default 'f',
   issnr boolean default 'f',
+  deleted boolean default 'f',
   added timestamp NOT NULL default CURRENT_TIMESTAMP,
   addedby bigint NOT NULL,
   modified timestamp NOT NULL default CURRENT_TIMESTAMP,
@@ -95,7 +96,7 @@ CREATE TABLE operators (
 -- INSERT default data for table operators
 --
 
-INSERT INTO operators VALUES (1,'admin','Administrator',md5('adminsalt'),'t','f',NOW(),0,NOW(),0);
+INSERT INTO operators VALUES (1,'admin','Administrator',md5('adminsalt'),'t','f',NOW(),1,NOW(),1);
 
 --
 -- Table structure for table districts
@@ -114,24 +115,7 @@ CREATE TABLE districts (
 -- INSERT default data for table districts
 --
 
-INSERT INTO districts VALUES (1,'Blachardstown',NULL);
-INSERT INTO districts VALUES (2,'Cabra',NULL);
-INSERT INTO districts VALUES (3,'Stoneybatter',NULL);
-INSERT INTO districts VALUES (4,'Inner City',NULL);
-INSERT INTO districts VALUES (5,'Marino/Fairview',NULL);
-INSERT INTO districts VALUES (6,'Clontarf',NULL);
-INSERT INTO districts VALUES (7,'Glasnevin',NULL);
-INSERT INTO districts VALUES (8,'Coolock',NULL);
-INSERT INTO districts VALUES (9,'Baldoyle',NULL);
-INSERT INTO districts VALUES (10,'Howth/Sutton',NULL);
-INSERT INTO districts VALUES (11,'Portmarnock',NULL);
-INSERT INTO districts VALUES (12,'Malahide',NULL);
-INSERT INTO districts VALUES (13,'Skerries/Lusk/Rush',NULL);
-INSERT INTO districts VALUES (14,'Donabate/Portrane',NULL);
-INSERT INTO districts VALUES (15,'Swords',NULL);
-INSERT INTO districts VALUES (16,'Santry',NULL);
-INSERT INTO districts VALUES (17,'Ballymun',NULL);
-INSERT INTO districts VALUES (18,'Artaine',NULL);
+INSERT INTO districts VALUES (0,'Not defined or removed',NULL);
 
 --
 -- Table structure for table clients
@@ -173,9 +157,9 @@ CREATE TABLE clients (
   districtid bigint NOT NULL,
   PRIMARY KEY  (clientid),
   UNIQUE (firstname,lastname,address,dob),
-  FOREIGN KEY (addedby) REFERENCES operators (operatorid) ON DELETE CASCADE ON UPDATE CASCADE,
-  FOREIGN KEY (modifiedby) REFERENCES operators (operatorid) ON DELETE CASCADE ON UPDATE CASCADE,
-  FOREIGN KEY (districtid) REFERENCES districts (districtid) ON DELETE CASCADE ON UPDATE CASCADE
+  FOREIGN KEY (addedby) REFERENCES operators (operatorid) ON UPDATE CASCADE,
+  FOREIGN KEY (modifiedby) REFERENCES operators (operatorid) ON UPDATE CASCADE,
+  FOREIGN KEY (districtid) REFERENCES districts (districtid) ON UPDATE CASCADE
 );
 
 --
@@ -194,7 +178,7 @@ CREATE TABLE calls (
   call_finished boolean default 'f',
   PRIMARY KEY  (callid),
   FOREIGN KEY (clientid) REFERENCES clients (clientid) ON DELETE CASCADE ON UPDATE CASCADE,
-  FOREIGN KEY (operatorid) REFERENCES operators (operatorid) ON DELETE CASCADE ON UPDATE CASCADE
+  FOREIGN KEY (operatorid) REFERENCES operators (operatorid) ON UPDATE CASCADE
 );
 
 
@@ -207,7 +191,7 @@ CREATE TABLE client2operator (
   clientid bigint NOT NULL,
   operatorid bigint NOT NULL,
   FOREIGN KEY (clientid) REFERENCES clients (clientid) ON DELETE CASCADE ON UPDATE CASCADE,
-  FOREIGN KEY (operatorid) REFERENCES operators (operatorid) ON DELETE CASCADE ON UPDATE CASCADE
+  FOREIGN KEY (operatorid) REFERENCES operators (operatorid) ON UPDATE CASCADE
 );
 
 --
@@ -243,7 +227,42 @@ BEGIN
 END
 $$ LANGUAGE plpgsql;
 
+CREATE OR REPLACE FUNCTION operator_ondelete_before_trigger() RETURNS TRIGGER AS $$ 
+DECLARE
+	record RECORD;
+BEGIN 
+	SELECT * INTO record FROM operators WHERE issnr='t';
+	IF OLD.operatorid = record.operatorid THEN
+		UPDATE operators SET issnr='f' WHERE operatorid=OLD.operatorid;
+		UPDATE operators SET issnr='t' WHERE operatorid=1;
+	END IF;
+
+	UPDATE client2operator SET operatorid=record.operatorid WHERE operatorid=OLD.operatorid;
+	
+	/* in reality we are not going to delete the operator */
+	/* only set him deleted. RETURN NULL secures that the */
+	/* BEFORE trigger prevents deletion                   */
+	UPDATE operators SET deleted='t' WHERE operatorid=OLD.operatorid;
+	RETURN NULL;
+END
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION operator_insert_trigger() RETURNS TRIGGER AS $$ 
+DECLARE
+	record RECORD;
+BEGIN 
+	SELECT * INTO record FROM operators WHERE issnr='t';
+	IF NEW.issnr = 't' THEN
+		UPDATE operators SET issnr='f' WHERE operatorid=record.operatorid;
+		UPDATE client2operator SET operatorid=NEW.operatorid WHERE operatorid=record.operatorid;
+	END IF;
+	RETURN NULL;
+END
+$$ LANGUAGE plpgsql;
+
 CREATE TRIGGER client_insert AFTER INSERT ON clients FOR EACH ROW EXECUTE PROCEDURE client_timeslot_trigger();
+CREATE TRIGGER operator_delete BEFORE DELETE ON operators FOR EACH ROW EXECUTE PROCEDURE operator_ondelete_before_trigger();
+CREATE TRIGGER operator_insert AFTER INSERT ON operators FOR EACH ROW EXECUTE PROCEDURE operator_insert_trigger();
 
 --
 -- CREATE USERs
