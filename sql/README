@@ -24,6 +24,7 @@ postgres@ca-server$ psql
 postgres=# \i /srv/community-aid/sql/community-aid-db-dump-clean.sql
 
 It should install clean database for your system. Make sure posgres user has 
-access to /srv/community-aid/sql/community-aid-db-dump-clean.sql.
+access to /srv/community-aid/sql/community-aid-db-dump-clean.sql. If you followed
+installation instructions, then it should not be a problem.
 
 The most up to date information can be found at http://community-aid.wiki.sourceforge.net
