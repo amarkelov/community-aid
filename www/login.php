@@ -18,7 +18,7 @@ if (isset($_SESSION['s_username'])) {
 		
 			$dbConnect = preLoginDBConnect();
 			
-			$sql = "SELECT operatorid,loginname,fullname,saltypwd FROM operators" .
+			$sql = "SELECT operatorid,loginname,fullname,saltypwd,deleted FROM operators" .
 				" WHERE loginname='" . $loginname . "'";
 			$result = pg_query( $dbConnect, $sql);
 	
@@ -31,7 +31,7 @@ if (isset($_SESSION['s_username'])) {
 			
 			pg_free_result( $result); 
 
-			if ( $data['saltypwd'] !== salt($_POST['password'])) { 
+			if ( $data['saltypwd'] !== salt($_POST['password']) || $data['deleted'] == 't') { 
 				session_destroy();
 				sleep(3);
 				header("Location: " . $_GET['f']. "?f"); //failed login
