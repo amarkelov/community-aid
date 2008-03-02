@@ -44,6 +44,10 @@ if($doWeExit == true){
 	<td>Marks client 'active'. The client now can be assigned to operator(s) again.</td>
 </tr>
 <tr>
+	<td><a href='add_edit_groups.php'>Add/Edit Groups</a></td>
+	<td>Clients can be grouped together. One client can only belong to one group.</td>
+</tr>
+<tr>
 	<td><a href='operator2clients.php'>Assign Client(s) to Operator</a></td>
 	<td>Before a client can be called she/he must be assigned to an operator</td>
 </tr>
@@ -58,6 +62,11 @@ if($doWeExit == true){
 <tr>
 	<td><a href='delete_operator.php'>Delete Operators</a></td>
 	<td>Delete operator from the system</td>
+</tr>
+<tr>
+	<td><a href='add_edit_districts.php'>Add/Edit Districts</a></td>
+	<td>District name is a mandatory field in every client record. 
+	Make sure you have added all the districts you have in your area.</td>
 </tr>
 <tr>
 	<td><a href='report.php'>Report</a></td>
