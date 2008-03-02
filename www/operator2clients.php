@@ -60,6 +60,12 @@ if(isset($_POST['districtid'])){
 	}
 }
 
+if(isset($_POST['groupid'])){
+	if(ctype_digit($_POST['groupid'])) {
+		$clean['groupid'] = $_POST['groupid'];
+	}
+}
+
 if($settings['debug'] == 1){
 	print "<b>\$clean:</b><br>";
 	print_r( $clean);
@@ -78,7 +84,7 @@ if ($clean['submit']) {
 			$assigned = $_POST['assigned'];
 		}
 		
-		if( addClientToOperator( $assigned, $clean)) {
+		if( addClientToOperator( $assigned, $clean['operatorid_edit'])) {
 			printMessage( 'Clients assigned to operator!');
 		}
 		else {
@@ -167,19 +173,33 @@ else if( $clean['edit']) {
 		}
 	}
 }
+else if( $clean['group']) {
+	if ( $clean['operatorid_edit']) {
+		if ( isset( $clean['groupid'])) {
+			if( addGroupToOperator( $clean['operatorid_edit'], $clean['groupid']) {
+				printMessage( 'Clients assigned to operator!');
+			}
+			else {
+				printErrorMessage( 'Error occured while assigning client to operator');
+			}
+			
+			printMessage('<a href="' . $_SERVER['PHP_SELF'] . '">Assign client(s) to another operator</a>');
+		}
+	}
+}
 else {	// this part happens if we don't press submit
 	if ( $clean['operatorid']) {
 		// pull the list of operators
 		$operators = array();
 		$arDistricts = array();
-		
+
 		if( getOperators( $operators)) {
 			print '<font face="Verdana, Arial, Helvetica, sans-serif" size="2">
 					<form method="post" action="' . $_SERVER['PHP_SELF'] . '">
-					<div align="left">
-					<table>';
-	
-			print '<tr><td width="10%">Operator:</td><td><select name="operatorid_edit">';
+					<div align="left">';
+
+			print 'Choose the Operator you want to assign clients to<br><br>
+				Operator: <select name="operatorid_edit">';
 			
 			foreach ( $operators as $oid => $value) {
 				print '<option value="' . $oid . '">'
@@ -187,9 +207,13 @@ else {	// this part happens if we don't press submit
 					  '</option>';
 			
 			}
-	
-			print '</select></td></tr>';
-			print '<tr><td width="10%">District:</td><td>';
+			print '</select>';
+
+			print '<br><br><hr noshade><br>';
+			
+			print 'You can filter out clients by different criteria and press "Assign Client" button
+					to see the list and choose clients you want to assign to the selected operator<br><br>';
+			print 'District:</td><td>';
 					
 			if( getDistrictList( $arDistricts)) {
 				print '<select name="districtid">';
@@ -199,10 +223,18 @@ else {	// this part happens if we don't press submit
 				}
 				print '</select>';
 			}
-			print '</td></tr></table>';
 			print '<br><input type="checkbox" name="unassigned_only">Show unassigned clients only</input>
-					<br><br><input type="Submit" name="edit" value="Assign clients">
-					</div></form></font>';
+					<br><br><input type="Submit" name="edit" value="Assign clients">';
+
+			print '<hr noshade><br>';
+			print 'Or you can quickly assign clients, who belong to the chosen group, to selected operator 
+				by pressing "Assign the Group to the Operator"<br><br>
+				Group: ';
+
+			getGroupNamesAsDropDownList();
+			
+			print '<br><br><input type="Submit" name="group" value="Assign the Group to the Operator">
+			    	</div></form></font>';
 		}
 	}
 }
