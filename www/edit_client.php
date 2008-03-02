@@ -56,11 +56,12 @@ verifyClientData( $_POST, $clean);
  
 if ($clean['submit']) {
 	if( updateClient( $clean)) {	
-		echo "Record updated/edited!<p>";
+		printMessage("Record updated/edited!");
 	}
-	
-	print  '<a href="' . $_SERVER[PHP_SELF] . '">Choose another client to edit</a><p>';
-	
+	else {
+		printErrorMessage( 'Error occured while updating client!');
+	}
+	printMessage( '<a href="' . $_SERVER['PHP_SELF'] . '">Choose another client to edit</a>');
 } // if ($submit)
 else if( $clean['edit']) {
 	print '<form name="edit_client"
