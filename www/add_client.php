@@ -47,9 +47,12 @@ if($settings['debug'] == 1){
  
 if ($clean['submit']) {
 	if( addClient($clean)) {
-		print "Record Added!<p>";
+		printMessage("Record Added!");
 	}
-	print  '<a href="' . $_SERVER['PHP_SELF'] . '">Add another client</a><p>';
+	else {
+		printErrorMessage( 'Error occured while adding client!');
+	}
+	printMessage( '<a href="' . $_SERVER['PHP_SELF'] . '">Add another client</a>');
 } // if ($submit)
 else {
 	print '<form name="add_client" 
