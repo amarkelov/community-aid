@@ -118,6 +118,24 @@ CREATE TABLE districts (
 INSERT INTO districts VALUES (0,'Not defined or removed',NULL);
 
 --
+-- Table structure for table groups
+--
+
+DROP TABLE  groups CASCADE;
+CREATE TABLE groups
+(
+  groupid bigserial NOT NULL,
+  group_name character varying(128) NOT NULL,
+  PRIMARY KEY (groupid)
+);
+
+--
+-- INSERT default data for table groups
+--
+
+INSERT INTO groups VALUES (0,'N/A');
+
+--
 -- Table structure for table clients
 --
 
@@ -182,20 +200,6 @@ CREATE TABLE calls (
   FOREIGN KEY (clientid) REFERENCES clients (clientid) ON DELETE CASCADE ON UPDATE CASCADE,
   FOREIGN KEY (operatorid) REFERENCES operators (operatorid) ON UPDATE CASCADE
 );
-
---
--- Table structure for table groups
---
-
-DROP TABLE  groups CASCADE;
-CREATE TABLE groups
-(
-  groupid bigserial NOT NULL,
-  group_name character varying(128) NOT NULL,
-  PRIMARY KEY (groupid)
-);
-
-INSERT INTO groups VALUES (0,'N/A');
 
 --
 -- Table structure for table client2operator
