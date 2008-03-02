@@ -1069,6 +1069,12 @@ function verifyClientData( &$arClientData, &$clean) {
 		$clean['phone2'] = filter_phone_number($arClientData['phone2']);
 	}
 	
+	if(isset($arClientData['groupid'])) {
+		if(ctype_digit($arClientData['groupid'])) {
+			$clean['groupid'] = $arClientData['groupid'];
+		}
+	}
+	
 	if(isset($arClientData['dob'])) {
 		$reg = 0;
 		if(ereg( "([0-3]{1}[0-9]{1})/([0-1]{1}[0-9]{1})/([1-2]{1}[0-9]{3})", $arClientData['dob'], $reg)) {
@@ -2025,6 +2031,45 @@ function printAddEditClientTable( $clean, $edit = 0)
 	</tr>
 	</TABLE>
 	
+	<TABLE BORDER=0 WIDTH=100%>
+	<tr>
+		<td ALIGN="right" width="15%" VALIGN="top">
+		</td>
+	
+		<td ALIGN="right"  width="30%" VALIGN="top">
+		<font face="verdana, arial, helvetica" size="-1">
+		<b>Group: </b>
+		</font>';
+
+		if( getGroupNames( $arGroupNames)) {
+			print '<select name="groupid">';
+			
+			foreach( $arGroupNames as $gid => $group_name) {
+				if($clean['groupid'] == $gid) {
+					print '<option value="' . $gid . '" selected>' . $group_name . '</option>';
+				}
+				else {
+					print '<option value="' . $gid . '">' . $group_name . '</option>';
+				}
+			}
+			
+			print '</select>';
+		}
+
+		print '
+		</td>
+	
+		<td ALIGN="right" width="10%" VALIGN="top">
+		</td>
+	
+		<td ALIGN="left" width="30%" VALIGN="top">
+		</td>
+		
+		<td ALIGN="left" width="15%"  VALIGN="top">
+		</td>
+	</tr>
+	</TABLE>
+	
 	<table width="100%" border="0" cellspacing="4" cellpadding="2">
 	<tr>
 		<td bgcolor="#EEEEEE" colspan="2">
@@ -2241,7 +2286,7 @@ function printAddEditClientTable( $clean, $edit = 0)
 		<td ALIGN="right" width="15%" VALIGN="top">
 		</td>
 	
-		<td ALIGN="right"  width="30%" VALIGN="top">
+		<td ALIGN="center"  width="30%" VALIGN="top">
 		<font face="verdana, arial, helvetica" size="-1">
 		<b>Time slot: </b>
 		</font>
@@ -2251,9 +2296,6 @@ function printAddEditClientTable( $clean, $edit = 0)
 		<b>* 24 hour format (HH:MM)</b>
 		</font>
 		</input>
-		</td>
-	
-		<td ALIGN="right" width="10%" VALIGN="top">
 		</td>
 	
 		<td ALIGN="left" width="15%"  VALIGN="top">
@@ -2289,9 +2331,6 @@ function printAddEditClientTable( $clean, $edit = 0)
 		
 			<td ALIGN="right" width="10%" VALIGN="top">
 			</td>
-		
-			<td ALIGN="left" width="15%"  VALIGN="top">
-			</td>
 		</tr>
 		</TABLE>';
 	}		
@@ -2315,6 +2354,7 @@ function addDistrict( $arNewDistricts) {
 		if ( !$result) {
 			$message  = 'Invalid query: ' . pg_result_error( $result) . '<br>' . 'Query: ' . $sql;
 			printErrorMessage($message);
+			$retval = false;
 		}
 		
 		dbclose( $dbConnect);
@@ -2336,6 +2376,7 @@ function updateDistrictName( $districtid, $new_district_name) {
 		if ( !$result) {
 			$message  = 'Invalid query: ' . pg_result_error( $result) . '<br>' . 'Query: ' . $sql;
 			printErrorMessage($message);
+			$retval = false;
 		}
 		
 		dbclose( $dbConnect);
@@ -2397,16 +2438,132 @@ function getDistrictName( $districtid)
 	return $row['district_name'];
 }
 
-function addClientToOperator( &$arAssigned, &$clean) {
+function addGroup( $arNewGroups) {
+	$retval = true;
+	
+	if( count( $arNewGroups) > 0) {
+		$dbConnect = dbconnect();
+		
+		$sql = 'BEGIN;';
+		
+		foreach( $arNewGroups as $group) {
+			$sql .= "INSERT INTO groups (group_name) VALUES ('" . trim( $group) . "');";
+		}
+		
+		$sql .= "COMMIT";
+		
+		$result = pg_query( $dbConnect, $sql);
+		if ( !$result) {
+			$message  = 'Invalid query: ' . pg_result_error( $result) . '<br>' . 'Query: ' . $sql;
+			printErrorMessage($message);
+			$retval = false;
+		}
+		
+		dbclose( $dbConnect);
+	}
+	
+	return $retval;
+}
+
+function updateGroupName( $groupid, $new_group_name) {
+	$retval = true;
+	
+	if( $groupid > 0 && isset( $new_group_name)) {
+		$dbConnect = dbconnect();
+		
+		$sql = "UPDATE groups SET group_name='" . trim( $new_group_name) 
+				. "' WHERE groupid=" . $groupid;
+		
+		$result = pg_query( $dbConnect, $sql);
+		if ( !$result) {
+			$message  = 'Invalid query: ' . pg_result_error( $result) . '<br>' . 'Query: ' . $sql;
+			printErrorMessage($message);
+			$retval = false;
+		}
+		
+		dbclose( $dbConnect);
+	}
+	
+	return $retval;
+}
+
+function getGroupNames( &$arGroupNames)
+{
+	$myrow = '';
+	$dbConnect = dbconnect();
+	
+	$sql = "SELECT groupid,group_name FROM groups ORDER BY groupid";
+	
+	$result = pg_query( $dbConnect, $sql);
+	if ( !$result) {
+		$message  = 'Invalid query: ' . pg_result_error( $result) . '<br>' . 'Query: ' . $sql;
+		printErrorMessage($message);
+	}
+	else {
+		while ( $myrow = pg_fetch_array($result)) {
+			if(isset( $myrow['groupid'])) {
+				if( ctype_digit($myrow['groupid'])) { 
+					$arGroupNames[$myrow['groupid']]= htmlentities($myrow['group_name'], ENT_QUOTES);
+				}
+			} 
+		}
+	}
+	
+	dbclose( $dbConnect);
+	
+	return $result;
+}
+
+function getGroupNamesAsDropDownList()
+{
+	if( getGroupNames( $arGroupNames)) {
+		print '<select name="groupid">';
+		
+		foreach( $arGroupNames as $gid => $group_name) {
+			print '<option value="' . $gid . '">' . $group_name . '</option>';
+		}
+		
+		print '</select>';
+	}
+}
+
+function addClientToOperator( &$arAssigned, $operatorid) {
 	$retval = true;
 	$dbConnect = dbconnect();
 	
 	$sql = "BEGIN;";
-	$sql .= "DELETE FROM client2operator WHERE operatorid=" . $clean['operatorid_edit'] . ";";
+	$sql .= "DELETE FROM client2operator WHERE operatorid=" . $operatorid . ";";
 	
 	foreach($arAssigned as $cid => $value) {
 		$sql .= 'INSERT INTO client2operator VALUES ';
-		$sql .= '('. $cid . ',' . pg_escape_string( $clean['operatorid_edit']) . ');';
+		$sql .= '('. $cid . ',' . pg_escape_string( $operatorid) . ');';
+	}
+	
+	$sql .= "COMMIT";
+
+	$result = pg_query( $dbConnect, $sql);
+	if ( !$result) {
+		$message  = 'Invalid query: ' . pg_result_error( $result) . '<br>' . 'Query: ' . $sql;
+		printErrorMessage( $message);
+		$retval = false;
+	}
+	
+	dbclose( $dbConnect);
+	
+	return $retval;
+}
+
+function addGroupToOperator( $groupid, $operatorid) {
+	$retval = true;
+	$dbConnect = dbconnect();
+	
+	$sql = "BEGIN;";
+	$sql .= "DELETE FROM client2operator WHERE clientid IN 
+			(SELECT clientid FROM clients WHERE groupid=" . pg_escape_string( $groupid) . ");";
+	
+	foreach($arAssigned as $cid => $value) {
+		$sql .= "INSERT INTO client2operator SELECT " . pg_escape_string( $operatorid) .
+				" as operatorid, clientid FROM clients WHERE groupid=" . pg_escape_string( $groupid) . ";";
 	}
 	
 	$sql .= "COMMIT";
@@ -2682,9 +2839,9 @@ function addClient(&$clean) {
 			phone1,phone2,housetype,dob,alone, medical_notes,
 			contact1name,contact1relationship,contact1address,contact1phone,
 			contact2name,contact2relationship, contact2address,contact2phone,
-			gpname,referrer,alerts,timeslot,addedby,modifiedby)
+			gpname,referrer,alerts,timeslot,addedby,modifiedby, groupid)
 			VALUES ('%s', '%s', '%s', '%s', '%s', '%s', %d, '%s', '%s', '%s', '%s', '%s', '%s',
-			'%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s','%s', '%s', '%s', %d, %d)",  
+			'%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s','%s', '%s', '%s', %d, %d, %d)",  
 			pg_escape_string( $clean['firstname']),
 			pg_escape_string( $clean['lastname']),
 			pg_escape_string( $clean['title']),
@@ -2750,7 +2907,7 @@ function updateClient( &$clean) {
 		    contact1address='%s',contact1phone='%s',
 			contact2name='%s',contact2relationship='%s',
 		    contact2address='%s',contact2phone='%s', 
-		    timeslot='%s',changenote='%s',districtid=%d,modifiedby=%d WHERE clientid=%d",
+		    timeslot='%s',changenote='%s',districtid=%d,groupid=%d,modifiedby=%d WHERE clientid=%d",
 			pg_escape_string( $clean['firstname']),
 			pg_escape_string( $clean['lastname']),
 			pg_escape_string( $clean['title']),
@@ -2777,6 +2934,7 @@ function updateClient( &$clean) {
 			pg_escape_string( $clean['timeslot']),
 			pg_escape_string( $clean['changenote']),
 			pg_escape_string( $clean['districtid']),
+			pg_escape_string( $clean['groupid']),
 			pg_escape_string( $clean['operatorid']),
 			pg_escape_string( $clean['clientid']));
 
@@ -2862,7 +3020,7 @@ function getClientData( &$clean) {
 					address,area,districtid,phone1,phone2,housetype,dob,alone,medical_notes,
 					contact1name,contact1relationship,contact1address,contact1phone,
 					contact2name,contact2relationship,contact2address,contact2phone,
-					gpname,referrer,alerts,
+					gpname,referrer,alerts,groupid,
 					TO_CHAR(timeslot, 'HH24:MI') as timeslot FROM clients WHERE (clients.clientid={$clean['clientid']})";
 	
 	$result = pg_query( $dbConnect, $sql);
@@ -2902,7 +3060,8 @@ function getClientData( &$clean) {
 	$clean['referrer']				= htmlentities($myrow['referrer'], ENT_QUOTES);
 	$clean['timeslot']				= htmlentities($myrow['timeslot'], ENT_QUOTES);
 	$clean['alerts']				= htmlentities($myrow['alerts'], ENT_QUOTES);
-
+	$clean['groupid']				= htmlentities($myrow['groupid'], ENT_QUOTES);
+	
 	dbclose($dbConnect);
 }
 
