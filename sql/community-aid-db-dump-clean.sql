@@ -155,11 +155,13 @@ CREATE TABLE clients (
   modifiedby bigint NOT NULL,
   changenote varchar(255) default NULL,
   districtid bigint NOT NULL,
+  groupid bigint default 0,	
   PRIMARY KEY  (clientid),
   UNIQUE (firstname,lastname,address,dob),
   FOREIGN KEY (addedby) REFERENCES operators (operatorid) ON UPDATE CASCADE,
   FOREIGN KEY (modifiedby) REFERENCES operators (operatorid) ON UPDATE CASCADE,
-  FOREIGN KEY (districtid) REFERENCES districts (districtid) ON UPDATE CASCADE
+  FOREIGN KEY (districtid) REFERENCES districts (districtid) ON UPDATE CASCADE,
+  FOREIGN KEY (groupid) REFERENCES groups (groupid) ON UPDATE CASCADE ON DELETE SET DEFAULT
 );
 
 --
@@ -181,6 +183,19 @@ CREATE TABLE calls (
   FOREIGN KEY (operatorid) REFERENCES operators (operatorid) ON UPDATE CASCADE
 );
 
+--
+-- Table structure for table groups
+--
+
+DROP TABLE  groups CASCADE;
+CREATE TABLE groups
+(
+  groupid bigserial NOT NULL,
+  group_name character varying(128) NOT NULL,
+  PRIMARY KEY (groupid)
+);
+
+INSERT INTO groups VALUES (0,'N/A');
 
 --
 -- Table structure for table client2operator
@@ -192,6 +207,18 @@ CREATE TABLE client2operator (
   operatorid bigint NOT NULL,
   FOREIGN KEY (clientid) REFERENCES clients (clientid) ON DELETE CASCADE ON UPDATE CASCADE,
   FOREIGN KEY (operatorid) REFERENCES operators (operatorid) ON UPDATE CASCADE
+);
+
+--
+-- Table structure for table client2group
+--
+
+DROP TABLE  client2group CASCADE;
+CREATE TABLE client2group (
+  clientid bigint NOT NULL,
+  groupid bigint NOT NULL,
+  FOREIGN KEY (clientid) REFERENCES clients (clientid) ON DELETE CASCADE ON UPDATE CASCADE,
+  FOREIGN KEY (groupid) REFERENCES groups (groupid) ON UPDATE CASCADE
 );
 
 --
@@ -215,7 +242,6 @@ CREATE INDEX clients_addedby_idx ON clients (addedby);
 CREATE INDEX clients_modifiedby_idx ON clients (modifiedby);
 CREATE INDEX clients_districtid_idx ON clients (districtid);
 
-
 --
 -- CREATE FUNCTIONS AND TRIGGER PROCEDURES
 --
@@ -227,7 +253,7 @@ BEGIN
 END
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE FUNCTION operator_ondelete_before_trigger() RETURNS TRIGGER AS $$ 
+CREATE OR REPLACE FUNCTION operator_delete_before_trigger() RETURNS TRIGGER AS $$ 
 DECLARE
 	record RECORD;
 BEGIN 
@@ -242,8 +268,29 @@ BEGIN
 	/* in reality we are not going to delete the operator */
 	/* only set him deleted. RETURN NULL secures that the */
 	/* BEFORE trigger prevents deletion                   */
-	UPDATE operators SET deleted='t' WHERE operatorid=OLD.operatorid;
+	/* but we NEVER set deleted='t' for admin			  */
+	IF OLD.operatorid != 1 THEN
+		UPDATE operators SET deleted='t' WHERE operatorid=OLD.operatorid;
+	END IF;
+
 	RETURN NULL;
+END
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION operator_update_before_trigger() RETURNS TRIGGER AS $$
+BEGIN
+	/* 
+	 * we do not want admin account to be locked 
+	 * that's why we do not set deleted='t' 
+	 */
+	IF OLD.operatorid = 1 THEN
+		RETURN NULL;
+	END IF;
+
+	/*
+	 * for the rest of the operators it's fine to set deleted='t'
+	 */
+	RETURN NEW;
 END
 $$ LANGUAGE plpgsql;
 
@@ -261,8 +308,9 @@ END
 $$ LANGUAGE plpgsql;
 
 CREATE TRIGGER client_insert AFTER INSERT ON clients FOR EACH ROW EXECUTE PROCEDURE client_timeslot_trigger();
-CREATE TRIGGER operator_delete BEFORE DELETE ON operators FOR EACH ROW EXECUTE PROCEDURE operator_ondelete_before_trigger();
+CREATE TRIGGER operator_delete BEFORE DELETE ON operators FOR EACH ROW EXECUTE PROCEDURE operator_delete_before_trigger();
 CREATE TRIGGER operator_insert AFTER INSERT ON operators FOR EACH ROW EXECUTE PROCEDURE operator_insert_trigger();
+CREATE TRIGGER operator_update BEFORE UPDATE ON operators FOR EACH ROW EXECUTE PROCEDURE operator_update_before_trigger();
 
 --
 -- CREATE USERs
@@ -285,6 +333,7 @@ GRANT ALL ON calls_callid_seq TO caadmin;
 GRANT ALL ON clients_clientid_seq TO caadmin;
 GRANT ALL ON districts_districtid_seq TO caadmin;
 GRANT ALL ON operators_operatorid_seq TO caadmin;
+GRANT ALL ON groups_groupid_seq TO caadmin;
 
 GRANT SELECT, INSERT, UPDATE, DELETE ON call_mclass TO caadmin;
 GRANT SELECT, INSERT, UPDATE, DELETE ON call_sclass TO caadmin;
@@ -294,6 +343,8 @@ GRANT SELECT, INSERT, UPDATE ON client_timeslot_call TO caadmin;
 GRANT SELECT, INSERT, UPDATE ON clients TO caadmin;
 GRANT SELECT, INSERT, UPDATE, DELETE ON districts TO caadmin;
 GRANT SELECT, INSERT, UPDATE, DELETE ON operators TO caadmin;
+GRANT SELECT, INSERT, UPDATE, DELETE ON groups TO caadmin;
+GRANT SELECT, INSERT, UPDATE, DELETE ON client2group TO caadmin;
 
 --
 -- GRANT rights to default operator user
