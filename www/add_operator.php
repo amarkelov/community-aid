@@ -79,7 +79,7 @@ else {	// this part happens if we don't press submit
 			<tr>
 				<td><input name="submit" type="submit" value="Add Operator"></td>
 			</tr>
-			</tr></td></table></form></font></div>';
+			</table></form></font></div>';
 	}
 }
 
