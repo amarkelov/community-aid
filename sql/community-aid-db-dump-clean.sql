@@ -210,7 +210,7 @@ CREATE TABLE client2operator (
 );
 
 --
--- Table structure for table client2group
+-- Table structure for table client2group 
 --
 
 DROP TABLE  client2group CASCADE;
