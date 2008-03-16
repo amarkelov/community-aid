@@ -2868,7 +2868,8 @@ function addClient(&$clean) {
 			pg_escape_string( $clean['alerts']),
 			pg_escape_string( $clean['timeslot']),
 			pg_escape_string( $_SESSION['operatorid']),
-			pg_escape_string( $_SESSION['operatorid']));
+			pg_escape_string( $_SESSION['operatorid']),
+			pg_escape_string( $_SESSION['groupid']));
 
 	// run SQL against the DB
 	$result = pg_query( $dbConnect, $sql);
