@@ -176,7 +176,7 @@ else if( $clean['edit']) {
 else if( $clean['group']) {
 	if ( $clean['operatorid_edit']) {
 		if ( isset( $clean['groupid'])) {
-			if( addGroupToOperator( $clean['operatorid_edit'], $clean['groupid']) {
+			if( addGroupToOperator( $clean['operatorid_edit'], $clean['groupid'])) {
 				printMessage( 'Clients assigned to operator!');
 			}
 			else {
