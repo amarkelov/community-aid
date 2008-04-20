@@ -30,6 +30,10 @@ if(isset($_POST['submit'])) {
 else if(isset($_POST['edit'])) {
 	$clean['edit'] = $_POST['edit'];
 }
+else if(isset($_POST['group'])) {
+	$clean['group'] = $_POST['group'];
+}
+
 if(isset($_POST['operatorid_edit'])){
 	if(ctype_digit($_POST['operatorid_edit'])) {
 		$clean['operatorid_edit'] = $_POST['operatorid_edit'];
@@ -176,7 +180,7 @@ else if( $clean['edit']) {
 else if( $clean['group']) {
 	if ( $clean['operatorid_edit']) {
 		if ( isset( $clean['groupid'])) {
-			if( addGroupToOperator( $clean['operatorid_edit'], $clean['groupid'])) {
+			if( addGroupToOperator( $clean['groupid'], $clean['operatorid_edit'])) {
 				printMessage( 'Clients assigned to operator!');
 			}
 			else {
