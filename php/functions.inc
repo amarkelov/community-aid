@@ -2555,17 +2555,34 @@ function addClientToOperator( &$arAssigned, $operatorid) {
 
 function addGroupToOperator( $groupid, $operatorid) {
 	$retval = true;
+	$arClientid = array();
 	$dbConnect = dbconnect();
+	
+	$sql = "SELECT clientid FROM clients WHERE groupid=" . pg_escape_string( $groupid);
+
+	$result = pg_query( $dbConnect, $sql);
+	if ( !$result) {
+		$message  = 'Invalid query: ' . pg_result_error( $result) . '<br>' . 'Query: ' . $sql;
+		printErrorMessage( $message);
+		$retval = false;
+	}
+	while ( $myrow = pg_fetch_array($result)) {
+		if(isset( $myrow['clientid'])) {
+			if( ctype_digit($myrow['clientid'])) { 
+				$arClientid[] = $myrow['clientid'];
+			}
+		} 
+	}
 	
 	$sql = "BEGIN;";
 	$sql .= "DELETE FROM client2operator WHERE clientid IN 
 			(SELECT clientid FROM clients WHERE groupid=" . pg_escape_string( $groupid) . ");";
 	
-	foreach($arAssigned as $cid => $value) {
-		$sql .= "INSERT INTO client2operator SELECT " . pg_escape_string( $operatorid) .
-				" as operatorid, clientid FROM clients WHERE groupid=" . pg_escape_string( $groupid) . ";";
+	foreach( $arClientid as $cid) {
+		$sql .= "INSERT INTO client2operator ( clientid, operatorid) " . 
+				" VALUES ("	. pg_escape_string( $cid) .  ", " . pg_escape_string( $operatorid) . ");";
 	}
-	
+
 	$sql .= "COMMIT";
 
 	$result = pg_query( $dbConnect, $sql);
