@@ -134,6 +134,7 @@ CREATE TABLE groups
 --
 
 INSERT INTO groups VALUES (0,'N/A');
+INSERT INTO groups VALUES (1,'Floating group');
 
 --
 -- Table structure for table clients
@@ -217,12 +218,12 @@ CREATE TABLE client2operator (
 -- Table structure for table client2group 
 --
 
-DROP TABLE  client2group CASCADE;
+DROP TABLE  group2operator CASCADE;
 CREATE TABLE client2group (
-  clientid bigint NOT NULL,
   groupid bigint NOT NULL,
-  FOREIGN KEY (clientid) REFERENCES clients (clientid) ON DELETE CASCADE ON UPDATE CASCADE,
-  FOREIGN KEY (groupid) REFERENCES groups (groupid) ON UPDATE CASCADE
+  operatorid bigint NOT NULL,
+  FOREIGN KEY (groupid) REFERENCES groups (groupid) ON UPDATE CASCADE,
+  FOREIGN KEY (operatorid) REFERENCES operators (operatorid) ON DELETE CASCADE ON UPDATE CASCADE,
 );
 
 --
@@ -256,8 +257,9 @@ BEGIN
 	RETURN NULL;
 END
 $$ LANGUAGE plpgsql;
+CREATE TRIGGER client_insert AFTER INSERT ON clients FOR EACH ROW EXECUTE PROCEDURE client_timeslot_trigger();
 
-CREATE OR REPLACE FUNCTION operator_delete_before_trigger() RETURNS TRIGGER AS $$ 
+CREATE OR REPLACE FUNCTION operator_delete_after_trigger() RETURNS TRIGGER AS $$ 
 DECLARE
 	record RECORD;
 BEGIN 
@@ -277,11 +279,15 @@ BEGIN
 		UPDATE operators SET deleted='t' WHERE operatorid=OLD.operatorid;
 	END IF;
 
+	/* you don't really want to see 'deleted' operators in the assigned list */
+	DELETE from group2operator WHERE operatorid=OLD.operatorid;
+
 	RETURN NULL;
 END
 $$ LANGUAGE plpgsql;
+CREATE TRIGGER operator_delete AFTER DELETE ON operators FOR EACH ROW EXECUTE PROCEDURE operator_delete_after_trigger();
 
-CREATE OR REPLACE FUNCTION operator_update_before_trigger() RETURNS TRIGGER AS $$
+CREATE OR REPLACE FUNCTION operator_update_after_trigger() RETURNS TRIGGER AS $$
 BEGIN
 	/* 
 	 * we do not want admin account to be locked 
@@ -294,9 +300,14 @@ BEGIN
 	/*
 	 * for the rest of the operators it's fine to set deleted='t'
 	 */
+
+	/* add the reinstated operator to the floating list */
+	INSERT INTO group2operator VALUES ( 1, NEW.operatorid);
+
 	RETURN NEW;
 END
 $$ LANGUAGE plpgsql;
+CREATE TRIGGER operator_update AFTER UPDATE ON operators FOR EACH ROW EXECUTE PROCEDURE operator_update_after_trigger();
 
 CREATE OR REPLACE FUNCTION operator_insert_trigger() RETURNS TRIGGER AS $$ 
 DECLARE
@@ -307,14 +318,14 @@ BEGIN
 		UPDATE operators SET issnr='f' WHERE operatorid=record.operatorid;
 		UPDATE client2operator SET operatorid=NEW.operatorid WHERE operatorid=record.operatorid;
 	END IF;
+	
+	/* insert the newly added operator for access to the Floating group */
+	INSERT INTO group2operator VALUES (1, NEW.operatorid);
+
 	RETURN NULL;
 END
 $$ LANGUAGE plpgsql;
-
-CREATE TRIGGER client_insert AFTER INSERT ON clients FOR EACH ROW EXECUTE PROCEDURE client_timeslot_trigger();
-CREATE TRIGGER operator_delete BEFORE DELETE ON operators FOR EACH ROW EXECUTE PROCEDURE operator_delete_before_trigger();
 CREATE TRIGGER operator_insert AFTER INSERT ON operators FOR EACH ROW EXECUTE PROCEDURE operator_insert_trigger();
-CREATE TRIGGER operator_update BEFORE UPDATE ON operators FOR EACH ROW EXECUTE PROCEDURE operator_update_before_trigger();
 
 --
 -- CREATE USERs
