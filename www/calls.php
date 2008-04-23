@@ -9,7 +9,7 @@ $settings = get_ca_settings();
 /*
  * Cleaning the input data
  */
- 
+
 if(isset($_POST['submit'])) {
 	$clean['submit'] = $_POST['submit'];
 
@@ -68,6 +68,20 @@ elseif(isset($_GET['clientid']) && !isset($_POST['submit'])) {
 	if(ctype_digit($_GET['clientid'])) {
 		$clean['clientid'] = $_GET['clientid'];
 	}
+}
+
+if(isset($_GET['floating'])) {
+	if(ctype_digit($_GET['floating'])) {
+		if($_GET['floating'] == 1) {
+			$clean['floating_list'] = true;
+		}
+		else {
+			$clean['floating_list'] = false;
+		}
+	}
+}
+else {
+	$clean['floating_list'] = false;
 }
 
 $clean['operator'] = $_SESSION['s_username'];
@@ -232,12 +246,28 @@ else {
 	$out .= '<p><font face="verdana, arial, helvetica" size="2">Below is the list of your clients for today.
 				<br>On the right from the name(s) is the time of next call for the client.
 				Click on the name to enter details of your next call.</font></p>';
+	
+	if( !$clean['floating_list']) {
+		$out .= '<p><font size="2">
+				<a href="/calls.php?floating=1">
+				Include clients from the floating list
+				</a>
+				</font></p>';
+	}
+	else {
+		$out .= '<p><font size="2">
+				<a href="/calls.php?floating=0">
+				Exclude clients from the floating list
+				</a>
+				</font></p>';
+	}
+	
 	$out .= '</td></tr>
 			<tr><td rowspan="3" width="25%" valign="top"> 
 			<font face="Verdana, Arial, Helvetica, sans-serif" size="2"><br/>';
 	print $out; 
 	
-	draw_clients_list($clean['operator'], $clean['clientid']);
+	draw_clients_list($clean['operator'], $clean['clientid'], $clean['floating_list']);
 	print '</font></td></tr></table>';
 }
 
