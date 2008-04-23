@@ -133,6 +133,8 @@ CREATE TABLE groups
 -- INSERT default data for table groups
 --
 
+INSERT INTO groups VALUES (0, 'N/A');
+INSERT INTO groups (group_name) VALUES ('Floating list');
 INSERT INTO groups VALUES (0,'N/A');
 INSERT INTO groups VALUES (1,'Floating group');
 
@@ -219,7 +221,7 @@ CREATE TABLE client2operator (
 --
 
 DROP TABLE  group2operator CASCADE;
-CREATE TABLE client2group (
+CREATE TABLE group2operator (
   groupid bigint NOT NULL,
   operatorid bigint NOT NULL,
   FOREIGN KEY (groupid) REFERENCES groups (groupid) ON UPDATE CASCADE,
@@ -250,6 +252,51 @@ CREATE INDEX clients_districtid_idx ON clients (districtid);
 --
 -- CREATE FUNCTIONS AND TRIGGER PROCEDURES
 --
+
+CREATE OR REPLACE FUNCTION add_client(
+	/*1 firstname*/ varchar,
+	/*2 lastname*/ varchar,
+	/*3 title*/ varchar,
+	/*4 gender*/ varchar,
+	/*5 address*/ varchar,
+	/*6 area*/ varchar,
+	/*7 districtid*/ bigint,
+	/*8 phone1*/ varchar,
+	/*9 phone2*/ varchar,
+	/*10 housetype*/ varchar,
+	/*11 dob*/ date,
+	/*12 alone*/ boolean, 
+	/*13 medical_notes*/ varchar,
+	/*14 contact1name*/ varchar,
+	/*15 contact1relationship*/ varchar,
+	/*16 contact1address*/ varchar,
+	/*17 contact1phone*/ varchar,
+	/*18 contact2name*/ varchar,
+	/*19 contact2relationship*/ varchar, 
+	/*20 contact2address*/ varchar,
+	/*21 contact2phone*/ varchar,
+	/*22 gpname*/ varchar,
+	/*23 referrer*/ varchar,
+	/*24 alerts*/ varchar,
+	/*25 timeslot*/ time,
+	/*26 operatorid*/ bigint,
+	/*27 groupid*/ bigint
+) RETURNS void AS $$ 
+DECLARE
+	opid RECORD;
+BEGIN 
+INSERT INTO clients (firstname,lastname,title,gender,address,area,districtid,
+					phone1,phone2,housetype,dob,alone, medical_notes,
+					contact1name,contact1relationship,contact1address,contact1phone,
+					contact2name,contact2relationship, contact2address,contact2phone,
+					gpname,referrer,alerts,timeslot,addedby,modifiedby, groupid)
+VALUES ( $1,  $2,  $3,  $4,  $5,  $6,  $7,
+		 $8,  $9, $10, $11, $12, $13, $14, 
+		$15, $16, $17, $18, $19, $20, $21,
+		$22, $23, $24, $25, $26, $26, $27);
+
+END
+$$ LANGUAGE plpgsql;
 
 CREATE OR REPLACE FUNCTION client_timeslot_trigger() RETURNS TRIGGER AS $$ 
 BEGIN 
