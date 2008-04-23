@@ -742,7 +742,7 @@ function draw_client_details($clientid)
 
 // Draw clients list
 // left part of the screen
-function draw_clients_list($operator, $clientid)
+function draw_clients_list($operator, $clientid, $floating_list=false)
 {
 	$clients = array();		// array to store clientids and the rest
 	$calltime = array();	// array to store timeslots
@@ -762,8 +762,14 @@ function draw_clients_list($operator, $clientid)
     $sql  = "SELECT clientid,firstname,lastname,
 			TO_CHAR(timeslot, 'HH24:MI') AS timeslot
 			FROM clients WHERE clientid IN (SELECT clientid FROM client2operator WHERE 
-			operatorid=(SELECT operatorid FROM operators WHERE loginname='{$operator}'))
-			AND active='1' ORDER BY timeslot, lastname";
+			operatorid=(SELECT operatorid FROM operators WHERE loginname='{$operator}'))";
+
+    // add floating list to the mix
+    if( $floating_list) {
+    	$sql .= " OR groupid=1 ";
+    }
+    
+    $sql .= " AND active='t' ORDER BY timeslot, lastname";
     
     $result = pg_query( $dbConnect, $sql);
     if (!$result) {
@@ -1270,7 +1276,7 @@ function getOperators( &$operators) {
 	$myrow = '';
 	$dbConnect = dbconnect();
 
-	$sql = "SELECT operatorid,fullname FROM operators WHERE deleted='f' ORDER BY fullname";
+	$sql = "SELECT operatorid,fullname FROM operators WHERE deleted='f' ORDER BY operatorid";
 	
 	$result = pg_query( $dbConnect, $sql);
 	if ( !$result) {
@@ -2428,6 +2434,7 @@ function getDistrictName( $districtid)
 	if ( !$result) {
 		$message  = 'Invalid query: ' . pg_result_error( $result) . '<br>' . 'Query: ' . $sql;
 		printErrorMessage( $message);
+		$retval = false;
 	}
 	else {
 		$row = pg_fetch_array($result);
@@ -2487,17 +2494,46 @@ function updateGroupName( $groupid, $new_group_name) {
 	return $retval;
 }
 
-function getGroupNames( &$arGroupNames)
+function getGroupName( $groupid)
+{
+	$row = array();
+	$dbConnect = dbconnect();
+	
+	$sql = "SELECT group_name FROM groups WHERE groupid=" . $groupid;
+
+	$result = pg_query( $dbConnect, $sql);
+	if ( !$result) {
+		$message  = 'Invalid query: ' . pg_result_error( $result) . '<br>' . 'Query: ' . $sql;
+		printErrorMessage( $message);
+		$retval = false;
+	}
+	else {
+		$row = pg_fetch_array($result);
+	}
+	
+	dbclose( $dbConnect);
+	
+	return $row['group_name'];
+}
+
+function getGroupNames( &$arGroupNames, $bNoFloatingList = false)
 {
 	$myrow = '';
 	$dbConnect = dbconnect();
 	
-	$sql = "SELECT groupid,group_name FROM groups ORDER BY groupid";
+	$sql = "SELECT groupid,group_name FROM groups";
+	
+	if( $bNoServiceGroups) {
+		$sql .= " WHERE groupid > 1";
+	}
+	
+	$sql .= " ORDER BY groupid";
 	
 	$result = pg_query( $dbConnect, $sql);
 	if ( !$result) {
 		$message  = 'Invalid query: ' . pg_result_error( $result) . '<br>' . 'Query: ' . $sql;
 		printErrorMessage($message);
+		$retval = false;
 	}
 	else {
 		while ( $myrow = pg_fetch_array($result)) {
@@ -2514,9 +2550,9 @@ function getGroupNames( &$arGroupNames)
 	return $result;
 }
 
-function getGroupNamesAsDropDownList()
+function getGroupNamesAsDropDownList( $bNoFloatingList = false)
 {
-	if( getGroupNames( $arGroupNames)) {
+	if( getGroupNames( $arGroupNames, $bNoFloatingList)) {
 		print '<select name="groupid">';
 		
 		foreach( $arGroupNames as $gid => $group_name) {
@@ -2525,6 +2561,49 @@ function getGroupNamesAsDropDownList()
 		
 		print '</select>';
 	}
+}
+
+function printGroupClients( $groupid) {
+	$retval = true;
+	$dbConnect = dbconnect();
+
+	$sql = "SELECT clientid,firstname,lastname,TO_CHAR(timeslot, 'HH24:MI')
+			 AS timeslot,districts.district_name FROM clients LEFT JOIN districts 
+			 ON clients.districtid=districts.districtid 
+			 WHERE groupid=" . pg_escape_string( $groupid) . " ORDER BY lastname";
+
+	$result = pg_query( $dbConnect, $sql);
+	if ( !$result) {
+		$message  = 'Invalid query: ' . pg_result_error( $result) . '<br>' . 'Query: ' . $sql;
+		printErrorMessage( $message);
+		$retval = false;
+	}
+	else {
+		print '<tr>
+			<td><b>Client ID</b></td>
+			<td><b>Client Name</b></td>
+			<td><b>District</b></td>
+			<td align="center"><b>Client\'s timeslot</b></td>
+			</tr>';		
+		
+		while ( $row = pg_fetch_array($result)) {
+			if(isset( $row['clientid'])) {
+				$out .= '<tr>';
+				$out .= '<td>' . htmlentities($row['clientid'], ENT_QUOTES) . '</td>';
+				$out .= '<td>' . htmlentities($row['lastname'], ENT_QUOTES) . ', '
+							   . htmlentities($row['firstname'], ENT_QUOTES) . '</td>';
+				$out .= '<td>' . htmlentities($row['district_name'], ENT_QUOTES) . '</td>';
+				$out .= '<td align="center">' . htmlentities($row['timeslot'], ENT_QUOTES) . '</td>';
+				$out .= '</tr>';
+			} 
+		}
+		
+		print $out;
+	}
+	
+	dbclose( $dbConnect);
+	
+	return $retval;
 }
 
 function addClientToOperator( &$arAssigned, $operatorid) {
@@ -2852,13 +2931,19 @@ function addClient(&$clean) {
 	$retval = true;
 	$dbConnect = dbconnect();
     
-	$sql = sprintf("INSERT INTO clients (firstname,lastname,title,gender,address,area,districtid,
+/*	$sql = sprintf("INSERT INTO clients (firstname,lastname,title,gender,address,area,districtid,
 			phone1,phone2,housetype,dob,alone, medical_notes,
 			contact1name,contact1relationship,contact1address,contact1phone,
 			contact2name,contact2relationship, contact2address,contact2phone,
 			gpname,referrer,alerts,timeslot,addedby,modifiedby, groupid)
 			VALUES ('%s', '%s', '%s', '%s', '%s', '%s', %d, '%s', '%s', '%s', '%s', '%s', '%s',
-			'%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s','%s', '%s', '%s', %d, %d, %d)",  
+			'%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s','%s', '%s', '%s', %d, %d, %d)",*/
+	$sql = sprintf("SELECT add_client('%s'::varchar, '%s'::varchar, '%s'::varchar,
+			'%s'::varchar, '%s'::varchar, '%s'::varchar, %d::bigint, '%s'::varchar, 
+			'%s'::varchar, '%s'::varchar, '%s'::date, '%s'::boolean, '%s'::varchar,
+			'%s'::varchar, '%s'::varchar, '%s'::varchar, '%s'::varchar, '%s'::varchar,
+			'%s'::varchar, '%s'::varchar, '%s'::varchar, '%s'::varchar,'%s'::varchar,
+			'%s'::varchar, '%s'::time, %d::bigint, %d::bigint)",  
 			pg_escape_string( $clean['firstname']),
 			pg_escape_string( $clean['lastname']),
 			pg_escape_string( $clean['title']),
@@ -2884,9 +2969,9 @@ function addClient(&$clean) {
 			pg_escape_string( $clean['referrer']),
 			pg_escape_string( $clean['alerts']),
 			pg_escape_string( $clean['timeslot']),
-			pg_escape_string( $_SESSION['operatorid']),
-			pg_escape_string( $_SESSION['operatorid']),
-			pg_escape_string( $_SESSION['groupid']));
+			pg_escape_string( $clean['operatorid']),
+/*			pg_escape_string( $clean['operatorid']),*/
+			pg_escape_string( $clean['groupid']));
 
 	// run SQL against the DB
 	$result = pg_query( $dbConnect, $sql);
