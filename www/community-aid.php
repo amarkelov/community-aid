@@ -44,8 +44,12 @@ if($doWeExit == true){
 	<td>Marks client 'active'. The client now can be assigned to operator(s) again.</td>
 </tr>
 <tr>
-	<td><a href='add_edit_groups.php'>Add/Edit Groups</a></td>
+	<td><a href='add_edit_groups.php'>Add/Edit Group names</a></td>
 	<td>Clients can be grouped together. One client can only belong to one group.</td>
+</tr>
+<tr>
+	<td><a href='print_group.php'>Print Group list</a></td>
+	<td>Print out the list of clients in the group.</td>
 </tr>
 <tr>
 	<td><a href='operator2clients.php'>Assign Client(s) to Operator</a></td>
