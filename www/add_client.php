@@ -24,10 +24,8 @@ if($doWeExit == true){
  * Start filtering input
  */
  
-if(isset($_POST['clientid'])) {
-	if(ctype_digit($_POST['clientid'])) { 
-		$clean['clientid'] = $_POST['clientid'];
-	}
+if(isset($_SESSION['operatorid'])) {
+	$clean['operatorid'] = $_SESSION['operatorid'];
 }
 
 if(isset($_POST['submit'])) {
