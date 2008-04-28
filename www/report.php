@@ -1,6 +1,10 @@
 <?php
 session_start();
-require 'functions.inc';
+require_once("login.inc");
+require_once("report.inc");
+require_once("district.inc");
+require_once("classifications.inc");
+require_once("client.inc");
 
 $clean = array();
 $settings = get_ca_settings();
@@ -37,7 +41,7 @@ Please, choose criteria for the report and press 'Submit' button.
 
     <td>
     by Classification: 
-    <?php draw_classification() ?>
+    <?php getCombinedClassificationList() ?>
     </td>
 </tr>
 <tr>
@@ -93,7 +97,7 @@ Please, choose criteria for the report and press 'Submit' button.
     	<td>
 		    Name:
 		    <select name="client" size="1">
-		    <?php draw_clients() ?>
+		    <?php getClientsAsDropDownList() ?>
 		    </select>
 		</td>
 	</tr>

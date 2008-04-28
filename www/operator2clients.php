@@ -1,6 +1,9 @@
 <?php
 session_start();
-require 'functions.inc';
+require_once("login.inc");
+require_once("operator.inc");
+require_once("client.inc");
+require_once("groups.inc");
 
 $clean = array();
 $settings = get_ca_settings();
@@ -137,7 +140,7 @@ else {	// this part happens if we don't press submit
 				Group: ';
 
 			/* all groups except 'N/A' and 'Floating list' */
-			getGroupNamesAsDropDownList( true);
+			getGroupNamesAsDropDownList( "groupid", true);
 			
 			print '<br><br><input type="Submit" name="group" value="Assign the Group to the Operator">
 			    	</div></form></font>';

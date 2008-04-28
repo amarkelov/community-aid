@@ -1,6 +1,6 @@
 <?php
 session_start();
-require 'functions.inc';
+require_once("login.inc");
 
 $settings = get_ca_settings();
 
@@ -46,6 +46,10 @@ if($doWeExit == true){
 <tr>
 	<td><a href='add_edit_groups.php'>Add/Edit Group names</a></td>
 	<td>Clients can be grouped together. One client can only belong to one group.</td>
+</tr>
+<tr>
+	<td><a href='move_clients.php'>Move clients</a></td>
+	<td>Move clients from one group list to another.</td>
 </tr>
 <tr>
 	<td><a href='print_group.php'>Print Group list</a></td>

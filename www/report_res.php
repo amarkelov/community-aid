@@ -1,6 +1,7 @@
 <?php
 session_start();
-require 'functions.inc';
+require_once("login.inc");
+require_once("report.inc");
 
 $clean = array();
 $settings = get_ca_settings();

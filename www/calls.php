@@ -1,7 +1,11 @@
 <?php 
 session_start();
 
-require("functions.inc");
+require_once("login.inc");
+require_once("calls.inc");
+require_once("client.inc");
+require_once("operator.inc");
+require_once("classifications.inc");
 
 $clean = array();
 $settings = get_ca_settings();
@@ -184,7 +188,7 @@ if ($clean['clientid'] and !isset($clean['submit'])) {
 			<td>';
              
 	// classification  
-	draw_classification();
+	getCombinedClassificationList();
 
 	print '</td>
 			</tr>

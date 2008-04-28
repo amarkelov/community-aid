@@ -1,5 +1,6 @@
 <?php
-require 'functions.inc';
+require_once("login.inc");
+require_once("classifications.inc");
 
 // Page Header ...
 printHeader( "Classifications dictionary", 0);
