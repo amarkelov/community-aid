@@ -135,8 +135,6 @@ CREATE TABLE groups
 
 INSERT INTO groups VALUES (0, 'N/A');
 INSERT INTO groups (group_name) VALUES ('Floating list');
-INSERT INTO groups VALUES (0,'N/A');
-INSERT INTO groups VALUES (1,'Floating group');
 
 --
 -- Table structure for table clients
@@ -225,7 +223,7 @@ CREATE TABLE group2operator (
   groupid bigint NOT NULL,
   operatorid bigint NOT NULL,
   FOREIGN KEY (groupid) REFERENCES groups (groupid) ON UPDATE CASCADE,
-  FOREIGN KEY (operatorid) REFERENCES operators (operatorid) ON DELETE CASCADE ON UPDATE CASCADE,
+  FOREIGN KEY (operatorid) REFERENCES operators (operatorid) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 --
