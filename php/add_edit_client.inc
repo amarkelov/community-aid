@@ -2,28 +2,6 @@
 require_once("district.inc");
 require_once("groups.inc");
 
-function verify_timeslot($timeslot)
-{
-	$ts = "00:00";	
-	$vt = explode(":", $timeslot, 2);
-
-	if(ctype_digit($vt[0]) && ctype_digit($vt[1])) {
-		if(($vt[0]>=0 && $vt[0]<=23) && ($vt[1]>=0 && $vt[1]<=59)) {
-			$ts = "$vt[0]:$vt[1]";
-		}
-	}
-	
-	return $ts; 
-}
-
-function filter_phone_number($phone) {
-	$filtered = ereg_replace( " |-", "", $phone);
-	if(!ctype_digit($filtered)) {
-		$filtered = "N/A";	
-	}
-	return $filtered;
-}
-
 function verifyClientData( &$arClientData, &$clean) {
 	$magic = get_magic_quotes_gpc();
 
