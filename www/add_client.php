@@ -11,6 +11,7 @@ printHeader( "Add Client", 0, "printAddEditClientJavaScript");
 
 // if debug flag is set, print the following info
 if ($settings['debug'] > 0) {
+	require_once("functions.inc");
 	print_debug();
 }
 

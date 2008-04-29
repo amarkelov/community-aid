@@ -15,6 +15,7 @@ if (isset($_POST['loginname'])) {
 }
 
 if ($settings['debug'] > 0) {
+	require_once("functions.inc");
 	print_debug( $clean, $settings);
 }
 	

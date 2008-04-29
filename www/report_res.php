@@ -15,14 +15,8 @@ if($doWeExit == true){
 
 // if debug flag is set, print the following info
 if($settings['debug'] == 1){
-	print "<b>\$_POST:</b><br>";
-	print_r( $_POST);
-	print "<p>";
-
-	print "<b>\$settings:</b><br>";
-	print_r( $settings);
-	print "<p>";
-
+	require_once("functions.inc");
+	print_debug();
 }
 
 /*

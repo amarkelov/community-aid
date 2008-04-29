@@ -8,6 +8,7 @@ $settings = get_ca_settings();
 printHeader( "Main menu", 0);
 
 if ($settings['debug'] > 0) {
+	require_once("functions.inc");
 	print_debug( $clean, $settings);
 }
 

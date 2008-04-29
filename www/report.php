@@ -14,6 +14,7 @@ printHeader( "Report", 0);
 
 // if debug flag is set, print the following info
 if ($settings['debug'] > 0) {
+	require_once("functions.inc");
 	print_debug();
 }
 
