@@ -51,7 +51,7 @@ function getSubClassificationList( &$arSubClassifications) {
 
 function getCombinedClassificationList()
 {
-	print '<select name="mclass" size="1">';
+	print '<select name="sclass_id" size="1">';
 	
 	$dbConnect = dbconnect();
 
@@ -66,7 +66,8 @@ function getCombinedClassificationList()
 		printErrorMessage($message);
     }
     while( $class = pg_fetch_array($result)) {
-		printf("<option value=\"%d\">%s -- %s</option>",$class[sclass_id],$class[mclass_name],$class[sclass_name]);
+		printf("<option value=\"%d\">%s -- %s</option>",
+				$class['sclass_id'],$class['mclass_name'],$class['sclass_name']);
     }
     print '</select>';
     
@@ -77,8 +78,8 @@ function getClassificationDictionary() {
 	$retval = true;
 	$dbConnect = dbconnect();
 
-	$sql  = "SELECT mc.mclass_name,sc.sclass_name,";
-	$sql .= "sc.sclass_sname FROM call_mclass AS mc, ";
+	$sql  = "SELECT mc.mclass_name,sc.sclass_name";
+	$sql .= " FROM call_mclass AS mc, ";
 	$sql .= "call_sclass AS sc WHERE mc.mclass_id = sc.mclass_id";
 	
 	$result = pg_query( $dbConnect, $sql);
@@ -93,7 +94,6 @@ function getClassificationDictionary() {
 	$out .= '<tr>';
 	$out .= '<td width="40%"><b>Main Class name</b></font></td>';
 	$out .= '<td width="40%"><b>Sub Class name</b></td>';
-	$out .= '<td><b>Short Sub Class name</b></td>';
 	$out .= '</tr>';
 	
 	print($out);
@@ -104,7 +104,6 @@ function getClassificationDictionary() {
 	    // select sclass short name
 	    $mclass_name = $myrow[0];
 	    $sclass_name = $myrow[1];
-	    $sclass_sname = $myrow[2];
 	    
 	    $i=$i + 1; // need this to change cell bgcolor
 	
@@ -117,7 +116,6 @@ function getClassificationDictionary() {
 	
 	    $out  = "<td>" . $mclass_name . "</td>";
 	    $out .= "<td>" . $sclass_name . "</td>";
-	    $out .= "<td>" . $sclass_sname . "</td>";
 	    $out .= "</tr>";
 	    
 	    print($out);
@@ -146,6 +144,26 @@ function updateMainClassificationName( $mclass_id, $mclass_name) {
     return $retval;
 }
 
+function updateSubClassificationName( $sclass_id, $sclass_name) {
+	$retval = true;
+	
+	$dbConnect = dbconnect();
+
+    $sql  = "UPDATE call_sclass SET sclass_name='" . pg_escape_string($sclass_name) . "'
+			 WHERE sclass_id=" . $sclass_id;
+    
+    $result = pg_query( $dbConnect, $sql);
+    if (!$result) {
+		$message  = 'Invalid query: ' . pg_result_error( $result) . "\n";
+		$message .= 'Whole query: ' . $sql;
+		printErrorMessage($message);
+		$retval=false;
+    }
+    
+    dbclose($dbConnect);
+    return $retval;
+}
+
 function addNewMainClassificationNames( &$arNewMains) {
 	$retval = true;
 	
@@ -157,6 +175,34 @@ function addNewMainClassificationNames( &$arNewMains) {
 		foreach( $arNewMains as $name) {
 		    $sql .= "INSERT INTO call_mclass (mclass_name)
 					 VALUES ('" . pg_escape_string(trim($name)) . "');";
+		}
+		
+		$sql .= "COMMIT";
+		
+	    $result = pg_query( $dbConnect, $sql);
+	    if (!$result) {
+			$message  = 'Invalid query: ' . pg_result_error( $result) . "\n";
+			$message .= 'Whole query: ' . $sql;
+			printErrorMessage($message);
+			$retval=false;
+	    }
+	    
+	    dbclose($dbConnect);
+	}
+    return $retval;
+}
+
+function addNewSubClassificationNames( $mclass_id, &$arNewSubs) {
+	$retval = true;
+	
+	if( count( $arNewSubs) > 0) {
+		$dbConnect = dbconnect();
+	
+		$sql = "BEGIN;";
+	
+		foreach( $arNewSubs as $name) {
+		    $sql .= "INSERT INTO call_sclass (mclass_id,sclass_name)
+					 VALUES (" . $mclass_id . ", '" . pg_escape_string(trim($name)) . "');";
 		}
 		
 		$sql .= "COMMIT";
