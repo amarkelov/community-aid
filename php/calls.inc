@@ -303,8 +303,14 @@ function draw_clients_list($operator, $clientid, $floating_list=false)
 	$sql = "SELECT clientid,TO_CHAR(nextcalltime,'DD/MM/YYYY HH24:MI:SS') as nextcalltime
 			FROM calls WHERE clientid in 
 			(SELECT clientid FROM client2operator WHERE 
-			operatorid=(SELECT operatorid FROM operators WHERE loginname='{$operator}')) 
-			and call_finished='f'";
+			operatorid=(SELECT operatorid FROM operators WHERE loginname='{$operator}'))";
+
+    // add floating list to the mix
+    if( $floating_list) {
+    	$sql .= " OR clientid IN (SELECT clientid FROM clients WHERE groupid=1) ";
+    }
+ 
+	$sql .= " AND call_finished='f' ORDER BY nextcalltime DESC";
 	
     $result = pg_query( $dbConnect, $sql);
     if (!$result) {
@@ -322,7 +328,12 @@ function draw_clients_list($operator, $clientid, $floating_list=false)
 			FROM client_timeslot_call WHERE clientid in 
 			(SELECT clientid FROM client2operator WHERE 
 			operatorid=(SELECT operatorid FROM operators WHERE loginname='{$operator}'))";
-	
+
+    // add floating list to the mix
+    if( $floating_list) {
+    	$sql .= " OR clientid IN (SELECT clientid FROM clients WHERE groupid=1)";
+    }
+
     $result = pg_query( $dbConnect, $sql);
     if (!$result) {
 		$message  = 'Invalid query: ' . pg_result_error( $result) . '\n';
