@@ -6,6 +6,7 @@ require_once("calls.inc");
 require_once("client.inc");
 require_once("operator.inc");
 require_once("classifications.inc");
+require_once("functions.inc");
 
 $clean = array();
 $settings = get_ca_settings();
