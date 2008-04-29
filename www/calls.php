@@ -106,6 +106,7 @@ else {
 }
 
 if ($settings['debug'] > 0) {
+	require_once("functions.inc");
 	print_debug( $clean, $settings);
 }
 
@@ -149,8 +150,14 @@ if ($clean['clientid'] and !isset($clean['submit'])) {
 
 	// Client name (bold and big) when one selected
 	$out .= '<font size="4"><b>' . $clean['firstname'] . ' ' . $clean['lastname'] . '</b></font>
-			<p><font size="2"><a href="/calls.php">Back to list of clients</a></font></p>';
+			<p><font size="2"><a href="' . $_SERVER['PHP_SELF'];
 
+	if( $clean['floating_list']) {
+    	$out .= '?floating=1';
+    }
+    
+    $out .= '">Back to list of clients</a></font></p>';
+	
 	// don't display transfer checkbox if the operator is the Senior
 	if(!checkIsSnr( $clean['operatorid'])) {
 		$out .= '</td><td align="right"><input type="checkbox" name="transfer">
@@ -254,14 +261,14 @@ else {
 	
 	if( !$clean['floating_list']) {
 		$out .= '<p><font size="2">
-				<a href="/calls.php?floating=1">
+				<a href="' . $_SERVER['PHP_SELF'] . '?floating=1">
 				Include clients from the floating list
 				</a>
 				</font></p>';
 	}
 	else {
 		$out .= '<p><font size="2">
-				<a href="/calls.php?floating=0">
+				<a href="' . $_SERVER['PHP_SELF'] . '?floating=0">
 				Exclude clients from the floating list
 				</a>
 				</font></p>';
