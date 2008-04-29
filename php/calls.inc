@@ -24,22 +24,15 @@ function draw_calls( $clientid)
 
     print ("<hr noshade>");
     print('<table border="0" width="100%" cellspacing="0" cellpadding="0">');
+    print '<tr>
+			<td width="20%"><font size="1"><b>Date/Time</td>
+			<td><font size="1"><b>Call details</td>
+			<td width="10%"><font size="1"><b>Operator</td>
+			</tr>';
+    
     $i=0; // need this to change cell bgcolor
 	$firstround = 1;
     while ($myrow = pg_fetch_array($result)) {
-// select sclass short name
-        $class_ = $myrow["class"];
-		$sql  = "SELECT sclass_sname FROM call_sclass WHERE";
-		$sql .= " sclass_id='$class_'";
-		$res = pg_query( $dbConnect, $sql);
-		if (!$res) {
-		    $message  = 'Invalid query: ' . pg_result_error( $result) . "\n";
-		    $message .= 'Whole query: ' . $sql;
-		    printErrorMessage($message);
-		}
-		$class_row = pg_fetch_row($res);
-// select sclass short name (end)
-	
 		$i=$i + 1; // need this to change cell bgcolor
 		$time=$myrow["time"];
 	
@@ -74,16 +67,6 @@ function draw_calls( $clientid)
 	// time column
 		print('<td width="20%"> <font size="1" color="#FF0000">');
 		print $out;
-		print('</font>');
-	// class column
-		print('</td><td width="10%"><font size="1" color="#00FF00">');
-		
-		if(!empty($class_row[0])) { 
-			print("<a href=\"class.php\" onClick=\"window.open('class.php','','status=yes,toolbar=no,location=no,width=400,height=500');return false;\">$class_row[0]</a>");
-		}
-		else {
-		    print("&nbsp");
-		}	
 		print('</font>');
 	// chat column
 		print('</td><td><font size="1" color="#0000FF">');
@@ -438,7 +421,11 @@ function draw_clients_list($operator, $clientid, $floating_list=false)
 	
 	// normals then
 	foreach ( $calltime as $cid => $ts ) {
-		$out  = '<tr><td><a href="' . $PHP_SELF . '?clientid=' . $cid . '">';
+		$out  = '<tr><td><a href="' . $PHP_SELF . '?clientid=' . $cid;
+	    if( $floating_list) {
+	    	$out .= '&floating=1';
+	    }
+		$out .= '">';
 		$out .= '<font size="$fs">';
 		$out .= $clients[$cid] . '</a></font></td>';
 		$out .= '<td>' . $calltime[$cid] . '</td>';
