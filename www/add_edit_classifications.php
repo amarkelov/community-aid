@@ -11,6 +11,7 @@ printHeader( "Add/Edit Classifications", 0);
 
 // if debug flag is set, print the following info
 if ($settings['debug'] > 0) {
+	require_once("functions.inc");
 	print_debug();
 }
 
@@ -51,6 +52,30 @@ if(isset($_POST['edit_mclass_name'])) {
 if(isset($_POST['new_mclass_name'])) {
 	$clean['new_mclass_name'] = $_POST['new_mclass_name'];
 }
+
+if(isset($_POST['change_sub'])) {
+	$clean['change_sub'] = 1;
+}
+if(isset($_POST['add_sub'])) {
+	$clean['add_sub'] = 1;
+}
+if(isset($_POST['sclass_id'])) {
+	if(ctype_digit($_POST['sclass_id'])) {
+		$clean['sclass_id'] = $_POST['sclass_id'];
+	}
+}
+if(isset($_POST['sclass_name'])) {
+	if( ctype_print($_POST['sclass_name'])) {
+		$clean['sclass_name'] = $_POST['sclass_name'];
+	}
+}
+if(isset($_POST['edit_sclass_name'])) {
+	$clean['edit_sclass_name'] = $_POST['edit_sclass_name'];
+}
+if(isset($_POST['new_sclass_name'])) {
+	$clean['new_sclass_name'] = $_POST['new_sclass_name'];
+}
+
 if(isset($_SESSION['operatorid'])){
 	if(ctype_digit($_SESSION['operatorid'])) {
 		$clean['operatorid'] = $_SESSION['operatorid'];
@@ -72,7 +97,7 @@ if ( $clean['change_main']) {
 	else {
 		printErrorMessage( 'Error occured while updating main classification name!');
 	}
-	printMessage('<a href="' . $_SERVER['PHP_SELF'] . '">Edit main classification name</a>');
+	printMessage('<a href="' . $_SERVER['PHP_SELF'] . '">Edit more main classification names</a>');
 }
 else if( $clean['add_main']) {
 	$arNewMains = explode( "\n", $clean['new_mclass_name']);
@@ -83,6 +108,25 @@ else if( $clean['add_main']) {
 		printErrorMessage( 'Error occured while adding new main classification name(s)!');
 	}
 	printMessage('<a href="' . $_SERVER['PHP_SELF'] . '">Add more main classification names</a>');
+}
+else if ( $clean['change_sub']) {
+	if( updateSubClassificationName( $clean['sclass_id'], $clean['edit_sclass_name'])) {
+		printMessage( 'Sub-classification name updated!');
+	}
+	else {
+		printErrorMessage( 'Error occured while updating sub-classification name!');
+	}
+	printMessage('<a href="' . $_SERVER['PHP_SELF'] . '?sub=1">Edit more sub-classification names</a>');
+}
+else if( $clean['add_sub']) {
+	$arNewSubs = explode( "\n", $clean['new_sclass_name']);
+	if( addNewSubClassificationNames( $clean['mclass_id'], $arNewSubs)) {
+		printMessage( 'New sub-classification name(s) added!');
+	}
+	else {
+		printErrorMessage( 'Error occured while adding new sub-classification name(s)!');
+	}
+	printMessage('<a href="' . $_SERVER['PHP_SELF'] . '?sub=1">Add more sub-classification names</a>');
 }
 else {
 	if( isset($clean['sub']) && $clean['sub'] == 1) {
