@@ -31,10 +31,8 @@ CREATE TABLE call_sclass (
   mclass_id bigserial,
   sclass_id bigserial NOT NULL,
   sclass_name varchar(64) NOT NULL default '',
-  sclass_sname varchar(16) NOT NULL default '',
   PRIMARY KEY  (mclass_id,sclass_name),
   UNIQUE (sclass_id,sclass_name),
-  UNIQUE (sclass_sname),
   FOREIGN KEY (mclass_id) REFERENCES call_mclass (mclass_id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
@@ -42,34 +40,34 @@ CREATE TABLE call_sclass (
 -- INSERT default data for table call_sclass
 --
 
-INSERT INTO call_sclass (mclass_id,sclass_name,sclass_sname) VALUES (1,'Bullying/Intimidation','AB:BI');
-INSERT INTO call_sclass (mclass_id,sclass_name,sclass_sname) VALUES (1,'Excess Noise','AB:EN');
-INSERT INTO call_sclass (mclass_id,sclass_name,sclass_sname) VALUES (1,'Others','AB:OR');
-INSERT INTO call_sclass (mclass_id,sclass_name,sclass_sname) VALUES (1,'Physical Abuse','AB:PA');
-INSERT INTO call_sclass (mclass_id,sclass_name,sclass_sname) VALUES (2,'Chiropodist','HS:CT');
-INSERT INTO call_sclass (mclass_id,sclass_name,sclass_sname) VALUES (2,'Condition of Health','HS:CH');
-INSERT INTO call_sclass (mclass_id,sclass_name,sclass_sname) VALUES (2,'Dental Care','HS:DC');
-INSERT INTO call_sclass (mclass_id,sclass_name,sclass_sname) VALUES (2,'Dr/Nurse','HS:DN');
-INSERT INTO call_sclass (mclass_id,sclass_name,sclass_sname) VALUES (2,'Health Centre','HS:HC');
-INSERT INTO call_sclass (mclass_id,sclass_name,sclass_sname) VALUES (2,'Hospital','HS:HL');
-INSERT INTO call_sclass (mclass_id,sclass_name,sclass_sname) VALUES (2,'Optician','HS:ON');
-INSERT INTO call_sclass (mclass_id,sclass_name,sclass_sname) VALUES (2,'Others','HS:OR');
-INSERT INTO call_sclass (mclass_id,sclass_name,sclass_sname) VALUES (3,'General Maintenance','HG:GM');
-INSERT INTO call_sclass (mclass_id,sclass_name,sclass_sname) VALUES (3,'Housing Aid','HG:HA');
-INSERT INTO call_sclass (mclass_id,sclass_name,sclass_sname) VALUES (3,'Others','HG:OR');
-INSERT INTO call_sclass (mclass_id,sclass_name,sclass_sname) VALUES (3,'Water','HG:WR');
-INSERT INTO call_sclass (mclass_id,sclass_name,sclass_sname) VALUES (4,'Carers Association','CS:CA');
-INSERT INTO call_sclass (mclass_id,sclass_name,sclass_sname) VALUES (4,'Home Help','CS:HH');
-INSERT INTO call_sclass (mclass_id,sclass_name,sclass_sname) VALUES (4,'Meals on Wheels','CS:MW');
-INSERT INTO call_sclass (mclass_id,sclass_name,sclass_sname) VALUES (4,'Others','CS:OR');
-INSERT INTO call_sclass (mclass_id,sclass_name,sclass_sname) VALUES (4,'Senior Clubs','CS:SC');
-INSERT INTO call_sclass (mclass_id,sclass_name,sclass_sname) VALUES (5,'Grants','FR:GT');
-INSERT INTO call_sclass (mclass_id,sclass_name,sclass_sname) VALUES (5,'Money Difficulties','FR:MD');
-INSERT INTO call_sclass (mclass_id,sclass_name,sclass_sname) VALUES (5,'Other','FR:OR');
-INSERT INTO call_sclass (mclass_id,sclass_name,sclass_sname) VALUES (5,'Pension','FR:PN');
-INSERT INTO call_sclass (mclass_id,sclass_name,sclass_sname) VALUES (6,'Other','MY:OR');
-INSERT INTO call_sclass (mclass_id,sclass_name,sclass_sname) VALUES (6,'Public Transport','MY:PT');
-INSERT INTO call_sclass (mclass_id,sclass_name,sclass_sname) VALUES (7,'Details','OR:DT');
+INSERT INTO call_sclass (mclass_id,sclass_name) VALUES (1,'Bullying/Intimidation');
+INSERT INTO call_sclass (mclass_id,sclass_name) VALUES (1,'Excess Noise');
+INSERT INTO call_sclass (mclass_id,sclass_name) VALUES (1,'Others');
+INSERT INTO call_sclass (mclass_id,sclass_name) VALUES (1,'Physical Abuse');
+INSERT INTO call_sclass (mclass_id,sclass_name) VALUES (2,'Chiropodist');
+INSERT INTO call_sclass (mclass_id,sclass_name) VALUES (2,'Condition of Health');
+INSERT INTO call_sclass (mclass_id,sclass_name) VALUES (2,'Dental Care');
+INSERT INTO call_sclass (mclass_id,sclass_name) VALUES (2,'Dr/Nurse');
+INSERT INTO call_sclass (mclass_id,sclass_name) VALUES (2,'Health Centre');
+INSERT INTO call_sclass (mclass_id,sclass_name) VALUES (2,'Hospital');
+INSERT INTO call_sclass (mclass_id,sclass_name) VALUES (2,'Optician');
+INSERT INTO call_sclass (mclass_id,sclass_name) VALUES (2,'Others');
+INSERT INTO call_sclass (mclass_id,sclass_name) VALUES (3,'General Maintenance');
+INSERT INTO call_sclass (mclass_id,sclass_name) VALUES (3,'Housing Aid');
+INSERT INTO call_sclass (mclass_id,sclass_name) VALUES (3,'Others');
+INSERT INTO call_sclass (mclass_id,sclass_name) VALUES (3,'Water');
+INSERT INTO call_sclass (mclass_id,sclass_name) VALUES (4,'Carers Association');
+INSERT INTO call_sclass (mclass_id,sclass_name) VALUES (4,'Home Help');
+INSERT INTO call_sclass (mclass_id,sclass_name) VALUES (4,'Meals on Wheels');
+INSERT INTO call_sclass (mclass_id,sclass_name) VALUES (4,'Others');
+INSERT INTO call_sclass (mclass_id,sclass_name) VALUES (4,'Senior Clubs');
+INSERT INTO call_sclass (mclass_id,sclass_name) VALUES (5,'Grants');
+INSERT INTO call_sclass (mclass_id,sclass_name) VALUES (5,'Money Difficulties');
+INSERT INTO call_sclass (mclass_id,sclass_name) VALUES (5,'Other');
+INSERT INTO call_sclass (mclass_id,sclass_name) VALUES (5,'Pension');
+INSERT INTO call_sclass (mclass_id,sclass_name) VALUES (6,'Other');
+INSERT INTO call_sclass (mclass_id,sclass_name) VALUES (6,'Public Transport');
+INSERT INTO call_sclass (mclass_id,sclass_name) VALUES (7,'Details');
 
 --
 -- Table structure for table operators
@@ -389,6 +387,7 @@ CREATE USER careport WITH ENCRYPTED PASSWORD 'careport';
 
 GRANT ALL ON call_mclass_mclass_id_seq TO caadmin;
 GRANT ALL ON call_sclass_mclass_id_seq TO caadmin;
+GRANT ALL ON call_sclass_sclass_id_seq TO caadmin;
 GRANT ALL ON calls_callid_seq TO caadmin;
 GRANT ALL ON clients_clientid_seq TO caadmin;
 GRANT ALL ON districts_districtid_seq TO caadmin;
