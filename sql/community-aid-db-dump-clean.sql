@@ -213,7 +213,7 @@ CREATE TABLE client2operator (
 );
 
 --
--- Table structure for table client2group 
+-- Table structure for table group2operator 
 --
 
 DROP TABLE  group2operator CASCADE;
@@ -403,7 +403,7 @@ GRANT SELECT, INSERT, UPDATE ON clients TO caadmin;
 GRANT SELECT, INSERT, UPDATE, DELETE ON districts TO caadmin;
 GRANT SELECT, INSERT, UPDATE, DELETE ON operators TO caadmin;
 GRANT SELECT, INSERT, UPDATE, DELETE ON groups TO caadmin;
-GRANT SELECT, INSERT, UPDATE, DELETE ON client2group TO caadmin;
+GRANT SELECT, INSERT, UPDATE, DELETE ON group2operator TO caadmin;
 
 --
 -- GRANT rights to default operator user
