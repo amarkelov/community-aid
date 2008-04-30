@@ -2,6 +2,7 @@
 session_start();
 
 require_once("add_edit_client.inc");
+require_once("functions.inc");
 
 $clean = array();
 $settings = get_ca_settings();
