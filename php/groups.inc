@@ -171,12 +171,10 @@ function addGroupToOperator( $groupid, $operatorid) {
 	
 	$sql = "BEGIN;";
 	$sql .= "DELETE FROM group2operator WHERE 
-				operatorid=" . pg_escape_string( $operatorid) . ");";
+				operatorid=" . pg_escape_string( $operatorid) . ";";
 	
-	foreach( $arClientid as $cid) {
-		$sql .= "INSERT INTO group2operator ( groupid, operatorid) " . 
+	$sql .= "INSERT INTO group2operator ( groupid, operatorid) " . 
 				" VALUES ("	. pg_escape_string( $groupid) .  ", " . pg_escape_string( $operatorid) . ");";
-	}
 
 	$sql .= "COMMIT";
 
