@@ -201,18 +201,6 @@ CREATE TABLE calls (
 );
 
 --
--- Table structure for table client2operator
---
-
-DROP TABLE  client2operator CASCADE;
-CREATE TABLE client2operator (
-  clientid bigint NOT NULL,
-  operatorid bigint NOT NULL,
-  FOREIGN KEY (clientid) REFERENCES clients (clientid) ON DELETE CASCADE ON UPDATE CASCADE,
-  FOREIGN KEY (operatorid) REFERENCES operators (operatorid) ON UPDATE CASCADE
-);
-
---
 -- Table structure for table group2operator 
 --
 
@@ -223,6 +211,15 @@ CREATE TABLE group2operator (
   FOREIGN KEY (groupid) REFERENCES groups (groupid) ON UPDATE CASCADE,
   FOREIGN KEY (operatorid) REFERENCES operators (operatorid) ON DELETE CASCADE ON UPDATE CASCADE
 );
+
+--
+-- View client2operator
+--
+
+CREATE OR REPLACE VIEW client2operator ( clientid, operatorid) AS 
+SELECT	clientid,group2operator.operatorid FROM clients LEFT JOIN group2operator 
+	ON clients.groupid=group2operator.groupid WHERE clients.groupid!=1;
+	
 
 --
 -- Table structure for table client_timeslot_call
@@ -344,9 +341,6 @@ BEGIN
 	 * for the rest of the operators it's fine to set deleted='t'
 	 */
 
-	/* add the reinstated operator to the floating list */
-	INSERT INTO group2operator VALUES ( 1, NEW.operatorid);
-
 	RETURN NEW;
 END
 $$ LANGUAGE plpgsql;
@@ -362,9 +356,6 @@ BEGIN
 		UPDATE client2operator SET operatorid=NEW.operatorid WHERE operatorid=record.operatorid;
 	END IF;
 	
-	/* insert the newly added operator for access to the Floating group */
-	INSERT INTO group2operator VALUES (1, NEW.operatorid);
-
 	RETURN NULL;
 END
 $$ LANGUAGE plpgsql;
