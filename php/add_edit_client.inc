@@ -16,7 +16,7 @@ function verifyClientData( &$arClientData, &$clean) {
 	}
 	
 	if(isset($arClientData['lastname'])) {
-		$lastname = htmlentities(strtoupper($arClientData['lastname']), ENT_NOQUOTES );
+		$lastname = htmlentities(strtoupper($arClientData['lastname']), ENT_COMPAT );
 		if( $magic) {
 			$clean['lastname'] = stripslashes( $lastname);
 		}
