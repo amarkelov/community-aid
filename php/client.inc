@@ -163,28 +163,38 @@ function addClient(&$clean) {
 	return $retval;
 }
 
-function deactivate_client( $clientid) {
+function deactivateClient( $clientid) {
+	$retval = true;
 	$dbConnect = dbconnect();
 
 	$sql = "UPDATE clients SET active='0' WHERE clientid='" . $clientid . "'";
 	$result = pg_query( $dbConnect, $sql);
 	if (!$result) {
-		printErrorMessage('Invalid query: ' . pg_result_error( $result));
+		$message  = 'Invalid query: ' . pg_result_error( $result) . '<br>' . 'Query: ' . $sql;
+		printErrorMessage( $message);
+		$retval = false;
 	}
 	
 	dbclose( $dbConnect);
+	
+	return $retval;
 }
 
-function reactivate_client( $clientid) {
+function reactivateClient( $clientid) {
+	$retval = true;
 	$dbConnect = dbconnect();
 
 	$sql = "UPDATE clients SET active='1' WHERE clientid='" . $clientid . "'";
 	$result = pg_query( $dbConnect, $sql);
 	if (!$result) {
-		printErrorMessage('Invalid query: ' . pg_result_error( $result));
+		$message  = 'Invalid query: ' . pg_result_error( $result) . '<br>' . 'Query: ' . $sql;
+		printErrorMessage( $message);
+		$retval = false;
 	}
-	
+		
 	dbclose( $dbConnect);
+	
+	return $retval;
 }
 
 function getClientsForOperator( $operatorid, $districtid, &$clients) {
@@ -248,9 +258,10 @@ function getClientTimeSlot( $clientid) {
 
 function getClients( &$clients, $districtid = 0, $what_clients = ALL_CLIENTS) {
 	$myrow = '';
+	$client_name = '';
 	$dbConnect = dbconnect();
 	
-	$sql = "SELECT clientid,firstname,lastname,initials FROM clients ";
+	$sql = "SELECT clientid,firstname,lastname,initials,active FROM clients ";
 
 	// if none of the below, we get all clients
 	switch( $what_clients) {
@@ -281,9 +292,17 @@ function getClients( &$clients, $districtid = 0, $what_clients = ALL_CLIENTS) {
 		while ( $myrow = pg_fetch_array($result)) {
 			if(isset( $myrow['clientid'])) {
 				if( ctype_digit($myrow['clientid'])) { 
-					$clients[$myrow['clientid']]= htmlentities($myrow['lastname'], ENT_QUOTES) . ', ' .
-											htmlentities($myrow['firstname'], ENT_QUOTES) . ' ' .
-											htmlentities($myrow['initials'], ENT_QUOTES) . ' ';
+					$client_name = htmlentities($myrow['lastname'], ENT_COMPAT) . ', ' .
+										htmlentities($myrow['firstname'], ENT_QUOTES) . ' ' .
+										htmlentities($myrow['initials'], ENT_QUOTES) . ' ';
+
+					/* adding (-) to the name if the client is inactive */
+					if( isset($what_clients) && $what_clients == ALL_CLIENTS 
+								&& $myrow['active'] == 'f') {
+						$client_name = '(-) ' . $client_name;
+					}
+					
+					$clients[$myrow['clientid']]= $client_name; 
 				}
 			} 
 		}
