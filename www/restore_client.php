@@ -49,12 +49,13 @@ if($settings['debug'] == 1){
 if ($clean['submit']) {
 	// here if no ID then editing  else adding
 	if ($clean['clientid']) {
-		// delete a record - actually move to 'black list'
-	
-		reactivate_client( $clean['clientid']);
-			
-		print '<b>Client set inactive!</b><p>
-				<a href="' . $_SERVER['PHP_SELF'] . '">Re-activate another client</a><p>';
+		if( reactivateClient( $clean['clientid'])) {	
+			printMessage('Client set active!');
+		}
+		else {
+			printErrorMessage( 'Error occured while setting client active!');
+		}
+		printMessage( '<a href="' . $_SERVER['PHP_SELF'] . '">Choose another client to reactivate</a>');
 	}
 }
 else {	// this part happens if we don't press submit
