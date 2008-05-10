@@ -11,18 +11,6 @@ CREATE TABLE call_mclass (
 );
 
 --
--- INSERT default data for table call_mclass
---
-
-INSERT INTO call_mclass (mclass_name) VALUES ('Antisocial behaviour');
-INSERT INTO call_mclass (mclass_name) VALUES ('Health Service');
-INSERT INTO call_mclass (mclass_name) VALUES ('Housing');
-INSERT INTO call_mclass (mclass_name) VALUES ('Community Services');
-INSERT INTO call_mclass (mclass_name) VALUES ('Financial Resources');
-INSERT INTO call_mclass (mclass_name) VALUES ('Mobility');
-INSERT INTO call_mclass (mclass_name) VALUES ('Others');
-
---
 -- Table structure for table call_sclass
 --
 
@@ -35,39 +23,6 @@ CREATE TABLE call_sclass (
   UNIQUE (sclass_id,sclass_name),
   FOREIGN KEY (mclass_id) REFERENCES call_mclass (mclass_id) ON DELETE CASCADE ON UPDATE CASCADE
 );
-
---
--- INSERT default data for table call_sclass
---
-
-INSERT INTO call_sclass (mclass_id,sclass_name) VALUES (1,'Bullying/Intimidation');
-INSERT INTO call_sclass (mclass_id,sclass_name) VALUES (1,'Excess Noise');
-INSERT INTO call_sclass (mclass_id,sclass_name) VALUES (1,'Others');
-INSERT INTO call_sclass (mclass_id,sclass_name) VALUES (1,'Physical Abuse');
-INSERT INTO call_sclass (mclass_id,sclass_name) VALUES (2,'Chiropodist');
-INSERT INTO call_sclass (mclass_id,sclass_name) VALUES (2,'Condition of Health');
-INSERT INTO call_sclass (mclass_id,sclass_name) VALUES (2,'Dental Care');
-INSERT INTO call_sclass (mclass_id,sclass_name) VALUES (2,'Dr/Nurse');
-INSERT INTO call_sclass (mclass_id,sclass_name) VALUES (2,'Health Centre');
-INSERT INTO call_sclass (mclass_id,sclass_name) VALUES (2,'Hospital');
-INSERT INTO call_sclass (mclass_id,sclass_name) VALUES (2,'Optician');
-INSERT INTO call_sclass (mclass_id,sclass_name) VALUES (2,'Others');
-INSERT INTO call_sclass (mclass_id,sclass_name) VALUES (3,'General Maintenance');
-INSERT INTO call_sclass (mclass_id,sclass_name) VALUES (3,'Housing Aid');
-INSERT INTO call_sclass (mclass_id,sclass_name) VALUES (3,'Others');
-INSERT INTO call_sclass (mclass_id,sclass_name) VALUES (3,'Water');
-INSERT INTO call_sclass (mclass_id,sclass_name) VALUES (4,'Carers Association');
-INSERT INTO call_sclass (mclass_id,sclass_name) VALUES (4,'Home Help');
-INSERT INTO call_sclass (mclass_id,sclass_name) VALUES (4,'Meals on Wheels');
-INSERT INTO call_sclass (mclass_id,sclass_name) VALUES (4,'Others');
-INSERT INTO call_sclass (mclass_id,sclass_name) VALUES (4,'Senior Clubs');
-INSERT INTO call_sclass (mclass_id,sclass_name) VALUES (5,'Grants');
-INSERT INTO call_sclass (mclass_id,sclass_name) VALUES (5,'Money Difficulties');
-INSERT INTO call_sclass (mclass_id,sclass_name) VALUES (5,'Other');
-INSERT INTO call_sclass (mclass_id,sclass_name) VALUES (5,'Pension');
-INSERT INTO call_sclass (mclass_id,sclass_name) VALUES (6,'Other');
-INSERT INTO call_sclass (mclass_id,sclass_name) VALUES (6,'Public Transport');
-INSERT INTO call_sclass (mclass_id,sclass_name) VALUES (7,'Details');
 
 --
 -- Table structure for table operators
@@ -110,12 +65,6 @@ CREATE TABLE districts (
 );
 
 --
--- INSERT default data for table districts
---
-
-INSERT INTO districts VALUES (0,'Not defined or removed',NULL);
-
---
 -- Table structure for table groups
 --
 
@@ -126,13 +75,6 @@ CREATE TABLE groups
   group_name character varying(128) NOT NULL,
   PRIMARY KEY (groupid)
 );
-
---
--- INSERT default data for table groups
---
-
-INSERT INTO groups VALUES (0, 'N/A');
-INSERT INTO groups (group_name) VALUES ('Floating list');
 
 --
 -- Table structure for table clients
@@ -218,7 +160,7 @@ CREATE TABLE group2operator (
 
 CREATE OR REPLACE VIEW client2operator ( clientid, operatorid) AS 
 SELECT	clientid,group2operator.operatorid FROM clients LEFT JOIN group2operator 
-	ON clients.groupid=group2operator.groupid WHERE clients.groupid!=1;
+	ON clients.groupid=group2operator.groupid WHERE clients.groupid NOT IN (0,1);
 	
 
 --
@@ -236,8 +178,6 @@ CREATE TABLE client_timeslot_call (
 CREATE INDEX calls_class_idx ON calls (class);
 CREATE INDEX calls_clientid_idx ON calls (clientid);
 CREATE INDEX calls_time_idx ON calls (time);
-CREATE INDEX client2operator_clientid_idx ON client2operator (clientid);
-CREATE INDEX client2operator_operatorid_idx ON client2operator (operatorid);
 CREATE INDEX clients_addedby_idx ON clients (addedby);
 CREATE INDEX clients_modifiedby_idx ON clients (modifiedby);
 CREATE INDEX clients_districtid_idx ON clients (districtid);
@@ -361,63 +301,3 @@ END
 $$ LANGUAGE plpgsql;
 CREATE TRIGGER operator_insert AFTER INSERT ON operators FOR EACH ROW EXECUTE PROCEDURE operator_insert_trigger();
 
---
--- CREATE USERs
---
-DROP USER caadmin;
-DROP USER caoperator;
-DROP USER careport;
-
-CREATE USER caadmin WITH ENCRYPTED PASSWORD 'caadmin';
-CREATE USER caoperator WITH ENCRYPTED PASSWORD 'caoperator';
-CREATE USER careport WITH ENCRYPTED PASSWORD 'careport';
-
---
--- GRANT rights to default admin user
---
-
-GRANT ALL ON call_mclass_mclass_id_seq TO caadmin;
-GRANT ALL ON call_sclass_mclass_id_seq TO caadmin;
-GRANT ALL ON call_sclass_sclass_id_seq TO caadmin;
-GRANT ALL ON calls_callid_seq TO caadmin;
-GRANT ALL ON clients_clientid_seq TO caadmin;
-GRANT ALL ON districts_districtid_seq TO caadmin;
-GRANT ALL ON operators_operatorid_seq TO caadmin;
-GRANT ALL ON groups_groupid_seq TO caadmin;
-
-GRANT SELECT, INSERT, UPDATE, DELETE ON call_mclass TO caadmin;
-GRANT SELECT, INSERT, UPDATE, DELETE ON call_sclass TO caadmin;
-GRANT SELECT, INSERT, UPDATE ON calls TO caadmin;
-GRANT SELECT, INSERT, UPDATE, DELETE ON client2operator TO caadmin;
-GRANT SELECT, INSERT, UPDATE ON client_timeslot_call TO caadmin;
-GRANT SELECT, INSERT, UPDATE ON clients TO caadmin;
-GRANT SELECT, INSERT, UPDATE, DELETE ON districts TO caadmin;
-GRANT SELECT, INSERT, UPDATE, DELETE ON operators TO caadmin;
-GRANT SELECT, INSERT, UPDATE, DELETE ON groups TO caadmin;
-GRANT SELECT, INSERT, UPDATE, DELETE ON group2operator TO caadmin;
-
---
--- GRANT rights to default operator user
---
-GRANT ALL ON calls_callid_seq TO caoperator;
-GRANT SELECT ON call_mclass TO caoperator;
-GRANT SELECT ON call_sclass TO caoperator;
-GRANT SELECT, INSERT, UPDATE ON calls TO caoperator;
-GRANT SELECT, INSERT, DELETE ON client2operator TO caoperator;
-GRANT SELECT, INSERT, UPDATE ON client_timeslot_call TO caoperator;
-GRANT SELECT ON clients TO caoperator;
-GRANT SELECT ON districts TO caoperator;
-GRANT SELECT, UPDATE ON operators TO caoperator;
-
---
--- Creating default user to fetch reports and giving rights
---
-
-GRANT SELECT ON call_mclass TO careport;
-GRANT SELECT ON call_sclass TO careport;
-GRANT SELECT ON calls TO careport;
-GRANT SELECT ON client2operator TO careport;
-GRANT SELECT ON client_timeslot_call TO careport;
-GRANT SELECT ON clients TO careport;
-GRANT SELECT ON districts TO careport;
-GRANT SELECT ON operators TO careport;
