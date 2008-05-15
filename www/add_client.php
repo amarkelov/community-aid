@@ -1,8 +1,11 @@
 <?php
 session_start();
 
-require_once("add_edit_client.inc");
 require_once("functions.inc");
+require_once("header.inc");
+require_once("login.inc");
+require_once("add_edit_client.inc");
+require_once("client.inc");
 
 $clean = array();
 $settings = get_ca_settings();
