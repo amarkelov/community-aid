@@ -29,7 +29,7 @@ function addOperator( &$clean) {
 				pg_escape_string( $clean['password'] . getTheSalt()),
 				pg_escape_string( $clean['operatorid']),
 				pg_escape_string( $clean['operatorid']),
-				pg_escape_string( $clean['isadmin']);
+				pg_escape_string( $clean['isadmin']));
 				
 		$result = pg_query( $dbConnect, $sql);
 		if ( !$result) {
