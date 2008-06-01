@@ -36,17 +36,6 @@ if(isset($_POST['submit'])) {
 		$clean['call_finished'] = 'f';
 	}
 
-	if(isset($_POST['transfer'])){
-		switch(strtoupper($_POST['transfer'])) {
-			case "ON":
-				$clean['transfer'] = 1;
-				break;
-			default:
-				$clean['transfer'] = 0;
-				break;
-		}
-	}
-	
 	if(isset($_POST['mclass'])) {
 		if(ctype_digit($_POST['mclass'])) {
 			$clean['mclass'] = $_POST['mclass'];
@@ -127,11 +116,6 @@ if (isset($clean['submit']) and $clean['clientid']) {
 	// record the call
 	recordTheCall( $clean);
 	
-	// check if need to transfer the client to Senior Operator
-	if(isset( $clean['transfer'])) {
-		transferClientToSnrOperator( $clean['clientid']);	
-	}
-	
 	/* 
 	 * we need to unset the clientid to get back to all clients
 	 * rather than keep operate with the current one
@@ -157,15 +141,6 @@ if ($clean['clientid'] and !isset($clean['submit'])) {
     }
     
     $out .= '">Back to list of clients</a></font></p>';
-	
-	// don't display transfer checkbox if the operator is the Senior
-	if(!checkIsSnr( $clean['operatorid'])) {
-		$out .= '</td><td align="right"><input type="checkbox" name="transfer">
-				<b><font face="Verdana, Arial, Helvetica, sans-serif" size="2" color="#FF0000">
-				Transfer the client to Senior Operator
-				</font></b>
-				</input>';
-	}
 	
 	$out .= '</td></tr>
 			<tr> 

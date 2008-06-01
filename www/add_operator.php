@@ -75,10 +75,6 @@ else {	// this part happens if we don't press submit
 				<td><<<< Check the checkbox if you want to give the operator administrator privileges</td>
 			</tr>
 			<tr>
-				<td>Senior Operator: </td><td><input type="checkbox" name="issnr" size="5" maxlength="5"></td>
-				<td><<<< Check the checkbox if you want to make the operator the Senior Operator</td>
-			</tr>
-			<tr>
 				<td><input name="submit" type="submit" value="Add Operator"></td>
 			</tr>
 			</table></form></font></div>';

@@ -91,19 +91,9 @@ else  if( $clean['edit']){
 			print '<td><input type="checkbox" name="isadmin" size="5" maxlength="5"></td>';
 		}
 		
-		print '<td><<<< Check the checkbox if you want to give the operator administrator privileges</td></tr>
-			   <tr><td>Senior Operator: </td>';
+		print '<td><<<< Check the checkbox if you want to give the operator administrator privileges</td></tr>';
 		
-		if(isOperatorSnr($clean['operatorid_edit'])) {
-			print '<td><input type="checkbox" name="issnr" size="5" maxlength="5" checked></td>';
-		}
-		else {
-			print '<td><input type="checkbox" name="issnr" size="5" maxlength="5"></td>';
-		}
-		
-		print '<td><<<< Check the checkbox if you want to make the operator the Senior Operator</td>
-			</tr>
-			<tr><td><input name="submit" type="submit" value="Submit" /></td></tr>
+		print '<tr><td><input name="submit" type="submit" value="Submit" /></td></tr>
 			<input type="hidden" name="operatorid_edit" value="' . $clean['operatorid_edit'] . '">
 			</form></tr></td></table></div></font>';
 	}

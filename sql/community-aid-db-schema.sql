@@ -35,7 +35,6 @@ CREATE TABLE operators (
   fullname varchar(64) NOT NULL,
   saltypwd text NOT NULL,
   isadmin boolean default 'f',
-  issnr boolean default 'f',
   deleted boolean default 'f',
   added timestamp NOT NULL default CURRENT_TIMESTAMP,
   addedby bigint NOT NULL,
@@ -49,7 +48,7 @@ CREATE TABLE operators (
 -- INSERT default data for table operators
 --
 
-INSERT INTO operators (loginname,fullname,saltypwd,isadmin,issnr, addedby,modifiedby) VALUES ('admin','Administrator',md5('adminsalt'),'t','t',1,1);
+INSERT INTO operators (loginname,fullname,saltypwd,isadmin,addedby,modifiedby) VALUES ('admin','Administrator',md5('adminsalt'),'t',1,1);
 
 --
 -- Table structure for table districts
@@ -240,17 +239,7 @@ $$ LANGUAGE plpgsql;
 CREATE TRIGGER client_insert AFTER INSERT ON clients FOR EACH ROW EXECUTE PROCEDURE client_timeslot_trigger();
 
 CREATE OR REPLACE FUNCTION operator_delete_after_trigger() RETURNS TRIGGER AS $$ 
-DECLARE
-	record RECORD;
 BEGIN 
-	SELECT * INTO record FROM operators WHERE issnr='t';
-	IF OLD.operatorid = record.operatorid THEN
-		UPDATE operators SET issnr='f' WHERE operatorid=OLD.operatorid;
-		UPDATE operators SET issnr='t' WHERE operatorid=1;
-	END IF;
-
-	UPDATE client2operator SET operatorid=record.operatorid WHERE operatorid=OLD.operatorid;
-	
 	/* in reality we are not going to delete the operator */
 	/* only set him deleted. RETURN NULL secures that the */
 	/* BEFORE trigger prevents deletion                   */
@@ -260,7 +249,7 @@ BEGIN
 	END IF;
 
 	/* you don't really want to see 'deleted' operators in the assigned list */
-	DELETE from group2operator WHERE operatorid=OLD.operatorid;
+	DELETE FROM group2operator WHERE operatorid=OLD.operatorid;
 
 	RETURN NULL;
 END
@@ -285,19 +274,3 @@ BEGIN
 END
 $$ LANGUAGE plpgsql;
 CREATE TRIGGER operator_update AFTER UPDATE ON operators FOR EACH ROW EXECUTE PROCEDURE operator_update_after_trigger();
-
-CREATE OR REPLACE FUNCTION operator_insert_trigger() RETURNS TRIGGER AS $$ 
-DECLARE
-	record RECORD;
-BEGIN 
-	SELECT * INTO record FROM operators WHERE issnr='t';
-	IF NEW.issnr = 't' THEN
-		UPDATE operators SET issnr='f' WHERE operatorid=record.operatorid;
-		UPDATE client2operator SET operatorid=NEW.operatorid WHERE operatorid=record.operatorid;
-	END IF;
-	
-	RETURN NULL;
-END
-$$ LANGUAGE plpgsql;
-CREATE TRIGGER operator_insert AFTER INSERT ON operators FOR EACH ROW EXECUTE PROCEDURE operator_insert_trigger();
-

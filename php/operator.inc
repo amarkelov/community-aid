@@ -2,139 +2,8 @@
 require_once("db.inc");
 require_once("messages.inc");
 
-function checkIsSnr( $operatorid){
-	$retval = false;
-	
-	$dbConnect = dbconnect();
-	
-	// let's see who is the senior operator at the moment
-	$sql = "SELECT operatorid FROM operators WHERE issnr='t'";
-	$result = pg_query( $dbConnect, $sql);
-	if ( !$result) {
-		$message  = 'Invalid query: ' . pg_result_error( $result) . '<br>' . 'Query: ' . $sql;
-		printErrorMessage( $message);
-		$retval = false;
-	}
-	else {
-		while ( $myrow = pg_fetch_array($result)) {
-			if(isset( $myrow['operatorid'])) {
-				if( ctype_digit($myrow['operatorid'])) { 
-					if( $operatorid == $myrow['operatorid']){
-						$retval = true;
-					}
-					else {
-						$retval = false;
-					}
-				}
-			} 
-		}
-	}
-	
-	dbclose( $dbConnect);
-	
-	return $retval;
-}
-
-function transferClientToSnrOperator( $clientid) {
-	$retval = true;
-	$myrow = array();
-	$snrID = -1;
-	
-	$snrID = getSnrOperatorID();
-	
-	$dbConnect = dbconnect();
-	
-	// we are not going to change anything if $snrID is not available
-	if( $snrID > 0) {
-		$sql = "DELETE FROM client2operator WHERE clientid=" . $clientid;
-		$result = pg_query( $dbConnect, $sql);
-		if ( !$result) {
-			$message  = 'Invalid query: ' . pg_result_error( $result) . '<br>' . 'Query: ' . $sql;
-			printErrorMessage( $message); 
-			$retval = false;
-		}
-	
-		$sql = 'INSERT INTO client2operator VALUES ('. $clientid . ','. $snrID . ')';
-		
-		$result = pg_query( $dbConnect, $sql);
-		if ( !$result) {
-			$message  = 'Invalid query: ' . pg_result_error( $result) . '<br>' . 'Query: ' . $sql;
-			printErrorMessage( $message);
-			$retval = false;
-		}
-	}
-	
-	dbclose( $dbConnect);
-	
-	return $retval;
-}
-
-function getSnrOperatorID() {
-	$snrID = -1;
-	
-	$dbConnect = dbconnect();
-	
-	// let's see who is the senior operator at the moment
-	$sql = "SELECT operatorid FROM operators WHERE issnr='t'";
-	$result = pg_query( $dbConnect, $sql);
-	if ( !$result) {
-		$message  = 'Invalid query: ' . pg_result_error( $result) . '<br>' . 'Query: ' . $sql;
-		$retval = false;
-	}
-	else {
-		$myrow = pg_fetch_array($result);
-		if(isset( $myrow['operatorid'])) {
-			if( ctype_digit($myrow['operatorid'])) { 
-				$snrID = $myrow['operatorid'];
-			}
-		} 
-	}
-	dbclose( $dbConnect);
-	
-	return $snrID;
-}
-
-function setSnrOperator( $operatorid) {
-	$retval = true;
-	
-	$dbConnect = dbconnect();
-
-	$sql = "UPDATE operators SET issnr='t' WHERE operatorid=" . $operatorid;
-	$result = pg_query( $dbConnect, $sql);
-	if ( !$result) {
-		$message  = 'Invalid query: ' . pg_result_error( $result) . '<br>' . 'Query: ' . $sql;
-		printErrorMessage( $message);
-		$retval = false;
-	}
-	
-	dbclose( $dbConnect);
-	
-	return $retval;
-}
-
-function clearSnrOperator( $operatorid) {
-	$retval = true;
-	
-	$dbConnect = dbconnect();
-
-	$sql = "UPDATE operators SET issnr='f' WHERE operatorid=" . $operatorid;
-	$result = pg_query( $dbConnect, $sql);
-	if ( !$result) {
-		$message  = 'Invalid query: ' . pg_result_error( $result) . '<br>' . 'Query: ' . $sql;
-		printErrorMessage( $message);
-		$retval = false;
-	}
-	
-	dbclose( $dbConnect);
-	
-	return $retval;
-}
-
 function addOperator( &$clean) {
 	$retval = true;
-	$snrID = -1;
-	
-	$snrID = getSnrOperatorID();
 	
 	$dbConnect = dbconnect();
 	
@@ -153,15 +22,14 @@ function addOperator( &$clean) {
 		$retval = false;
 	}
 	else {
-		$sql = sprintf("INSERT INTO operators (loginname,fullname,saltypwd,addedby,modifiedby,isadmin,issnr)
-				VALUES ('%s', '%s', MD5('%s'), %d, %d, '%s', '%s')", 
+		$sql = sprintf("INSERT INTO operators (loginname,fullname,saltypwd,addedby,modifiedby,isadmin)
+				VALUES ('%s', '%s', MD5('%s'), %d, %d, '%s')", 
 				pg_escape_string( $clean['loginname']),
 				pg_escape_string( $clean['fullname']), 
 				pg_escape_string( $clean['password'] . getTheSalt()),
 				pg_escape_string( $clean['operatorid']),
 				pg_escape_string( $clean['operatorid']),
-				pg_escape_string( $clean['isadmin']),
-				pg_escape_string( $clean['issnr']));
+				pg_escape_string( $clean['isadmin']);
 				
 		$result = pg_query( $dbConnect, $sql);
 		if ( !$result) {
@@ -177,10 +45,7 @@ function addOperator( &$clean) {
 }
 
 function updateOperator( &$clean) {
-	$snrID = -1;
 	$retval = true;
-	
-	$snrID = getSnrOperatorID();
 	
 	$dbConnect = dbconnect();
 	
@@ -191,8 +56,7 @@ function updateOperator( &$clean) {
 		$sql .= "saltypwd=MD5('" . $clean['password'] . getTheSalt() . "'),";
 	}
 	
-	$sql .= "isadmin='" . $clean['isadmin'] . "'," .
-			"issnr='" . $clean['issnr'] . "',
+	$sql .= "isadmin='" . $clean['isadmin'] . "',
 			modified=NOW(),
 			modifiedby=" . $clean['operatorid'] . " 
 			WHERE operatorid=" . $clean['operatorid_edit'];
@@ -205,19 +69,6 @@ function updateOperator( &$clean) {
 	}
 
 	dbclose( $dbConnect);
-	
-	// check if there is no more Senior Operator on the system
-	// and make Administrator the Senior by default
-	if( $clean['issnr'] == 'f' and $snrID == $clean['operatorid_edit']) {
-		// set admin (operatorid=1) as Senior
-		setSnrOperator(1);
-	}
-	else {
-		// we need to clear current Senior
-		if( $snrID > 0 && $snrID != $clean['operatorid_edit']) {
-			clearSnrOperator($snrID);
-		}
-	}
 	
 	return $retval;
 }
@@ -251,32 +102,6 @@ function deleteOperator( &$clean) {
 	}
 	
 	return $retval;
-}
-
-function isOperatorSnr( $operatorid) {
-	$myrow = '';
-	$issnr = false;
-	
-	$dbConnect = dbconnect();
-
-	$sql = "SELECT issnr FROM operators WHERE operatorid='" . $operatorid . "'";
-	
-	$result = pg_query( $dbConnect, $sql);
-	if ( !$result) {
-		$message  = 'Invalid query: ' . pg_result_error( $result) . '<br>' . 'Query: ' . $sql;
-		printErrorMessage( $message);
-	}
-	else {
-		while ( $myrow = pg_fetch_array($result)) {
-			if( $myrow['issnr'] == 't') {
-				$issnr = true;
-			} 
-		}
-	}
-	
-	dbclose( $dbConnect);
-	
-	return $issnr;
 }
 
 function isOperatorAdmin( $operatorid) {
@@ -471,18 +296,6 @@ function verifyOperatorData( &$arOperatorData, &$clean) {
 	}
 	else {
 		$clean['isadmin'] = 'f';
-	}
-	
-	if(isset($arOperatorData['issnr'])) {
-		if(strtoupper($arOperatorData['issnr']) == "ON") {
-			$clean['issnr'] = 't';
-		}
-		else {
-			$clean['issnr'] = 'f';
-		}
-	}
-	else {
-		$clean['issnr'] = 'f';
 	}
 }
 
