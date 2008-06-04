@@ -8,6 +8,7 @@ NameVirtualHost *:443
 	<Directory />
 		Options FollowSymLinks
 		AllowOverride None
+		DirectoryIndex	community-aid.php
 	</Directory>
 
 	SSLEngine		On
