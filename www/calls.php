@@ -115,12 +115,6 @@ if (isset($clean['submit']) and $clean['clientid']) {
 	
 	// record the call
 	recordTheCall( $clean);
-	
-	/* 
-	 * we need to unset the clientid to get back to all clients
-	 * rather than keep operate with the current one
-	 */
-	$clean['clientid'] = '';
 }
 
 // we only need client's data if we clicked on a client in the list
@@ -153,7 +147,7 @@ if ($clean['clientid'] and !isset($clean['submit'])) {
 		    <b><div align="left">Client details:</div></b>';
 	print $out;
     
-	draw_client_details($clean['clientid']);
+	drawClientDetails($clean['clientid']);
 
 	print '<br>
 		    <b><div align="left" valign="top">
@@ -220,7 +214,7 @@ if ($clean['clientid'] and !isset($clean['submit'])) {
 			<font size ="1"> ';
 
 	if($clean['clientid']) {
-		draw_calls( $clean['clientid']);
+		drawCalls( $clean['clientid']);
 	} 
 	
 	print '</font></td></tr></table></form>';
@@ -254,7 +248,7 @@ else {
 			<font face="Verdana, Arial, Helvetica, sans-serif" size="2"><br/>';
 	print $out; 
 	
-	draw_clients_list($clean['operator'], $clean['clientid'], $clean['floating_list']);
+	drawClientsList($clean['operator'], $clean['clientid'], $clean['floating_list']);
 	print '</font></td></tr></table>';
 }
 

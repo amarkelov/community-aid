@@ -1,5 +1,5 @@
 <?php
-function draw_calls( $clientid) 
+function drawCalls( $clientid) 
 {
 	$current_week_number = 0;
 	$last_week_number = 0;
@@ -96,7 +96,7 @@ function draw_calls( $clientid)
 	dbclose($dbConnect);
 }
 
-function draw_client_details($clientid)
+function drawClientDetails($clientid)
 {
     $fs = 2; // font size
     $regs = 0;
@@ -242,7 +242,7 @@ function printCallsJavaScript() {
 
 // Draw clients list
 // left part of the screen
-function draw_clients_list($operator, $clientid, $floating_list=false)
+function drawClientsList($operator, $clientid, $floating_list=false)
 {
 	$clients = array();		// array to store clientids and the rest
 	$calltime = array();	// array to store timeslots
