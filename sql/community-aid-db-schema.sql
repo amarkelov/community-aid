@@ -31,7 +31,7 @@ CREATE TABLE call_sclass (
 DROP TABLE  operators CASCADE;
 CREATE TABLE operators (
   operatorid bigserial,
-  loginname varchar(25) NOT NULL,
+  loginname varchar(255) NOT NULL,
   fullname varchar(64) NOT NULL,
   saltypwd text NOT NULL,
   isadmin boolean default 'f',
@@ -98,10 +98,10 @@ CREATE TABLE clients (
   contact1relationship varchar(20) default NULL,
   contact1address varchar(50) default NULL,
   contact1phone varchar(32) NOT NULL,
-  contact2name varchar(30) default NULL,
+  contact2name varchar(64) default NULL,
   contact2relationship varchar(20) default NULL,
   contact2address varchar(50) default NULL,
-  contact2phone varchar(15) default NULL,
+  contact2phone varchar(32) default NULL,
   gpname varchar(64) default NULL,
   referrer varchar(30) default NULL,
   timeslot time NOT NULL,
@@ -238,14 +238,19 @@ END
 $$ LANGUAGE plpgsql;
 CREATE TRIGGER client_insert AFTER INSERT ON clients FOR EACH ROW EXECUTE PROCEDURE client_timeslot_trigger();
 
-CREATE OR REPLACE FUNCTION operator_delete_after_trigger() RETURNS TRIGGER AS $$ 
+CREATE OR REPLACE FUNCTION operator_delete_before_trigger() RETURNS TRIGGER AS $$ 
 BEGIN 
-	/* in reality we are not going to delete the operator */
-	/* only set him deleted. RETURN NULL secures that the */
-	/* BEFORE trigger prevents deletion                   */
-	/* but we NEVER set deleted='t' for admin			  */
+	/*
+	 * In reality we are not going to delete the operator, only set him 'deleted'. 
+	 * RETURN NULL secures that the BEFORE trigger prevents deletion but we NEVER 
+	 * set deleted='t' for admin. 
+	 * Also, the loginname of 'deleted' operator gets changed to loginname_date_time_of_deletion
+	 * to be able to reuse the login name in the future.
+	 */
+	
 	IF OLD.operatorid != 1 THEN
-		UPDATE operators SET deleted='t' WHERE operatorid=OLD.operatorid;
+		UPDATE operators SET deleted='t',loginname=OLD.loginname || '_' || to_char(NOW(),'DDMMYYYY-HH24:MI:SS') 
+			WHERE operatorid=OLD.operatorid;
 	END IF;
 
 	/* you don't really want to see 'deleted' operators in the assigned list */
@@ -254,7 +259,7 @@ BEGIN
 	RETURN NULL;
 END
 $$ LANGUAGE plpgsql;
-CREATE TRIGGER operator_delete AFTER DELETE ON operators FOR EACH ROW EXECUTE PROCEDURE operator_delete_after_trigger();
+CREATE TRIGGER operator_delete before DELETE ON operators FOR EACH ROW EXECUTE PROCEDURE operator_delete_before_trigger();
 
 CREATE OR REPLACE FUNCTION operator_update_after_trigger() RETURNS TRIGGER AS $$
 BEGIN
