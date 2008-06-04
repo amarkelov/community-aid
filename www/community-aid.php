@@ -78,6 +78,11 @@ if($doWeExit == true){
 	Make sure you have added all the districts you have in your area.</td>
 </tr>
 <tr>
+	<td><a href='add_edit_classifications.php'>Add/Edit Classifications</a></td>
+	<td>You can give classification to every call on the system. For example "anti-social behaviour", or
+	"health problem". Here you can add new classifications and edit the existing ones.</td>
+</tr>
+<tr>
 	<td><a href='report.php'>Report</a></td>
 	<td>Create call reports by Classification, date, client name (no names are displayed in the resulted report!) and district</td>
 </tr>
