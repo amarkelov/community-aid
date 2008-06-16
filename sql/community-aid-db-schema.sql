@@ -45,12 +45,6 @@ CREATE TABLE operators (
 );
 
 --
--- INSERT default data for table operators
---
-
-INSERT INTO operators (loginname,fullname,saltypwd,isadmin,addedby,modifiedby) VALUES ('admin','Administrator',md5('adminsalt'),'t',1,1);
-
---
 -- Table structure for table districts
 --
 
@@ -170,6 +164,18 @@ DROP TABLE  client_timeslot_call CASCADE;
 CREATE TABLE client_timeslot_call (
   clientid bigint NOT NULL,
   timeslot_done boolean default 'f',
+  FOREIGN KEY (clientid) REFERENCES clients (clientid) ON DELETE CASCADE ON UPDATE CASCADE,
+  UNIQUE (clientid)
+);
+
+--
+-- Table structure for table client_nextcalltime
+--
+
+DROP TABLE  client_nextcalltime CASCADE;
+CREATE TABLE client_nextcalltime (
+  clientid bigint NOT NULL,
+  nextcalltime timestamp NOT NULL,
   FOREIGN KEY (clientid) REFERENCES clients (clientid) ON DELETE CASCADE ON UPDATE CASCADE,
   UNIQUE (clientid)
 );
