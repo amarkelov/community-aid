@@ -6,7 +6,7 @@ function verifyClientData( &$arClientData, &$clean) {
 	$magic = get_magic_quotes_gpc();
 
 	if(isset($arClientData['firstname'])) {
-		$firstname = htmlentities(strtoupper($arClientData['firstname']), ENT_QUOTES );
+		$firstname = strip_tags(strtoupper($arClientData['firstname']));
 		if( $magic) {
 			$clean['firstname'] = stripslashes( $firstname);
 		}
@@ -16,7 +16,7 @@ function verifyClientData( &$arClientData, &$clean) {
 	}
 	
 	if(isset($arClientData['lastname'])) {
-		$lastname = htmlentities(strtoupper($arClientData['lastname']), ENT_COMPAT );
+		$lastname = strip_tags(strtoupper($arClientData['lastname']));
 		if( $magic) {
 			$clean['lastname'] = stripslashes( $lastname);
 		}
@@ -26,7 +26,7 @@ function verifyClientData( &$arClientData, &$clean) {
 	}
 	
 	if(isset($arClientData['title'])) {
-		$title =  htmlentities($arClientData['title'], ENT_QUOTES );
+		$title =  strip_tags($arClientData['title']);
 		if( $magic) {
 			$clean['title'] = stripslashes( $title);
 		}
@@ -37,13 +37,13 @@ function verifyClientData( &$arClientData, &$clean) {
 	
 	if(isset($arClientData['gender'])) {
 		if(ctype_print($arClientData['gender'])) {
-			$clean['gender'] = htmlentities($arClientData['gender'], ENT_QUOTES );
+			$clean['gender'] = strip_tags($arClientData['gender']);
 		}
 	}
 	
 	if(isset($arClientData['address'])) {
 		if(ctype_print($arClientData['address'])) {
-			$address = htmlentities($arClientData['address'], ENT_NOQUOTES );
+			$address = strip_tags($arClientData['address']);
 			if( $magic) {
 				$clean['address'] = stripslashes( $address);
 			}
@@ -55,7 +55,7 @@ function verifyClientData( &$arClientData, &$clean) {
 	
 	if(isset($arClientData['area'])) {
 		if(ctype_print($arClientData['area'])) {
-			$area = htmlentities($arClientData['area'], ENT_NOQUOTES );
+			$area = strip_tags($arClientData['area']);
 			if( $magic) {
 				$clean['area'] = stripslashes( $area);
 			}
@@ -94,7 +94,7 @@ function verifyClientData( &$arClientData, &$clean) {
 	
 	if(isset($arClientData['gpname'])) {
 		if(ctype_print($arClientData['gpname'])) {
-			$gpname = htmlentities($arClientData['gpname'], ENT_NOQUOTES );
+			$gpname = strip_tags($arClientData['gpname']);
 			if( $magic) {
 				$clean['gpname'] = stripslashes( $gpname);
 			}
@@ -106,7 +106,7 @@ function verifyClientData( &$arClientData, &$clean) {
 	
 	if(isset($arClientData['housetype'])) {
 		if(ctype_print($arClientData['housetype'])) {
-			$housetype = htmlentities($arClientData['housetype'], ENT_QUOTES );
+			$housetype = strip_tags($arClientData['housetype']);
 			if( $magic) {
 				$clean['housetype'] = stripslashes( $housetype);
 			}
@@ -130,7 +130,7 @@ function verifyClientData( &$arClientData, &$clean) {
 	
 	if(isset($arClientData['medical_notes'])) {
 		if(ctype_print($arClientData['medical_notes'])) {
-			$medical_notes = htmlentities($arClientData['medical_notes'], ENT_NOQUOTES );
+			$medical_notes = strip_tags($arClientData['medical_notes']);
 			if( $magic) {
 				$clean['medical_notes'] = stripslashes( $medical_notes);
 			}
@@ -142,7 +142,7 @@ function verifyClientData( &$arClientData, &$clean) {
 	
 	if(isset($arClientData['alerts'])) {
 		if(ctype_print($arClientData['alerts'])) {
-			$alerts = htmlentities($arClientData['alerts'], ENT_NOQUOTES );
+			$alerts = strip_tags($arClientData['alerts']);
 			if( $magic) {
 				$clean['alerts'] = stripslashes( $alerts);
 			}
@@ -154,7 +154,7 @@ function verifyClientData( &$arClientData, &$clean) {
 	
 	if(isset($arClientData['referrer'])) {
 		if( ctype_print($arClientData['referrer'])) {
-			$referrer = htmlentities($arClientData['referrer'], ENT_NOQUOTES );
+			$referrer = strip_tags($arClientData['referrer']);
 			if( $magic) {
 				$clean['referrer'] = stripslashes($referrer);
 			}
@@ -166,7 +166,7 @@ function verifyClientData( &$arClientData, &$clean) {
 	
 	if(isset($arClientData['referrer_other'])) {
 		if( ctype_print($arClientData['referrer_other'])) {
-			$referrer = htmlentities($arClientData['referrer_other'], ENT_NOQUOTES );
+			$referrer = strip_tags($arClientData['referrer_other']);
 			if( $magic) {
 				$clean['referrer'] = stripslashes($referrer);
 			}
@@ -178,7 +178,7 @@ function verifyClientData( &$arClientData, &$clean) {
 	
 	if(isset($arClientData['contact1name'])) {
 		if(ctype_print($arClientData['contact1name'])) {
-			$contact1name = htmlentities($arClientData['contact1name'], ENT_NOQUOTES );
+			$contact1name = strip_tags($arClientData['contact1name']);
 			if( $magic) {
 				$clean['contact1name'] = stripslashes($contact1name);
 			}
@@ -190,7 +190,7 @@ function verifyClientData( &$arClientData, &$clean) {
 	
 	if(isset($arClientData['contact1relationship'])) {
 		if(ctype_print($arClientData['contact1relationship'])) {
-			$contact1relationship = htmlentities($arClientData['contact1relationship'], ENT_QUOTES );
+			$contact1relationship = strip_tags($arClientData['contact1relationship']);
 			if( $magic) {
 				$clean['contact1relationship'] = stripslashes( $contact1relationship);
 			}
@@ -202,7 +202,7 @@ function verifyClientData( &$arClientData, &$clean) {
 	
 	if(isset($arClientData['contact1address'])) {
 		if(ctype_print($arClientData['contact1address'])) {
-			$contact1address = htmlentities($arClientData['contact1address'], ENT_NOQUOTES );
+			$contact1address = strip_tags($arClientData['contact1address']);
 			if( $magic) {
 				$clean['contact1address'] = stripslashes( $contact1address);
 			}
@@ -219,7 +219,7 @@ function verifyClientData( &$arClientData, &$clean) {
 	
 	if(isset($arClientData['contact2name'])) {
 		if(ctype_print($arClientData['contact2name'])) {
-			$contact2name = htmlentities($arClientData['contact2name'], ENT_NOQUOTES );
+			$contact2name = strip_tags($arClientData['contact2name']);
 			if( $magic) {
 				$clean['contact2name'] = stripslashes($contact2name);
 			}
@@ -231,7 +231,7 @@ function verifyClientData( &$arClientData, &$clean) {
 	
 	if(isset($arClientData['contact2relationship'])) {
 		if(ctype_print($arClientData['contact2relationship'])) {
-			$contact2relationship = htmlentities($arClientData['contact2relationship'], ENT_QUOTES );
+			$contact2relationship = strip_tags($arClientData['contact2relationship']);
 			if( $magic) {
 				$clean['contact2relationship'] = stripslashes( $contact2relationship);
 			}
@@ -243,7 +243,7 @@ function verifyClientData( &$arClientData, &$clean) {
 	
 	if(isset($arClientData['contact2address'])) {
 		if(ctype_print($arClientData['contact2address'])) {
-			$contact2address = htmlentities($arClientData['contact2address'], ENT_NOQUOTES );
+			$contact2address = strip_tags($arClientData['contact2address']);
 			if( $magic) {
 				$clean['contact2address'] = stripslashes( $contact2address);
 			}
