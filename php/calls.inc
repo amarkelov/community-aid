@@ -284,7 +284,7 @@ function drawClientsList($operator, $clientid, $floating_list=false)
 
 	// getting unfinished calls and nextcalltime for it
 	$sql = "SELECT clientid,TO_CHAR(nextcalltime,'DD/MM/YYYY HH24:MI:SS') as nextcalltime
-			FROM calls WHERE clientid in 
+			FROM client_nextcalltime WHERE clientid in 
 			(SELECT clientid FROM client2operator WHERE 
 			operatorid=(SELECT operatorid FROM operators WHERE loginname='{$operator}'))";
 
@@ -293,8 +293,6 @@ function drawClientsList($operator, $clientid, $floating_list=false)
     	$sql .= " OR clientid IN (SELECT clientid FROM clients WHERE groupid=1) ";
     }
  
-	$sql .= " AND call_finished='f' ORDER BY nextcalltime DESC";
-	
     $result = pg_query( $dbConnect, $sql);
     if (!$result) {
 		$message  = 'Invalid query: ' . pg_result_error( $result) . '\n';
@@ -338,9 +336,6 @@ function drawClientsList($operator, $clientid, $floating_list=false)
 			if( ereg( "([0-9]{2})/([0-9]{2})/([0-9]{4}) ([0-9]{2}):([0-9]{2}):([0-9]{2})", $nextcall[$cid], $regs )) {
 				$nct = mktime($regs[4],$regs[5],$regs[6],$regs[2],$regs[1],$regs[3]); // nextcalltime
 			}
-/*--worked			if( ereg( "([0-9]{4})-([0-9]{2})-([0-9]{2}) ([0-9]{2}):([0-9]{2}):([0-9]{2})", $nextcall[$cid], $regs )) {
-				$nct = mktime($regs[4],$regs[5],$regs[6],$regs[2],$regs[3],$regs[1]); // nextcalltime
-			}---worked*/
 		}
 
 		$regs = 0;
@@ -370,24 +365,13 @@ function drawClientsList($operator, $clientid, $floating_list=false)
 			$calltime[$cid] = date( "H:i", $nct);
 		}
 		
-/* --- worked		if( ($mnt - $nct) > 0 && $nct > 0) { // we left unfinished call from yesterday. bad!
-			$calltime[$cid] = '<b><font color="#f11313">Unfinished call from the past. ' . $nextcall[$cid] . ' Call now!</font></b>';
-		}
-		else if( $tms < $now && $timeslot_done[$cid] == 'f' ) { // we missed client's usual time slot. bad!
-			$calltime[$cid] = '<b><font color="#f11313">Missed time slot (' . $nctime . '). Call now!</font></b>';
-		}
-		else if( $nct < $now && $nct > 0) {
-			$calltime[$cid] = '<b><font color="#f11313">Missed call time ('. date( "H:i", $nct) . '). Call now!</font></b>';
-		}
-		else if( $nct > $now) {
-			$calltime[$cid] = date( "H:i", $nct);
-		} --- worked */
-		
+		/* now, those whose timeslot call was done by now */
 		else if( $tms < $now) {
-			$nocalltime[$cid] = '';
+			$nocalltime[$cid] = ''; // . 'timeslot: ' . date("Y-m-d H:i:s", $tms) . "; now: " . date("Y-m-d H:i:s", $now);
 			unset( $calltime[$cid]);
 		}
-//		$calltime[$cid] .= '  --- nct: ' . date("Y-m-d H:i:s", $nct) . '; timeslot: ' . date("Y-m-d H:i:s", $tms) . '; ' . $nextcall[$cid] . '==' . $nct; 
+		
+//		$calltime[$cid] .= '  --- nct: ' . date("Y-m-d H:i:s", $nct) . '; timeslot: ' . date("Y-m-d H:i:s", $tms) . '; ' . $nextcall[$cid] . '==' . $nct . "; now: " . date("Y-m-d H:i:s", $now); 
 	}
     
 	// we need to sort the array now
@@ -399,10 +383,10 @@ function drawClientsList($operator, $clientid, $floating_list=false)
 
 	// redpasts first
 	foreach ( $redpastcalltime as $cid => $ts ) {
-		$out  = '<tr><td><a href="' . $PHP_SELF . '?clientid=' . $cid . '">';
+		$out  = '<tr><td ALIGN="left" width="15%"><a href="' . $PHP_SELF . '?clientid=' . $cid . '">';
 		$out .= '<font size="$fs">';
 		$out .= $clients[$cid] . '</a></font></td>';
-		$out .= '<td><b><font color="#f11313">' . $redpastcalltime[$cid] . '</font></b></td>';
+		$out .= '<td ALIGN="right" width="5%"><b><font color="#f11313">' . $redpastcalltime[$cid] . '</font></b></td>';
 		$out .= '<td><b><font color="#f11313">' . $redpastcalltimemsg[$cid] . '</font></b></td>';
 		
 	    print $out . '</tr>';
@@ -410,10 +394,10 @@ function drawClientsList($operator, $clientid, $floating_list=false)
 	
 	// reds then
 	foreach ( $redcalltime as $cid => $ts ) {
-		$out  = '<tr><td><a href="' . $PHP_SELF . '?clientid=' . $cid . '">';
+		$out  = '<tr><td ALIGN="left" width="15%"><a href="' . $PHP_SELF . '?clientid=' . $cid . '">';
 		$out .= '<font size="$fs">';
 		$out .= $clients[$cid] . '</a></font></td>';
-		$out .= '<td><b><font color="#f11313">' . $redcalltime[$cid] . '</font></b></td>';
+		$out .= '<td ALIGN="right" width="5%"><b><font color="#f11313">' . $redcalltime[$cid] . '</font></b></td>';
 		$out .= '<td><b><font color="#f11313">' . $redcalltimemsg[$cid] . '</font></b></td>';
 		
 	    print $out . '</tr>';
@@ -421,14 +405,14 @@ function drawClientsList($operator, $clientid, $floating_list=false)
 	
 	// normals then
 	foreach ( $calltime as $cid => $ts ) {
-		$out  = '<tr><td><a href="' . $PHP_SELF . '?clientid=' . $cid;
+		$out  = '<tr><td ALIGN="left" width="15%"><a href="' . $PHP_SELF . '?clientid=' . $cid;
 	    if( $floating_list) {
 	    	$out .= '&floating=1';
 	    }
 		$out .= '">';
 		$out .= '<font size="$fs">';
 		$out .= $clients[$cid] . '</a></font></td>';
-		$out .= '<td>' . $calltime[$cid] . '</td>';
+		$out .= '<td ALIGN="right" width="5%">' . $calltime[$cid] . '</td>';
 		$out .= '<td>&nbsp</td>';
 		
 	    print $out . '</tr>';
@@ -436,24 +420,15 @@ function drawClientsList($operator, $clientid, $floating_list=false)
 	
 	// notimes first
 	foreach ( $nocalltime as $cid => $ts ) {
-		$out  = '<tr><td><a href="' . $PHP_SELF . '?clientid=' . $cid . '">';
+		$out  = '<tr><td ALIGN="left" width="15%"><a href="' . $PHP_SELF . '?clientid=' . $cid . '">';
 		$out .= '<font size="$fs">';
 		$out .= $clients[$cid] . '</a></font></td>';
-		$out .= '<td>' . $nocalltime[$cid] . '</td>';
+		$out .= '<td ALIGN="right" width="5%">' . $nocalltime[$cid] . '</td>';
 		$out .= '<td>&nbsp</td>';
 		
 	    print $out . '</tr>';
 	}
 	
-/* --- worked	foreach ( $clients as $cid => $name ) {
-		$out  = '<tr><td><a href="' . $PHP_SELF . '?clientid=' . $cid . '">';
-		$out .= '<font size="$fs">';
-		$out .= $name . '</a></font></td>';
-		$out .= '<td>' . $calltime[$cid] . '</td>';
-	    
-	    print $out . '</tr>';
-	}--- worked */
-
 	print("</table>");
 
 	dbclose($dbConnect);
@@ -483,14 +458,37 @@ function recordTheCall( &$clean) {
 	
 	$dbConnect = dbconnect();
 
-	$sql  = sprintf("INSERT INTO calls (clientid, time, nextcalltime, chat, class, call_finished, operatorid) 
-  		    VALUES ( %d, NOW(), CURRENT_DATE + TIME '%s',  '%s', %d, '%s', %d)",
+	$sql = "BEGIN;";
+
+	$sql .= sprintf("INSERT INTO calls (clientid, time, chat, class, call_finished, operatorid) 
+  		    VALUES ( %d, NOW(), '%s', %d, '%s', %d);",
 			pg_escape_string( $clean['clientid']), 
-			pg_escape_string( $clean['nextcalltime']),
 			pg_escape_string( $clean['chat']), 
 			pg_escape_string( $clean['mclass']),
 			pg_escape_string( $clean['call_finished']), 
 			pg_escape_string( $_SESSION['operatorid']));
+	
+	if( $clean['call_finished'] == 't') { 
+		/*
+		 * now we can set all unfinished calls to finished state, so the
+		 * calculation of the next call time for the client can be correct
+		 * NOTE: this is quick and dirty workaround for the moment!!!
+		 */
+		$sql .= "UPDATE calls SET call_finished='t' 
+				WHERE clientid=" . $clean['clientid'] . ";
+				DELETE FROM client_nextcalltime WHERE clientid=" . $clean['clientid'] . ";";
+	}
+	else {
+		/*
+		 * if the call is not finished, create a record in client_nextcalltime
+		 */ 
+		$sql .= sprintf("INSERT INTO client_nextcalltime (clientid,nextcalltime)
+				 VALUES (%d, CURRENT_DATE + TIME '%s');",
+				pg_escape_string( $clean['clientid']), 
+				pg_escape_string( $clean['nextcalltime']));
+	}
+	
+	$sql .= "COMMIT";
 	
 	$result = pg_query( $dbConnect, $sql);
 	if (!$result) {
@@ -498,20 +496,6 @@ function recordTheCall( &$clean) {
 		printErrorMessage( $message);
 		$retval = false;
 	}
-	else if( $clean['call_finished'] == 't') { 
-		// now we can set all unfinished calls to finished state, so the
-		// calculation of the next call time for the client can be correct
-		// NOTE: this is quick and dirty workaround for the moment!!!
-		$sql  = "UPDATE calls SET call_finished='t' 
-				WHERE clientid=" . $clean['clientid'];
-		
-		$result = pg_query( $dbConnect, $sql);
-		if (!$result) {
-			$message  = 'Invalid query: ' . pg_result_error( $result) . '<br>' . 'Query: ' . $sql;
-			printErrorMessage( $message);
-			$retval = false;
-		}
-	}  
 	
 	dbclose( $dbConnect);
 	
