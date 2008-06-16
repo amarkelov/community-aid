@@ -1,4 +1,10 @@
 --
+-- INSERT default data for table operators
+--
+
+INSERT INTO operators (loginname,fullname,saltypwd,isadmin,addedby,modifiedby) VALUES ('admin','Administrator',md5('adminsalt'),'t',1,1);
+
+--
 -- INSERT default data for table call_mclass
 --
 
