@@ -262,14 +262,15 @@ function drawClientsList($operator, $clientid, $floating_list=false)
     $sql  = "SELECT clientid,firstname,lastname,
 			TO_CHAR(timeslot, 'HH24:MI') AS timeslot
 			FROM clients WHERE clientid IN (SELECT clientid FROM client2operator WHERE 
-			operatorid=(SELECT operatorid FROM operators WHERE loginname='{$operator}'))";
+			operatorid=(SELECT operatorid FROM operators WHERE loginname='{$operator}'))
+			AND active='t' ";
 
     // add floating list to the mix
     if( $floating_list) {
     	$sql .= " OR groupid=1 ";
     }
     
-    $sql .= " AND active='t' ORDER BY timeslot, lastname";
+    $sql .= " ORDER BY timeslot, lastname";
     
     $result = pg_query( $dbConnect, $sql);
     if (!$result) {
@@ -290,7 +291,7 @@ function drawClientsList($operator, $clientid, $floating_list=false)
 
     // add floating list to the mix
     if( $floating_list) {
-    	$sql .= " OR clientid IN (SELECT clientid FROM clients WHERE groupid=1) ";
+    	$sql .= " OR clientid IN (SELECT clientid FROM clients WHERE groupid=1 AND active='t') ";
     }
  
     $result = pg_query( $dbConnect, $sql);
@@ -461,30 +462,35 @@ function recordTheCall( &$clean) {
 	$sql = "BEGIN;";
 
 	$sql .= sprintf("INSERT INTO calls (clientid, time, chat, class, call_finished, operatorid) 
-  		    VALUES ( %d, NOW(), '%s', %d, '%s', %d);",
-			pg_escape_string( $clean['clientid']), 
-			pg_escape_string( $clean['chat']), 
-			pg_escape_string( $clean['mclass']),
-			pg_escape_string( $clean['call_finished']), 
-			pg_escape_string( $_SESSION['operatorid']));
+		  		    VALUES ( %d, NOW(), '%s', %d, '%s', %d);",
+					$clean['clientid'], 
+					pg_escape_string( $clean['chat']), 
+					pg_escape_string( $clean['mclass']),
+					pg_escape_string( $clean['call_finished']), 
+					$_SESSION['operatorid']);
 	
 	if( $clean['call_finished'] == 't') { 
 		/*
 		 * now we can set all unfinished calls to finished state, so the
 		 * calculation of the next call time for the client can be correct
-		 * NOTE: this is quick and dirty workaround for the moment!!!
 		 */
-		$sql .= "UPDATE calls SET call_finished='t' 
-				WHERE clientid=" . $clean['clientid'] . ";
-				DELETE FROM client_nextcalltime WHERE clientid=" . $clean['clientid'] . ";";
+		$sql .= sprintf("UPDATE calls SET call_finished='t'	WHERE clientid=%d;
+						DELETE FROM client_nextcalltime WHERE clientid=%d;",
+						$clean['clientid'], $clean['clientid']);
 	}
 	else {
 		/*
-		 * if the call is not finished, create a record in client_nextcalltime
+		 * If the call is not finished, create a record in client_nextcalltime.
+		 * Only one record can be created in the table (see the table definition). 
+		 * So, if you create a follow-up on the previous follow-up call, we need 
+		 * to make sure the previous one is deleted.
+		 * I believe it's quicker to delete, than search and update (could be wrong). 
 		 */ 
+		$sql .= sprintf("DELETE FROM client_nextcalltime WHERE clientid=%d;", $clean['clientid']);
+				
 		$sql .= sprintf("INSERT INTO client_nextcalltime (clientid,nextcalltime)
 				 VALUES (%d, CURRENT_DATE + TIME '%s');",
-				pg_escape_string( $clean['clientid']), 
+				$clean['clientid'], 
 				pg_escape_string( $clean['nextcalltime']));
 	}
 	
