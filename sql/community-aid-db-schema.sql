@@ -128,7 +128,6 @@ CREATE TABLE calls (
   chat text,
   class int default NULL,
   operatorid bigint NOT NULL,
-  nextcalltime timestamp NOT NULL,
   call_finished boolean default 'f',
   PRIMARY KEY  (callid),
   FOREIGN KEY (clientid) REFERENCES clients (clientid) ON DELETE CASCADE ON UPDATE CASCADE,
