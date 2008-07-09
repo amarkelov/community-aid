@@ -105,8 +105,8 @@ function drawClientDetails($clientid)
 
     if( $clientid and $dbConnect) {
 		$sql  = "SELECT phone1,phone2,alone,dob,medical_notes,alerts,area,
-					contact1name,contact1phone,
-					contact2name,contact2phone,
+					contact1name,contact1phone,contact1relationship,
+					contact2name,contact2phone,contact2relationship,
 					gpname,
 					TO_CHAR(timeslot, 'HH24:MI') as timeslot from clients
 					WHERE clientid='$clientid' AND active='1'";
@@ -141,6 +141,7 @@ function drawClientDetails($clientid)
 
 				$contact1name = $myrow['contact1name'];
 				$contact1phone = $myrow['contact1phone'];
+				$contact1relationship = $myrow['contact1relationship'];
 
 				$contact2name = $myrow['contact2name'];
 				if(strlen(trim($contact2name)) == 0) $contact2name = 'N/A';
@@ -148,6 +149,8 @@ function drawClientDetails($clientid)
 				$contact2phone = $myrow['contact2phone'];
 				if(strlen(trim($contact2phone)) == 0) $contact2phone = 'N/A';
 
+				$contact2relationship = $myrow['contact2relationship'];
+				
 				$gpname = $myrow['gpname'];
 				if(strlen(trim($gpname)) == 0) $gpname = 'N/A';
 				
@@ -168,23 +171,23 @@ function drawClientDetails($clientid)
     $out .= '</tr><tr>';        
     $out .= "<td width=\"30%\"><font size=" . $fs . "><b>Phone 2:</b></font></td>";
     $out .= "<td><font size=" . $fs . ">" . $phone2 . "</font></td>";
-    $out .= "<td width=\"30%\"><font size=" . $fs ."><b>First Contact phone:</b></font></td>";
-    $out .= "<td><font size=" . $fs . ">" . $contact1phone . "</font></td>";
+    $out .= "<td width=\"30%\"><font size=" . $fs ."><b>First Contact relationship:</b></font></td>";
+    $out .= "<td><font size=" . $fs . ">" . $contact1relationship . "</font></td>";
     $out .= '</tr><tr>';    
     $out .= "<td width=\"30%\"><font size=" . $fs . "><b>D.O.B. (DD/MM/YYYY):</b></font></td>";
     $out .= "<td><font size=" . $fs . ">" . $dob . "</font></td>";
-    $out .= "<td width=\"30%\"><font size=" . $fs ."><b>Second Contact:</b></font></td>";
-    $out .= "<td><font size=" . $fs . ">" . $contact2name . "</font></td>";
+    $out .= "<td width=\"30%\"><font size=" . $fs ."><b>First Contact phone:</b></font></td>";
+    $out .= "<td><font size=" . $fs . ">" . $contact1phone . "</font></td>";
     $out .= '</tr><tr>';
     $out .= "<td width=\"30%\"><font size=" . $fs . "><b>Area:</b></font></td>";
     $out .= "<td><font size=" . $fs . ">" . $area . "</font></td>";
-    $out .= "<td width=\"30%\"><font size=" . $fs ."><b>Second Contact phone:</b></font></td>";
-    $out .= "<td><font size=" . $fs . ">" . $contact2phone . "</font></td>";
+    $out .= "<td width=\"30%\"><font size=" . $fs ."><b>Second Contact:</b></font></td>";
+    $out .= "<td><font size=" . $fs . ">" . $contact2name . "</font></td>";
     $out .= '</tr><tr>';    
     $out .= "<td width=\"30%\"><font size=" . $fs . "><b>Time slot:</b></font></td>";
     $out .= "<td><font size=" . $fs . ">" . $timeslot . "</font></td>";
-    $out .= "<td width=\"30%\"><font size=" . $fs ."><b>GP name:</b></font></td>";
-    $out .= "<td><font size=" . $fs . ">" . $gpname . "</font></td>";
+    $out .= "<td width=\"30%\"><font size=" . $fs ."><b>Second Contact relationship:</b></font></td>";
+    $out .= "<td><font size=" . $fs . ">" . $contact2relationship . "</font></td>";
     $out .= '</tr><tr>';
     $out .= "<td width=\"30%\"><font size=" . $fs . "><b>Alone:</b></font></td>";
     $out .= "<td><font size=" . $fs . ">"; 
@@ -195,9 +198,13 @@ function drawClientDetails($clientid)
 			$out .= "No";
 		}
 	$out .= "</font></td>";
-    $out .= '</tr><tr>';
+    $out .= "<td width=\"30%\"><font size=" . $fs ."><b>Second Contact phone:</b></font></td>";
+    $out .= "<td><font size=" . $fs . ">" . $contact2phone . "</font></td>";
+	$out .= '</tr><tr>';
     $out .= "<td width=\"30%\"><font size=" . $fs . "><b>Medical notes:</b></font></td>";
     $out .= "<td><font size=" . $fs .">" . $medical_notes . "</font></td>";
+	$out .= "<td width=\"30%\"><font size=" . $fs ."><b>GP name:</b></font></td>";
+    $out .= "<td><font size=" . $fs . ">" . $gpname . "</font></td>";
     $out .= '</tr><tr>';
     $out .= "<td width=\"30%\"><font size=" . $fs . "><b>Alerts:</b></font></td>";
     $out .= "<td><font size=" . $fs . ">" . $alerts . "</font></td>";
