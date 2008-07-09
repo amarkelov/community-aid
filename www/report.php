@@ -93,18 +93,18 @@ Please, choose criteria for the report and press 'Submit' button.
     <table border="1" cellpadding="0" cellspacing="0">
     <tr>
 	    <td>
-		    <input type="radio" name="client" value="byname" checked></input>
+		    <input type="radio" name="clientby" value="byid" checked></input>
 	    </td>
     	<td>
 		    Name:
-		    <select name="client" size="1">
+		    <select name="clientid" size="1">
 		    <?php getClientsAsDropDownList() ?>
 		    </select>
 		</td>
 	</tr>
 	<tr>
 	    <td>
-		    <input type="radio" name="client" value="bygender"></input>
+		    <input type="radio" name="clientby" value="bygender"></input>
 	    </td>
 		<td>
 			Gender:
