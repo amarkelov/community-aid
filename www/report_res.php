@@ -42,7 +42,7 @@ if (isset($clean['report'])) {
     // (1) classification
     if(isset($_POST['class_cb'])) {
 		$multi = 1;
-		$sql .= "class= " . $_POST['mclass'];
+		$sql .= "class= " . $_POST['sclass_id'];
     }
     // (2) date
     if(isset($_POST['date_cb'])) {
@@ -55,7 +55,7 @@ if (isset($clean['report'])) {
 	
 		switch($_POST['when']) {
 		    case "year":
-				$sql .= "YEAR(time) = " . $_POST['year'];
+				$sql .= "to_char(time,'YYYY') = '" . $_POST['year'] . "'";
 				break;
 		    case "dates":
 				if(ereg("([0-9]{2})/([0-9]{2})/([0-9]{4})", $_POST['date_from'], $regs)) {
@@ -78,13 +78,12 @@ if (isset($clean['report'])) {
 		    $multi = 1;
 		}
 
-		switch($_POST['client']) {
-		    case "name":
-				$sql .= " clientid=" . $_POST['client'] . " ";
+		switch($_POST['clientby']) {
+		    case "byid":
+				$sql .= " clientid=" . $_POST['clientid'] . " ";
 				break;
-		    case "gender":
-		
-				$sql .= " (time <= '$dt' AND time >= '$df') ";
+		    case "bygender":
+				$sql .= " clientid IN ( SELECT clientid FROM clients WHERE gender='" . $_POST['gender'] . "') ";
 				break;
 		}
 		
@@ -203,12 +202,7 @@ function setpagesenv( $sql) {
 	$big_report = 0;
 	$pages = 0;
 	
-// if debug flag is set, print the following info
-$settings = get_ca_settings();
-if($settings['debug'] == 1){
-	print "<b>Query:</b><br>";
-	print $sql . "<p>";
-}
+	$settings = get_ca_settings();
 	
 	$dbConnect = dbconnect();
 	
@@ -222,7 +216,6 @@ if($settings['debug'] == 1){
 
 	if($row[0] > $settings['force_pdf_when_more_than']) {
 		$big_report = 1;
-//		print "Number of records: $row[0]<br>";
 	}
 
 	dbclose($dbConnect);
