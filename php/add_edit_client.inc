@@ -509,7 +509,7 @@ function printAddEditClientTable( $clean, $edit = 0)
 		<font face="verdana, arial, helvetica" size="-1">
 		<b>Address: </b>
 		</font>
-		<input type="Text" name="address" value="' . $clean['address'] . '" size="30" maxlength="30">
+		<input type="Text" name="address" value="' . $clean['address'] . '" size="30" maxlength="512">
 		<font size="1" color="#FF0000">
 		<b> *</b>
 		</font>
@@ -830,7 +830,7 @@ function printAddEditClientTable( $clean, $edit = 0)
 		<font face="verdana, arial, helvetica" size="-1">
 		<b>Address: </b>
 		</font>
-		<input type="text" name="contact1address" size="32" maxlength="50" value="' . $clean['contact1address'] . '">
+		<input type="text" name="contact1address" size="32" maxlength="512" value="' . $clean['contact1address'] . '">
 		</td>
 	
 		<td ALIGN="right" width="10%" VALIGN="top">
@@ -884,7 +884,7 @@ function printAddEditClientTable( $clean, $edit = 0)
 		<font face="verdana, arial, helvetica" size="-1">
 		<b>Address: </b>
 		</font>
-		<input type="text" name="contact2address" size="32" maxlength="50" value="' . $clean['contact2address'] . '">
+		<input type="text" name="contact2address" size="32" maxlength="512" value="' . $clean['contact2address'] . '">
 		</td>
 	
 		<td ALIGN="right" width="10%" VALIGN="top">
