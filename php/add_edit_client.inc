@@ -36,32 +36,26 @@ function verifyClientData( &$arClientData, &$clean) {
 	}
 	
 	if(isset($arClientData['gender'])) {
-		if(ctype_print($arClientData['gender'])) {
-			$clean['gender'] = strip_tags($arClientData['gender']);
-		}
+		$clean['gender'] = strip_tags($arClientData['gender']);
 	}
 	
 	if(isset($arClientData['address'])) {
-		if(ctype_print($arClientData['address'])) {
-			$address = strip_tags($arClientData['address']);
-			if( $magic) {
-				$clean['address'] = stripslashes( $address);
-			}
-			else {
-				$clean['address'] = $address;
-			}
+		$address = strip_tags($arClientData['address']);
+		if( $magic) {
+			$clean['address'] = stripslashes( $address);
+		}
+		else {
+			$clean['address'] = $address;
 		}
 	}
 	
 	if(isset($arClientData['area'])) {
-		if(ctype_print($arClientData['area'])) {
-			$area = strip_tags($arClientData['area']);
-			if( $magic) {
-				$clean['area'] = stripslashes( $area);
-			}
-			else {
-				$clean['area'] = $area;
-			}
+		$area = strip_tags($arClientData['area']);
+		if( $magic) {
+			$clean['area'] = stripslashes( $area);
+		}
+		else {
+			$clean['area'] = $area;
 		}
 	}
 	
@@ -93,26 +87,22 @@ function verifyClientData( &$arClientData, &$clean) {
 	}
 	
 	if(isset($arClientData['gpname'])) {
-		if(ctype_print($arClientData['gpname'])) {
-			$gpname = strip_tags($arClientData['gpname']);
-			if( $magic) {
-				$clean['gpname'] = stripslashes( $gpname);
-			}
-			else {
-				$clean['gpname'] = $gpname;
-			}
+		$gpname = strip_tags($arClientData['gpname']);
+		if( $magic) {
+			$clean['gpname'] = stripslashes( $gpname);
+		}
+		else {
+			$clean['gpname'] = $gpname;
 		}
 	}
 	
 	if(isset($arClientData['housetype'])) {
-		if(ctype_print($arClientData['housetype'])) {
-			$housetype = strip_tags($arClientData['housetype']);
-			if( $magic) {
-				$clean['housetype'] = stripslashes( $housetype);
-			}
-			else {
-				$clean['housetype'] = $housetype;
-			}
+		$housetype = strip_tags($arClientData['housetype']);
+		if( $magic) {
+			$clean['housetype'] = stripslashes( $housetype);
+		}
+		else {
+			$clean['housetype'] = $housetype;
 		}
 	}
 	
@@ -129,86 +119,72 @@ function verifyClientData( &$arClientData, &$clean) {
 	}
 	
 	if(isset($arClientData['medical_notes'])) {
-		if(ctype_print($arClientData['medical_notes'])) {
-			$medical_notes = strip_tags($arClientData['medical_notes']);
-			if( $magic) {
-				$clean['medical_notes'] = stripslashes( $medical_notes);
-			}
-			else {
-				$clean['medical_notes'] = $medical_notes;
-			}
+		$medical_notes = strip_tags($arClientData['medical_notes']);
+		if( $magic) {
+			$clean['medical_notes'] = stripslashes( $medical_notes);
+		}
+		else {
+			$clean['medical_notes'] = $medical_notes;
 		}
 	}
 	
 	if(isset($arClientData['alerts'])) {
-		if(ctype_print($arClientData['alerts'])) {
-			$alerts = strip_tags($arClientData['alerts']);
-			if( $magic) {
-				$clean['alerts'] = stripslashes( $alerts);
-			}
-			else {
-				$clean['alerts'] = $alerts;
-			}
+		$alerts = strip_tags($arClientData['alerts']);
+		if( $magic) {
+			$clean['alerts'] = stripslashes( $alerts);
+		}
+		else {
+			$clean['alerts'] = $alerts;
 		}
 	}
 	
 	if(isset($arClientData['referrer'])) {
-		if( ctype_print($arClientData['referrer'])) {
-			$referrer = strip_tags($arClientData['referrer']);
-			if( $magic) {
-				$clean['referrer'] = stripslashes($referrer);
-			}
-			else {
-				$clean['referrer'] = $referrer;
-			}
+		$referrer = strip_tags($arClientData['referrer']);
+		if( $magic) {
+			$clean['referrer'] = stripslashes($referrer);
+		}
+		else {
+			$clean['referrer'] = $referrer;
 		}
 	}
 	
 	if(isset($arClientData['referrer_other'])) {
-		if( ctype_print($arClientData['referrer_other'])) {
-			$referrer = strip_tags($arClientData['referrer_other']);
-			if( $magic) {
-				$clean['referrer'] = stripslashes($referrer);
-			}
-			else {
-				$clean['referrer'] = $referrer;
-			}
+		$referrer = strip_tags($arClientData['referrer_other']);
+		if( $magic) {
+			$clean['referrer'] = stripslashes($referrer);
+		}
+		else {
+			$clean['referrer'] = $referrer;
 		}
 	}
 	
 	if(isset($arClientData['contact1name'])) {
-		if(ctype_print($arClientData['contact1name'])) {
-			$contact1name = strip_tags($arClientData['contact1name']);
-			if( $magic) {
-				$clean['contact1name'] = stripslashes($contact1name);
-			}
-			else {
-				$clean['contact1name'] = $contact1name;
-			}
+		$contact1name = strip_tags($arClientData['contact1name']);
+		if( $magic) {
+			$clean['contact1name'] = stripslashes($contact1name);
+		}
+		else {
+			$clean['contact1name'] = $contact1name;
 		}
 	}
 	
 	if(isset($arClientData['contact1relationship'])) {
-		if(ctype_print($arClientData['contact1relationship'])) {
-			$contact1relationship = strip_tags($arClientData['contact1relationship']);
-			if( $magic) {
-				$clean['contact1relationship'] = stripslashes( $contact1relationship);
-			}
-			else {
-				$clean['contact1relationship'] = $contact1relationship;
-			}
+		$contact1relationship = strip_tags($arClientData['contact1relationship']);
+		if( $magic) {
+			$clean['contact1relationship'] = stripslashes( $contact1relationship);
+		}
+		else {
+			$clean['contact1relationship'] = $contact1relationship;
 		}
 	}
 	
 	if(isset($arClientData['contact1address'])) {
-		if(ctype_print($arClientData['contact1address'])) {
-			$contact1address = strip_tags($arClientData['contact1address']);
-			if( $magic) {
-				$clean['contact1address'] = stripslashes( $contact1address);
-			}
-			else {
-				$clean['contact1address'] = $contact1address;
-			}
+		$contact1address = strip_tags($arClientData['contact1address']);
+		if( $magic) {
+			$clean['contact1address'] = stripslashes( $contact1address);
+		}
+		else {
+			$clean['contact1address'] = $contact1address;
 		}
 	}
 	
@@ -218,38 +194,32 @@ function verifyClientData( &$arClientData, &$clean) {
 	
 	
 	if(isset($arClientData['contact2name'])) {
-		if(ctype_print($arClientData['contact2name'])) {
-			$contact2name = strip_tags($arClientData['contact2name']);
-			if( $magic) {
-				$clean['contact2name'] = stripslashes($contact2name);
-			}
-			else {
-				$clean['contact2name'] = $contact2name;
-			}
+		$contact2name = strip_tags($arClientData['contact2name']);
+		if( $magic) {
+			$clean['contact2name'] = stripslashes($contact2name);
+		}
+		else {
+			$clean['contact2name'] = $contact2name;
 		}
 	}
 	
 	if(isset($arClientData['contact2relationship'])) {
-		if(ctype_print($arClientData['contact2relationship'])) {
-			$contact2relationship = strip_tags($arClientData['contact2relationship']);
-			if( $magic) {
-				$clean['contact2relationship'] = stripslashes( $contact2relationship);
-			}
-			else {
-				$clean['contact2relationship'] = $contact2relationship;
-			}
+		$contact2relationship = strip_tags($arClientData['contact2relationship']);
+		if( $magic) {
+			$clean['contact2relationship'] = stripslashes( $contact2relationship);
+		}
+		else {
+			$clean['contact2relationship'] = $contact2relationship;
 		}
 	}
 	
 	if(isset($arClientData['contact2address'])) {
-		if(ctype_print($arClientData['contact2address'])) {
-			$contact2address = strip_tags($arClientData['contact2address']);
-			if( $magic) {
-				$clean['contact2address'] = stripslashes( $contact2address);
-			}
-			else {
-				$clean['contact2address'] = $contact2address;
-			}
+		$contact2address = strip_tags($arClientData['contact2address']);
+		if( $magic) {
+			$clean['contact2address'] = stripslashes( $contact2address);
+		}
+		else {
+			$clean['contact2address'] = $contact2address;
 		}
 	}
 		
