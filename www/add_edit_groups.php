@@ -34,9 +34,7 @@ if(isset($_POST['add'])) {
 }
 
 if(isset($clean['add'])) {
-/*	if(ctype_print($_POST['groupname'])) {*/
-		$clean['groupname'] = $_POST['groupname'];
-/*	}*/
+	$clean['groupname'] = strip_tags( $_POST['groupname']);
 }
 
 if(isset($clean['edit'])) {
