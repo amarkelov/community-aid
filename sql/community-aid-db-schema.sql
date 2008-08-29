@@ -21,6 +21,7 @@ CREATE TABLE call_sclass (
   sclass_name varchar(64) NOT NULL default '',
   PRIMARY KEY  (mclass_id,sclass_name),
   UNIQUE (sclass_id,sclass_name),
+  UNIQUE (sclass_id),
   FOREIGN KEY (mclass_id) REFERENCES call_mclass (mclass_id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
@@ -131,6 +132,7 @@ CREATE TABLE calls (
   call_finished boolean default 'f',
   PRIMARY KEY  (callid),
   FOREIGN KEY (clientid) REFERENCES clients (clientid) ON DELETE CASCADE ON UPDATE CASCADE,
+  FOREIGN KEY (class) REFERENCES call_sclass (sclass_id) ON UPDATE CASCADE,
   FOREIGN KEY (operatorid) REFERENCES operators (operatorid) ON UPDATE CASCADE
 );
 

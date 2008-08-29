@@ -472,7 +472,7 @@ function recordTheCall( &$clean) {
 		  		    VALUES ( %d, NOW(), '%s', %d, '%s', %d);",
 					$clean['clientid'], 
 					pg_escape_string( $clean['chat']), 
-					pg_escape_string( $clean['mclass']),
+					pg_escape_string( $clean['sclass_id']),
 					pg_escape_string( $clean['call_finished']), 
 					$_SESSION['operatorid']);
 	

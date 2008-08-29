@@ -36,9 +36,9 @@ if(isset($_POST['submit'])) {
 		$clean['call_finished'] = 'f';
 	}
 
-	if(isset($_POST['mclass'])) {
-		if(ctype_digit($_POST['mclass'])) {
-			$clean['mclass'] = $_POST['mclass'];
+	if(isset($_POST['sclass_id'])) {
+		if(ctype_digit($_POST['sclass_id'])) {
+			$clean['sclass_id'] = $_POST['sclass_id'];
 		} 	
 	}
 	
