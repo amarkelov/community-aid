@@ -49,8 +49,8 @@ function updateOperator( &$clean) {
 	
 	$dbConnect = dbconnect();
 	
-	$sql = "UPDATE operators SET loginname='" . $clean['loginname'] . "',
-			fullname='" . $clean['fullname'] . "',";
+	$sql = "UPDATE operators SET loginname='" . pg_escape_string( $clean['loginname']) . "',
+			fullname='" . pg_escape_string( $clean['fullname']) . "',";
 	
 	if( strlen($clean['password']) > 0) {
 		$sql .= "saltypwd=MD5('" . $clean['password'] . getTheSalt() . "'),";
