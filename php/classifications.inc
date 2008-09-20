@@ -57,7 +57,7 @@ function getCombinedClassificationList()
 
     $sql  = "SELECT m.mclass_id,s.sclass_id,m.mclass_name,s.sclass_name";
     $sql .= " FROM call_mclass AS m,call_sclass AS s";
-    $sql .= " WHERE m.mclass_id=s.mclass_id ORDER BY m.mclass_id";
+    $sql .= " WHERE m.mclass_id=s.mclass_id ORDER BY m.mclass_name";
     
     $result = pg_query( $dbConnect, $sql);
     if (!$result) {
