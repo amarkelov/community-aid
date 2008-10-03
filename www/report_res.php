@@ -2,6 +2,8 @@
 session_start();
 require_once("login.inc");
 require_once("report.inc");
+require_once("classifications.inc");
+require_once("district.inc");
 
 $clean = array();
 $settings = get_ca_settings();
@@ -27,13 +29,19 @@ if(isset($_POST['report'])) {
 	$clean['report'] = $_POST['report'];
 }
 
+if(isset($_POST['sclass_id']) && ctype_digit($_POST['sclass_id'])) {
+	$clean['sclass_id'] = $_POST['sclass_id'];
+}
+
 if (isset($clean['report'])) {
     // flag for multiple selection
     $multi = 0;
+    $no_where_clause = true;
     $rowclr = 0;
     $fs = 2; // to change font size in the output
     $sql = ""; // string for sql query
-    $big_report = 0; // flag for output bigger than 100 lines
+    $criteria = array();
+    $big_report = false; // flag for output bigger than force_pdf_when_more_than lines
     
     $sql_norm = "SELECT callid,clientid,TO_CHAR(time,'DD/MM/YYYY HH24:MI') as time,chat FROM calls where ";
     $sql_count = "SELECT count(*) FROM calls where ";
@@ -42,7 +50,9 @@ if (isset($clean['report'])) {
     // (1) classification
     if(isset($_POST['class_cb'])) {
 		$multi = 1;
-		$sql .= "class= " . $_POST['sclass_id'];
+		$sql .= "class= " . $clean['sclass_id'];
+		$no_where_clause = false;
+		$criteria['Classification'] = getCombinedClassificationItem( $clean['sclass_id']);
     }
     // (2) date
     if(isset($_POST['date_cb'])) {
@@ -56,6 +66,8 @@ if (isset($clean['report'])) {
 		switch($_POST['when']) {
 		    case "year":
 				$sql .= "to_char(time,'YYYY') = '" . $_POST['year'] . "'";
+				$no_where_clause = false;
+				$criteria['Year'] = $_POST['year'];
 				break;
 		    case "dates":
 				if(ereg("([0-9]{2})/([0-9]{2})/([0-9]{4})", $_POST['date_from'], $regs)) {
@@ -66,6 +78,10 @@ if (isset($clean['report'])) {
 				}
 		
 				$sql .= "(time <= '$dt' AND time >= '$df') ";
+				$no_where_clause = false;
+				
+				$criteria['Dates'] =  $_POST['date_from'] . " - " . $_POST['date_to'];
+				
 				break;
 		}
     }
@@ -81,9 +97,13 @@ if (isset($clean['report'])) {
 		switch($_POST['clientby']) {
 		    case "byid":
 				$sql .= " clientid=" . $_POST['clientid'] . " ";
+				$no_where_clause = false;
+				$criteria['Client ID'] = $_POST['clientid'];
 				break;
 		    case "bygender":
 				$sql .= " clientid IN ( SELECT clientid FROM clients WHERE gender='" . $_POST['gender'] . "') ";
+				$no_where_clause = false;
+				$criteria['Gender'] = $_POST['gender'];
 				break;
 		}
 		
@@ -99,6 +119,8 @@ if (isset($clean['report'])) {
 		}
 	
 		$sql .= " clientid IN (SELECT clientid FROM clients WHERE districtid=" . $_POST['districtid'] . ") ";
+		$no_where_clause = false;
+		$criteria['District'] = getDistrictName( $_POST['districtid']);
     }
     
 	// if debug_sql_limit is set, append it to the query
@@ -106,102 +128,133 @@ if (isset($clean['report'])) {
 		$sql .= " LIMIT " . $settings['debug_sql_limit'];
 	}
 	
-	// check if the report is bigger than we allow per page
-	$sql_count .= $sql;
-	$big_report = setpagesenv( $sql_count); 
+	if( !$no_where_clause) {
+		// check if the report is bigger than we allow per page
+		$sql_count .= $sql;
+		$records_found = setpagesenv( $sql_count, $big_report); 
+		
+		$sql_norm .= $sql;
+
+		/* if we asked for count only */
+		if(isset($_POST['countonly_cb'])) {
+			// Page Header ...
+			printHeader( "Report", 0);
 	
-	$sql_norm .= $sql;
-
-	$dbConnect = dbconnect();
-	
-	$result = pg_query( $dbConnect, $sql_norm);
-	if (!$result) {
-		$message  = 'Invalid query: ' . pg_result_error( $result) . '<br>' . 'Query: ' . $sql;
-		printErrorMessage( $message);
-	}
-
-    $out  = '<hr noshade>';
-    $out .= '<font face="Verdana, Arial, Helvetica, sans-serif" size="2">';
-    $out .= '<table width="100%" border="1" cellpadding="0" cellspacing="0">';
-    $out .= '<tr bgcolor="#00FF00">';
-    $out .= '<td width="2%"><font size="' . $fs . '"><b>Call ID</td>';
-    $out .= '<td width="2%"><font size="' . $fs . '"><b>Client ID</td>';
-    $out .= '<td width="15%"><font size="' . $fs . '"><b>Date & time</td>';
-    $out .= '<td><font size="' . $fs . '"><b>Call details</td>';    
-    $out .= '</tr>';
-
-	if (!$big_report) {
-
-		// Page Header ...
-		printHeader( "Report", 0);
-
-		print "<h1>Report</h1><p>";
-
-		print $out;
-
-		// report table itself    
-	    while( $row = pg_fetch_array($result)) {
-			if ($rowclr % 2) {
-			    $out = '<tr bgcolor="#FFFFFF">';
+			print '<div align="right"><a href="report.php">Create another report</a></div><br>';
+			printMessage( 'Report created on ' . date( 'l M d, o \a\t H:i'));
+			
+			foreach( $criteria as $cr_key => $cr_value) {
+				print '<br><font size="1">' . $cr_key . ': ' . $cr_value . '</font>';
 			}
-			else {
-			    $out = '<tr bgcolor="#DDDDDD">';	
+		
+			printMessage("For the chosen filter " . $records_found . " records found.");
+		}
+		else {
+			$dbConnect = dbconnect();
+			
+			$result = pg_query( $dbConnect, $sql_norm);
+			if (!$result) {
+				$message  = 'Invalid query: ' . pg_result_error( $result) . '<br>' . 'Query: ' . $sql;
+				printErrorMessage( $message);
 			}
 			
-			$out .= '<td><font size="' . $fs . '">';
-			$out .= $row['callid'];
-			$out .= '</td><td width="2%"><font size="' . $fs . '">';
-			$out .= $row['clientid'];
-			$out .= '</td><td width="15%"><font size="' . $fs . '">';	
-			$out .= $row['time'];
-			$out .= '</td><td><font size="' . $fs . '">';	
-			if(0 == strlen($row['chat'])) {
-				$out .= '&nbsp';
+		    $out  = '<hr noshade>';
+		    $out .= '<font face="Verdana, Arial, Helvetica, sans-serif" size="2">';
+		    $out .= '<table width="100%" border="1" cellpadding="0" cellspacing="0">';
+		    $out .= '<tr bgcolor="#00FF00">';
+		    $out .= '<td width="2%"><font size="' . $fs . '"><b>Call ID</td>';
+		    $out .= '<td width="2%"><font size="' . $fs . '"><b>Client ID</td>';
+		    $out .= '<td width="15%"><font size="' . $fs . '"><b>Date & time</td>';
+		    $out .= '<td><font size="' . $fs . '"><b>Call details</td>';    
+		    $out .= '</tr>';
+		
+			if (!$big_report) {
+		
+				// Page Header ...
+				printHeader( "Report", 0);
+		
+				print '<div align="right"><a href="report.php">Create another report</a></div><br>';
+				printMessage( 'Report created on ' . date( 'l M d, o \a\t H:i'));
+				
+				foreach( $criteria as $cr_key => $cr_value) {
+					print '<br><font size="1">' . $cr_key . ': ' . $cr_value . '</font>';
+				}
+				
+				print $out;
+		
+				// report table itself    
+			    while( $row = pg_fetch_array($result)) {
+					if ($rowclr % 2) {
+					    $out = '<tr bgcolor="#FFFFFF">';
+					}
+					else {
+					    $out = '<tr bgcolor="#DDDDDD">';	
+					}
+					
+					$out .= '<td><font size="' . $fs . '">';
+					$out .= $row['callid'];
+					$out .= '</td><td width="2%"><font size="' . $fs . '">';
+					$out .= $row['clientid'];
+					$out .= '</td><td width="15%"><font size="' . $fs . '">';	
+					$out .= $row['time'];
+					$out .= '</td><td><font size="' . $fs . '">';	
+					if(0 == strlen($row['chat'])) {
+						$out .= '&nbsp';
+					}
+					else {
+						$out .= $row['chat'];
+					}
+					$out .= "</td></tr>";
+			
+					print $out;
+				
+					$rowclr++; // change row's background colour
+			    }
 			}
 			else {
-				$out .= $row['chat'];
-			}
-			$out .= "</td></tr>";
-	
-			print $out;
+				$pdf=new PDF();
+				$pdf->AliasNbPages();
+				$pdf->sql_query = $sql_norm;
+				$pdf->border = $settings['pdf_draw_cell_border'];
 		
-			$rowclr++; // change row's background colour
-	    }
+				$pdf->top_message = "Report created on " . date( 'l M d, o \a\t H:i');
+				$pdf->criteria = $criteria;
+				
+				//Column titles
+				$pdf->header = array('Call ID','Client ID','Date & time','Call details');
+				$pdf->SetFont('Arial','',8);
+				$pdf->AddPage();
+		
+				//Data loading
+			//		$data=$pdf->LoadData('countries.txt');
+				$pdf->ColoredTable($header,$result);
+			
+				// print the actual SQL query at the end of the report
+				if($settings['debug_pdf'] == 1) {
+					$pdf->Write(5, $pdf->sql_query);
+				}
+				
+				$pdf->Output();
+			}
+			
+			dbclose($dbConnect);
+	
+		}
 	}
 	else {
-		$pdf=new PDF();
-		$pdf->AliasNbPages();
-		$pdf->sql_query = $sql_norm;
-		$pdf->border = $settings['pdf_draw_cell_border'];
-		
-		//Column titles
-		$pdf->header = array('Call ID','Client ID','Date & time','Call details');
-		$pdf->SetFont('Arial','',8);
-		$pdf->AddPage();
-	    
-			//Data loading
-	//		$data=$pdf->LoadData('countries.txt');
-		$pdf->ColoredTable($header,$result);
-	
-		// print the actual SQL query at the end of the report
-		if($settings['debug_pdf'] == 1) {
-			$pdf->Write(5, $pdf->sql_query);
-		}
-		
-		$pdf->Output();
+		// Page Header ...
+		printHeader( "Report", 0);
+		printMessage( "You forgot to choose a filter for the report. Please, <a href='report.php'>try again</a>.");
 	}
-	
-	dbclose($dbConnect);
 }
-
 print "</body></html>";
 
-// return 1 if the report is bigger than $numofrecs
-function setpagesenv( $sql) {
-	$numofrecs = 25;
-	$big_report = 0;
-	$pages = 0;
-	
+/*
+ * returns count of records found
+ * $big_report is set to true, if the number of found records is greater 
+ * than force_pdf_when_more_than parameter of the system
+ */
+function setpagesenv( $sql, &$big_report) {
 	$settings = get_ca_settings();
 	
 	$dbConnect = dbconnect();
@@ -215,12 +268,12 @@ function setpagesenv( $sql) {
 	$row = pg_fetch_array($result);
 
 	if($row[0] > $settings['force_pdf_when_more_than']) {
-		$big_report = 1;
+		$big_report = true;
 	}
 
 	dbclose($dbConnect);
 	
-	return $big_report;
+	return $row[0];
 }
 
 
