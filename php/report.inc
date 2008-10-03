@@ -6,12 +6,21 @@ require_once("fpdf.php");
 class PDF extends FPDF
 {
 	var $sql_query = 0;
+	var $top_message = 0;
+	var $criteria = array();
 	var $header = 0;
 	var $border = 0;
 		
 	//Page header
 	function Header()
 	{
+		$this->SetTextColor(0);
+		$this->Cell(0,5, $this->top_message,0,1,'L');
+		foreach( $this->criteria as $cr_key => $cr_value) {
+			$this->Cell(0,5, $cr_key . ": " . $cr_value,0,1,'L');
+		}
+	    $this->Ln();
+		
 	    //Colors, line width and bold font
 	    $this->SetFillColor(17,40,200);
 	    $this->SetTextColor(255);
