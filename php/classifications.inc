@@ -74,6 +74,32 @@ function getCombinedClassificationList()
     dbclose($dbConnect);
 }
 
+function getCombinedClassificationItem( $sclass_id)
+{
+	$retval = false;
+	
+	if (ctype_digit( $sclass_id) && $sclass_id > 0) {
+		$dbConnect = dbconnect();
+	
+	    $sql  = "SELECT mclass_name,sclass_name FROM call_sclass";
+	    $sql .= " NATURAL JOIN call_mclass WHERE sclass_id=" . pg_escape_string( $sclass_id);
+	    
+	    $result = pg_query( $dbConnect, $sql);
+	    if (!$result) {
+			$message  = 'Invalid query: ' . pg_result_error( $result) . "\n";
+			$message .= 'Whole query: ' . $sql;
+			printErrorMessage($message);
+	    }
+	    if( $class = pg_fetch_array($result)) {
+			$retval = sprintf("%s -- %s", $class['mclass_name'], $class['sclass_name']);
+	    }
+	    
+	    dbclose($dbConnect);
+	}
+	
+	return $retval;
+}
+
 function getClassificationDictionary() {
 	$retval = true;
 	$dbConnect = dbconnect();
