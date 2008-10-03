@@ -140,6 +140,14 @@ Please, choose criteria for the report and press 'Submit' button.
 		?>
      </td>
 </tr>
+<tr>
+    <td>
+    <input type="checkbox" name="countonly_cb"></input>
+    </td>
+    <td valign="top">
+    Give me count only. Do not need call details.
+     </td>
+</tr>
 
 </table>
 <br>
