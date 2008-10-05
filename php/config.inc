@@ -3,11 +3,14 @@ require_once("db.inc");
 require_once("messages.inc");
 
 define(CONFIG_FILE, "../conf/community-aid.ini");
+define(BACKUP_DIR, $_SERVER[DOCUMENT_ROOT] . "/one-off-backups");
 
 function get_ca_settings(){
 	$settings = array();
 	
 	$settings = parse_ini_file(CONFIG_FILE);
+	
+	$settings['backup_dir'] = BACKUP_DIR;
 	
 	if(!isset($settings['force_pdf_when_more_than'])) {
 		$settings['force_pdf_when_more_than'] = 300;	

@@ -92,6 +92,10 @@ if($doWeExit == true){
 	before you change any parameters on this screen! It's easy to render the system unusable, if parameters set wrong.</td>
 	<?php }?>
 </tr>
+<tr>
+	<td><a href='backup.php'>Quick Database backup</a></td>
+	<td>You can make a quick one-off backup of the database.</td>
+</tr>
 </table>
 </font>
 
