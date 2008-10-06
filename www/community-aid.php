@@ -90,11 +90,11 @@ if($doWeExit == true){
 	<td><a href='config.php'>System configuration</a></td>
 	<td>Change system configuration parameters (i.e. page titles, database name, etc.). Please, make sure you know what you are doing
 	before you change any parameters on this screen! It's easy to render the system unusable, if parameters set wrong.</td>
-	<?php }?>
 </tr>
 <tr>
 	<td><a href='backup.php'>Quick Database backup</a></td>
 	<td>You can make a quick one-off backup of the database.</td>
+	<?php }?>
 </tr>
 </table>
 </font>
