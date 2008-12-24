@@ -137,6 +137,17 @@ CREATE TABLE calls (
 );
 
 --
+-- Table structure for table days
+--
+
+DROP TABLE  days CASCADE;
+CREATE TABLE days (
+  clientid bigint default NULL,
+  dow int NOT NULL,
+  FOREIGN KEY (clientid) REFERENCES clients (clientid) ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+--
 -- Table structure for table group2operator 
 --
 
