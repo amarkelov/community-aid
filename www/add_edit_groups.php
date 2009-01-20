@@ -101,7 +101,7 @@ else {	// this part happens if we don't press submit
 			
 		print '
 			<tr>
-				<td>New name for the selected district:</td>
+				<td>New name for the selected group:</td>
 				<td><input type="text" name="newgroupname" maxlength="30" size="30"></td>
 			</tr>
 			</table>
