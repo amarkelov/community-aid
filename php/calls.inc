@@ -268,16 +268,15 @@ function drawClientsList($operator, $clientid, $floating_list=false)
 	// getting client list first ...
     $sql  = "SELECT clientid,firstname,lastname,
 			TO_CHAR(timeslot, 'HH24:MI') AS timeslot
-			FROM clients WHERE clientid IN (SELECT clientid FROM client2operator WHERE 
-			operatorid=(SELECT operatorid FROM operators WHERE loginname='{$operator}'))
-			AND active='t' ";
+			FROM clients WHERE (clientid IN (SELECT clientid FROM client2operator WHERE 
+			operatorid=(SELECT operatorid FROM operators WHERE loginname='{$operator}')))";
 
     // add floating list to the mix
     if( $floating_list) {
     	$sql .= " OR groupid=1 ";
     }
     
-    $sql .= " ORDER BY timeslot, lastname";
+    $sql .= " AND active='t' ORDER BY timeslot, lastname";
     
     $result = pg_query( $dbConnect, $sql);
     if (!$result) {
