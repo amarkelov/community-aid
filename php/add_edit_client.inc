@@ -120,6 +120,10 @@ function verifyClientData( &$arClientData, &$clean) {
 	
 	if(isset($arClientData['medical_notes'])) {
 		$medical_notes = strip_tags($arClientData['medical_notes']);
+		if( strlen( $medical_notes) > 2048) {
+			$medical_notes = substr( $medical_notes, 0, 2048);
+		}
+		
 		if( $magic) {
 			$clean['medical_notes'] = stripslashes( $medical_notes);
 		}
@@ -130,6 +134,10 @@ function verifyClientData( &$arClientData, &$clean) {
 	
 	if(isset($arClientData['alerts'])) {
 		$alerts = strip_tags($arClientData['alerts']);
+		if( strlen( $alerts) > 2048) {
+			$alerts = substr( $alerts, 0, 2048);
+		}
+		
 		if( $magic) {
 			$clean['alerts'] = stripslashes( $alerts);
 		}
@@ -324,7 +332,19 @@ function printAddEditClientJavaScript()
 			var empty_fields = "";
 			var errors = "";
 			var ret;
-		
+
+/*			var days = [ f.monday.value, 
+						 f.tuesday.value, 
+						 f.wednesday.value, 
+						 f.thursday.value, 
+						 f.friday.value, 
+						 f.saturday.value, 
+						 f.sunday.value];
+			
+			if( !Array.find("on")) {
+				errors += "You must choose at least one day when the person will get a call!\n";
+			} */		
+			
 		    // Loop through the elements of the form, looking for all Text and 
 		    // Textarea elements that do not have an "optional" property defined. 
 		    // Then check for fields that are empty and make a list of them.
@@ -399,7 +419,7 @@ function printAddEditClientTable( $clean, $edit = 0)
 		<font face="verdana, arial, helvetica" size="-1">
 		<b>First name: </b>
 		</font>
-		<input type="Text" name="firstname" value="' . $clean['firstname'] . '" size="30" maxlength="30">
+		<input type="Text" name="firstname" value="' . $clean['firstname'] . '" size="30" maxlength="64">
 		<font size="1" color="#FF0000">
 		<b> *</b>
 		</font>
@@ -443,7 +463,7 @@ function printAddEditClientTable( $clean, $edit = 0)
 		<font face="verdana, arial, helvetica" size="-1">
 		<b>Last name: </b>
 		</font>
-		<input type="Text" name="lastname" value="' . $clean['lastname'] . '" size="30" maxlength="30">
+		<input type="Text" name="lastname" value="' . $clean['lastname'] . '" size="30" maxlength="64">
 		<font size="1" color="#FF0000">
 		<b> *</b>
 		</font>
@@ -456,7 +476,7 @@ function printAddEditClientTable( $clean, $edit = 0)
 		<font face="verdana, arial, helvetica" size="-1">
 		<b>Alone: </b>
 		</font>
-		<input type="checkbox" name="alone" size="5" maxlength="5"';
+		<input type="checkbox" name="alone" size="5"';
 				
 	if($clean['alone']) {
 		print(" checked");
@@ -524,7 +544,7 @@ function printAddEditClientTable( $clean, $edit = 0)
 		<font face="verdana, arial, helvetica" size="-1">
 		<b>Area: </b>
 		</font>
-		<input type="Text" name="area" value="' . $clean['area'] . '" size="25">
+		<input type="Text" name="area" value="' . $clean['area'] . '" size="25" maxlength="50">
 		<font size="1" color="#FF0000">
 		<b> *</b>
 		</font>
@@ -611,7 +631,7 @@ function printAddEditClientTable( $clean, $edit = 0)
 		<font face="verdana, arial, helvetica" size="-1">
 		<b>Phone Number 1 <font size="1" color="#FF0000">(digits only!)</font>: </b>
 		</font>
-		<input type="Text" name="phone1" onchange="return vphone(this);" value="' . $clean['phone1'] . '" size="15">
+		<input type="Text" name="phone1" onchange="return vphone(this);" value="' . $clean['phone1'] . '" size="15" maxlength="32">
 		<font size="1" color="#FF0000">
 		<b> *</b>
 		</font>
@@ -624,7 +644,7 @@ function printAddEditClientTable( $clean, $edit = 0)
 		<font face="verdana, arial, helvetica" size="-1">
 		<b>Phone Number 2 <font size="1" color="#FF0000">(digits only!)</font>: </b>
 		</font>
-		<input type="text" name="phone2" onchange="return vphone(this);" size="14" value="' . $clean['phone2'] . '">
+		<input type="text" name="phone2" onchange="return vphone(this);" value="' . $clean['phone2'] . '" size="14" maxlength="32">
 		</td>
 	
 		<td ALIGN="left" width="15%"  VALIGN="top">
@@ -707,7 +727,7 @@ function printAddEditClientTable( $clean, $edit = 0)
 		<font face="verdana, arial, helvetica" size="-1">
 		<b>GP name: </b>
 		</font>
-		<input type="text" name="gpname" maxlength="30" size="30" value="' . $clean['gpname'] . '">
+		<input type="text" name="gpname" maxlength="30" size="30" maxlength="64" value="' . $clean['gpname'] . '">
 		</td>
 	
 		<td ALIGN="left" width="15%"  VALIGN="top">
@@ -726,7 +746,7 @@ function printAddEditClientTable( $clean, $edit = 0)
 		<font face="verdana, arial, helvetica" size="-1">
 		<b>Other: </b>
 		</font>
-		<input type="text" name="referrer_other" size="25" value="' . $clean['referrer_other'] . '" maxlength="40">
+		<input type="text" name="referrer_other" size="25" maxlength="30" value="' . $clean['referrer_other'] . '" maxlength="40">
 		</td>
 	
 		<td ALIGN="right" width="10%" VALIGN="top">
@@ -766,7 +786,7 @@ function printAddEditClientTable( $clean, $edit = 0)
 		<font face="verdana, arial, helvetica" size="-1">
 		<b>Contact name 1: </b>
 		</font>
-		<input type="text" name="contact1name" value="' . $clean['contact1name'] . '" size="22" maxlength="30">
+		<input type="text" name="contact1name" value="' . $clean['contact1name'] . '" size="22" maxlength="64">
 		<font size="1" color="#FF0000">
 		<b> *</b>
 		</font>
@@ -779,7 +799,7 @@ function printAddEditClientTable( $clean, $edit = 0)
 		<font face="verdana, arial, helvetica" size="-1">
 		<b>Phone <font size="1" color="#FF0000">(digits only!)</font>: </b>
 		</font>
-		<input type="text" name="contact1phone" onchange="return vphone(this);" size="15" maxlength="15" value="' . $clean['contact1phone'] . '">
+		<input type="text" name="contact1phone" onchange="return vphone(this);" size="15" maxlength="32" value="' . $clean['contact1phone'] . '">
 		<font size="1" color="#FF0000">
 		<b> *</b>
 		</font>
@@ -810,7 +830,7 @@ function printAddEditClientTable( $clean, $edit = 0)
 		<font face="verdana, arial, helvetica" size="-1">
 		<b>Relationship: </b>
 		</font>
-		<input type="text" name="contact1relationship" size="20" value="' . $clean['contact1relationship'] . '">
+		<input type="text" name="contact1relationship" size="20" maxlength="128" value="' . $clean['contact1relationship'] . '">
 		</td>
 	
 		<td ALIGN="left" width="15%"  VALIGN="top"></td>
@@ -826,7 +846,7 @@ function printAddEditClientTable( $clean, $edit = 0)
 		<font face="verdana, arial, helvetica" size="-1">
 		<b>Contact name 2: </b>
 		</font>
-		<input type="text" name="contact2name" value="' . $clean['contact2name'] . '" size="22" maxlength="30">
+		<input type="text" name="contact2name" value="' . $clean['contact2name'] . '" size="22" maxlength="64">
 		</td>
 	
 		<td ALIGN="right" width="10%" VALIGN="top">
@@ -836,7 +856,7 @@ function printAddEditClientTable( $clean, $edit = 0)
 		<font face="verdana, arial, helvetica" size="-1">
 		<b>Phone <font size="1" color="#FF0000">(digits only!)</font>: </b>
 		</font>
-		<input type="text" name="contact2phone" onchange="return vphone(this);" size="15" maxlength="15" value="' . $clean['contact2phone'] . '">
+		<input type="text" name="contact2phone" onchange="return vphone(this);" size="15" maxlength="32" value="' . $clean['contact2phone'] . '">
 		</td>
 	
 		<td ALIGN="left" width="15%"  VALIGN="top">
@@ -864,7 +884,7 @@ function printAddEditClientTable( $clean, $edit = 0)
 		<font face="verdana, arial, helvetica" size="-1">
 		<b>Relationship: </b>
 		</font>
-		<input type="text" name="contact2relationship" size="20" value="' . $clean['contact2relationship'] . '">
+		<input type="text" name="contact2relationship" size="20" maxlength="128" value="' . $clean['contact2relationship'] . '">
 		</td>
 	
 		<td ALIGN="left" width="15%"  VALIGN="top">
@@ -903,7 +923,86 @@ function printAddEditClientTable( $clean, $edit = 0)
 		</td>
 	</tr>
 	</TABLE>';
-
+/* -- started to add some calendar bits. not yet finished.
+	<TABLE BORDER=0 WIDTH=100%>
+	<tr>
+		<td ALIGN="right" width="15%" VALIGN="top">
+		</td>
+	
+		<td ALIGN="center"  width="30%" VALIGN="top">
+		<font face="verdana, arial, helvetica" size="-1">
+		<b>Call on:      </b>
+		</font>
+		<font face="verdana, arial, helvetica" size="-1">
+		<b>Mon </b>
+		</font>
+		<input type="checkbox" name="monday" size="5" maxlength="5"';
+		if($clean['monday']) {
+			print(" checked");
+		}
+		print '>
+		</input>
+		<font face="verdana, arial, helvetica" size="-1">
+		<b>Tue </b>
+		</font>
+		<input type="checkbox" name="tuesday" size="5" maxlength="5"';
+		if($clean['tuesday']) {
+			print(" checked");
+		}
+		print '>
+		</input>
+		<font face="verdana, arial, helvetica" size="-1">
+		<b>Wed </b>
+		</font>
+		<input type="checkbox" name="wednesday" size="5" maxlength="5"';
+		if($clean['wednesday']) {
+			print(" checked");
+		}
+		print '>
+		</input>
+		<font face="verdana, arial, helvetica" size="-1">
+		<b>Thu </b>
+		</font>
+		<input type="checkbox" name="thursday" size="5" maxlength="5"';
+		if($clean['thursday']) {
+			print(" checked");
+		}
+		print '>
+		</input>
+		<font face="verdana, arial, helvetica" size="-1">
+		<b>Fri </b>
+		</font>
+		<input type="checkbox" name="friday" size="5" maxlength="5"';
+		if($clean['friday']) {
+			print(" checked");
+		}
+		print '>
+		</input>
+		<font face="verdana, arial, helvetica" size="-1">
+		<b>Sat </b>
+		</font>
+		<input type="checkbox" name="saturday" size="5" maxlength="5"';
+		if($clean['saturday']) {
+			print(" checked");
+		}
+		print '>
+		</input>
+		<font face="verdana, arial, helvetica" size="-1">
+		<b>Sun </b>
+		</font>
+		<input type="checkbox" name="sunday" size="5" maxlength="5"';
+		if($clean['sunday']) {
+			print(" checked");
+		}
+		print '>
+		</input>
+		</td>
+	
+		<td ALIGN="left" width="15%"  VALIGN="top">
+		</td>
+	</tr>
+	</TABLE>';
+*/		
 	if( $edit) {
 		print '<table width="100%" border="0" cellspacing="4" cellpadding="2">
 		<tr>

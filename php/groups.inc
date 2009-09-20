@@ -112,7 +112,7 @@ function getGroupNamesAsDropDownList( $selectName = "groupid", $bNoFloatingList 
 	$arGroupNames = array();
 	
 	if( getGroupNames( $arGroupNames, $bNoFloatingList)) {
-		print '<select name="' . $selectName . '">';
+		print '<select name="' . $selectName . '" onchange="document.forms[0].groupid_cb.checked=true;">';
 		
 		foreach( $arGroupNames as $gid => $group_name) {
 			print '<option value="' . $gid . '">' . $group_name . '</option>';

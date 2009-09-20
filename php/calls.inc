@@ -26,7 +26,7 @@ function drawCalls( $clientid)
     print('<table border="0" width="100%" cellspacing="0" cellpadding="0">');
     print '<tr>
 			<td width="20%"><font size="1"><b>Date/Time</td>
-			<td><font size="1"><b>Call details</td>
+			<td><font face="Verdana, Arial, Helvetica, sans-serif" size="1"><b>Call details</td>
 			<td width="10%"><font size="1"><b>Operator</td>
 			</tr>';
     
@@ -53,7 +53,7 @@ function drawCalls( $clientid)
 		
 		if($current_week_number < $last_week_number) {
 			print '<tr><td>&nbsp</td></tr>';
-			print '<tr><td><font size="1"><b>Week ' . $current_week_number . '</font></td></tr>';
+			print '<tr><td><font face="Verdana, Arial, Helvetica, sans-serif" size="1"><b>Week ' . $current_week_number . '</font></td></tr>';
 			$last_week_number = $current_week_number;
 		}
 		
@@ -65,11 +65,11 @@ function drawCalls( $clientid)
 		}
 	
 	// time column
-		print('<td width="20%"> <font size="1" color="#FF0000">');
+		print('<td width="20%"> <font face="Verdana, Arial, Helvetica, sans-serif" size="1" color="#FF0000">');
 		print $out;
 		print('</font>');
 	// chat column
-		print('</td><td><font size="1" color="#0000FF">');
+		print('</td><td><font face="Verdana, Arial, Helvetica, sans-serif" size="1" color="#0000FF">');
 		
 		if(!empty($myrow["chat"])) { 
 		    print($myrow["chat"] );
@@ -78,7 +78,7 @@ function drawCalls( $clientid)
 		    print("&nbsp");
 		}
 	// operator
-		print('</td><td width="10%"><font size="1" color="#0000FF">');
+		print('</td><td width="10%"><font face="Verdana, Arial, Helvetica, sans-serif" size="1" color="#0000FF">');
 		
 		if(!empty($myrow["operator"])) { 
 		    print($myrow["operator"] );
@@ -95,6 +95,166 @@ function drawCalls( $clientid)
 
 	dbclose($dbConnect);
 }
+
+function drawCallsForClassification( &$criteria, $limit=100) 
+{
+	$current_week_number = 0;
+	$last_week_number = 0;
+	$sql = '';
+	$need_and = false;
+	
+
+	if( is_array( $criteria)) {
+	    $sql  = 'SELECT calls.callid as callid, calls.time as time,
+					calls.chat as chat,
+					operators.loginname as operator
+					FROM calls, operators
+					WHERE ';
+							
+		if( isset($criteria['tperiod'])) {
+			switch ($criteria['tperiod']) {
+				case 'today':
+					$sql .= " time > (CURRENT_DATE + TIME '00:00') ";
+					$need_and = true;
+					break;
+				case 'week':
+					$sql .= " time > (CURRENT_DATE + TIME '00:00' - INTERVAL '1 WEEK') ";
+					$need_and = true;
+					break;
+				case 'month':
+					$sql .= " time > (CURRENT_DATE + TIME '00:00' - INTERVAL '1 MONTH') ";
+					$need_and = true;
+					break;
+			}
+		}
+		
+		if( isset($criteria['clientid']) and ctype_digit($criteria['clientid'])) {
+			if( $need_and) {
+				$sql .= ' AND ';
+			}
+			$sql .= " clientid = {$criteria['clientid']} ";
+			$need_and = true;
+		}
+		
+		if( isset($criteria['noclass'])) {
+			if( $need_and) {
+				$sql .= ' AND ';
+			}
+			$sql .= ' callid NOT IN (SELECT callid from call_l1_class) ';
+			$need_and = true;
+		}
+		
+		if( isset($criteria['exclnoissues'])) {
+			if( $need_and) {
+				$sql .= ' AND ';
+			}
+			$sql .= ' callid NOT IN (SELECT callid from call_l1_class WHERE l1id=0) ';
+			$need_and = true;
+		}
+		
+		if( isset($criteria['groupid'])) {
+			if( $need_and) {
+				$sql .= ' AND ';
+			}
+			$sql .= " calls.clientid IN (SELECT clientid FROM clients WHERE groupid = {$criteria['groupid']}) ";
+			$need_and = true;
+		}
+		
+		$sql .= ' AND calls.operatorid=operators.operatorid ORDER BY callid DESC ';
+		
+		if( $limit > 0) {
+			$sql .= ' LIMIT ' . $limit;
+		}
+		
+		$dbConnect = dbconnect();
+			    
+	    $result = pg_query( $dbConnect, $sql);
+	    if (!$result) {
+			$message  = 'Invalid query: ' . pg_result_error( $result) . "\n";
+			$message .= 'Whole query: ' . $sql;
+			printErrorMessage($message);
+	    }
+	
+	    print ("<hr noshade>");
+	    print('<table border="0" width="100%" cellspacing="0" cellpadding="0">');
+	    print '<tr>
+				<td width="7%"><font face="verdana, arial, helvetica" size="1"><b>&nbsp</td>
+	    		<td width="20%"><font face="verdana, arial, helvetica" size="1"><b>Date/Time</td>
+				<td><font face="verdana, arial, helvetica" size="1"><b>Call details</td>
+				<td width="10%"><font face="verdana, arial, helvetica" size="1"><b>Operator</td>
+				</tr>';
+	    
+	    $i=0; // need this to change cell bgcolor
+		$firstround = 1;
+	    while ($myrow = pg_fetch_array($result)) {
+			$i=$i + 1; // need this to change cell bgcolor
+			$time=$myrow["time"];
+		
+			$regs = 0;
+			if ( ereg( "([0-9]{4})-([0-9]{2})-([0-9]{2}) ([0-9]{2}):([0-9]{2}):([0-9]{2})", $time, $regs ) ) {
+			    $out="$regs[3]/$regs[2]/$regs[1] $regs[4]:$regs[5]";
+			    $current_week_number = date("W",mktime(0,0,0,$regs[2],$regs[3],$regs[1]));
+			}
+			else {
+			    $out="Invalid date format: $time";
+			}
+	
+	
+			if( $firstround) {
+				$last_week_number = $current_week_number;
+				$firstround = 0;
+			}
+			
+			if($current_week_number < $last_week_number) {
+				print '<tr><td>&nbsp</td></tr>';
+				print '<tr><td><font face="Verdana, Arial, Helvetica, sans-serif" size="1"><b>Week ' . $current_week_number . '</font></td></tr>';
+				$last_week_number = $current_week_number;
+			}
+			
+			if($i % 2) {
+			    print('<tr bgcolor="#FFFFFF">');
+			}
+			else {
+			    print('<tr bgcolor="#DDDDDD">');
+			}
+		
+		// select
+			print '<td width="1%" valign="top" align="center">';
+			print '<input type="radio" name="callid" value="' . $myrow['callid'] . '"></input>';
+			print '</td>';
+		// time column
+			print '<td width="20%"> <font face="verdana, arial, helvetica" size="1" color="#FF0000">';
+			print $out;
+			print '</font>';
+		// chat column
+			print('</td><td><font face="verdana, arial, helvetica" size="1" color="#0000FF">');
+			
+			if(!empty($myrow["chat"])) { 
+			    print($myrow["chat"] );
+			}
+			else {
+			    print("&nbsp");
+			}
+		// operator
+			print('</td><td width="10%"><font face="verdana, arial, helvetica" size="1" color="#0000FF">');
+			
+			if(!empty($myrow["operator"])) { 
+			    print($myrow["operator"] );
+			}
+			else {
+			    print("&nbsp");
+			}
+			    
+			print("</td></tr>");
+	
+	    } // while
+	    
+	    print("</table>");
+	
+		dbclose($dbConnect);
+	}
+}
+
 
 function drawClientDetails($clientid)
 {
@@ -218,6 +378,22 @@ function drawClientDetails($clientid)
 function printCallsJavaScript() {
 	print '<script type="text/javascript">
 		<!-- hide it from old browsers or from those with JavaScript disabled
+		function uncheck_noissues() {
+			if(document.getElementById("L1_0").checked) {
+				document.getElementById("L1_0").checked = false;
+				return true;
+			}
+		}
+		
+		function uncheck_all_when_noissues() {
+			if(document.getElementById("L1_0").checked) {
+				for( i=1; i<8; ++i) {
+					document.getElementById("L1_" + i).checked = false;
+				}
+				return true;
+			}
+		}
+		
 		function vtslot(time, form)
 		{
 			var ts = Array();
@@ -373,7 +549,7 @@ function drawClientsList($operator, $clientid, $floating_list=false)
 		}
 		
 		/* now, those whose timeslot call was done by now */
-		else if( $tms < $now) {
+		else if( ($tms < $now || $tms > $now) && $timeslot_done[$cid] == 't') {
 			$nocalltime[$cid] = ''; // . 'timeslot: ' . date("Y-m-d H:i:s", $tms) . "; now: " . date("Y-m-d H:i:s", $now);
 			unset( $calltime[$cid]);
 		}
@@ -441,6 +617,40 @@ function drawClientsList($operator, $clientid, $floating_list=false)
 	dbclose($dbConnect);
 }
 
+function getCallDetails( $callid, &$call) {
+	$retval = false;
+	
+	if( isset($callid) and ctype_digit($callid) and $callid > 0 and is_array($call)) {
+		$dbConnect = dbconnect();
+		
+		$sql = "SELECT  calls.callid,
+						clients.lastname,
+						clients.firstname,
+						calls.time,
+						calls.chat,
+						operators.loginname as opname 
+				FROM calls, clients, operators 
+				WHERE calls.clientid=clients.clientid 
+					AND operators.operatorid=calls.operatorid
+					AND callid=" . $callid;
+		
+		$result = pg_query( $dbConnect, $sql);
+		if (!$result) {
+			$message  = 'Invalid query: ' . pg_result_error( $result) . '<br>' . 'Query: ' . $sql;
+			printErrorMessage( $message);
+			$retval = false;
+		}
+		else {
+			$call = pg_fetch_array($result);
+		}
+	
+		dbclose( $dbConnect);
+		return $call;
+	}
+
+	return $retval;
+}
+
 function setFirstCallDone( $clientid) {
 	$retval = true;
 	
@@ -462,53 +672,57 @@ function setFirstCallDone( $clientid) {
 
 function recordTheCall( &$clean) {
 	$retval = true;
+	$callid = 0;
 	
 	$dbConnect = dbconnect();
-
-	$sql = "BEGIN;";
-
-	$sql .= sprintf("INSERT INTO calls (clientid, time, chat, class, call_finished, operatorid) 
-		  		    VALUES ( %d, NOW(), '%s', %d, '%s', %d);",
+	
+	$sql .= sprintf( "SELECT record_call(%d::BIGINT, 
+										 '%s'::TEXT, 
+										 '%s'::TIMESTAMP, 
+										 '%s'::BOOLEAN, 
+										 %d::BIGINT) as callid;",
 					$clean['clientid'], 
 					pg_escape_string( $clean['chat']), 
-					pg_escape_string( $clean['sclass_id']),
+					pg_escape_string( strftime("%d/%m/%y %T", strtotime($clean['nextcalltime']))),
 					pg_escape_string( $clean['call_finished']), 
 					$_SESSION['operatorid']);
-	
-	if( $clean['call_finished'] == 't') { 
-		/*
-		 * now we can set all unfinished calls to finished state, so the
-		 * calculation of the next call time for the client can be correct
-		 */
-		$sql .= sprintf("UPDATE calls SET call_finished='t'	WHERE clientid=%d;
-						DELETE FROM client_nextcalltime WHERE clientid=%d;",
-						$clean['clientid'], $clean['clientid']);
-	}
-	else {
-		/*
-		 * If the call is not finished, create a record in client_nextcalltime.
-		 * Only one record can be created in the table (see the table definition). 
-		 * So, if you create a follow-up on the previous follow-up call, we need 
-		 * to make sure the previous one is deleted.
-		 * I believe it's quicker to delete, than search and update (could be wrong). 
-		 */ 
-		$sql .= sprintf("DELETE FROM client_nextcalltime WHERE clientid=%d;", $clean['clientid']);
-				
-		$sql .= sprintf("INSERT INTO client_nextcalltime (clientid,nextcalltime)
-				 VALUES (%d, CURRENT_DATE + TIME '%s');",
-				$clean['clientid'], 
-				pg_escape_string( $clean['nextcalltime']));
-	}
-	
-	$sql .= "COMMIT";
-	
+			
 	$result = pg_query( $dbConnect, $sql);
 	if (!$result) {
 		$message  = 'Invalid query: ' . pg_result_error( $result) . '<br>' . 'Query: ' . $sql;
 		printErrorMessage( $message);
 		$retval = false;
 	}
+	else {
+		/* 
+		 * record_call() function returns callid of the newly recorded call
+		 * which we'll use below to get the call's classification(s) recorded
+		 */
+		$callid = pg_fetch_result($result, 0, 'callid');
+		
+		/* handle call classification now */
+		if( isset($clean['L1']) && sizeof($clean['L1']) > 0 && $callid > 0) {
+			$arL1 = array();
+			$arL1 = $clean['L1'];
 	
+			$sql = "BEGIN;";
+			
+			foreach( $arL1 as $value) {
+				$sql .= sprintf( "INSERT INTO call_l1_class (callid, l1id) VALUES (%d,%d);",
+							$callid, $value); 
+			}
+			
+			$sql .= "COMMIT";
+			
+			$result = pg_query( $dbConnect, $sql);
+			if (!$result) {
+				$message  = 'Invalid query: ' . pg_result_error( $result) . '<br>' . 'Query: ' . $sql;
+				printErrorMessage( $message);
+				$retval = false;
+			}
+		}
+	}
+		
 	dbclose( $dbConnect);
 	
 	return $retval;

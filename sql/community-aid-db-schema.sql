@@ -1,4 +1,45 @@
 --
+-- Table structure for table main_menu
+--
+
+DROP TABLE  main_menu CASCADE;
+CREATE TABLE main_menu (
+  mid serial NOT NULL,
+  menu_name varchar(256) NOT NULL default '',
+  menu_desc varchar(1024) NOT NULL default '',
+  menu_page varchar(128) NOT NULL default 'community-aid.php',
+  isAdmin boolean default 'f',
+  PRIMARY KEY  (mid),
+  UNIQUE (menu_name)
+);
+
+--
+-- Table structure for table l1_class
+--
+
+DROP TABLE  l1_class CASCADE;
+CREATE TABLE l1_class (
+  l1id bigserial NOT NULL,
+  l1name varchar(64) NOT NULL default '',
+  PRIMARY KEY  (l1id),
+  UNIQUE (l1name)
+);
+
+--
+-- Table structure for table l2_class
+--
+
+DROP TABLE  l2_class CASCADE;
+CREATE TABLE l2_class (
+  l2id bigserial NOT NULL,
+  l2name varchar(64) NOT NULL default '',
+  l1id bigint NOT NULL,
+  PRIMARY KEY (l2id),
+  FOREIGN KEY (l1id) REFERENCES l1_class (l1id) ON DELETE CASCADE ON UPDATE CASCADE,
+  UNIQUE (l2name)
+);
+
+--
 -- Table structure for table call_mclass
 --
 
@@ -90,11 +131,11 @@ CREATE TABLE clients (
   dob date NOT NULL,
   alone boolean default 'f',
   contact1name varchar(64) NOT NULL,
-  contact1relationship varchar(20) default NULL,
+  contact1relationship varchar(128) default NULL,
   contact1address varchar(512) default NULL,
   contact1phone varchar(32) NOT NULL,
   contact2name varchar(64) default NULL,
-  contact2relationship varchar(20) default NULL,
+  contact2relationship varchar(128) default NULL,
   contact2address varchar(512) default NULL,
   contact2phone varchar(32) default NULL,
   gpname varchar(64) default NULL,
@@ -134,6 +175,18 @@ CREATE TABLE calls (
   FOREIGN KEY (clientid) REFERENCES clients (clientid) ON DELETE CASCADE ON UPDATE CASCADE,
   FOREIGN KEY (class) REFERENCES call_sclass (sclass_id) ON UPDATE CASCADE,
   FOREIGN KEY (operatorid) REFERENCES operators (operatorid) ON UPDATE CASCADE
+);
+
+--
+-- Table structure for table call_l1_class
+--
+
+DROP TABLE  call_l1_class CASCADE;
+CREATE TABLE call_l1_class (
+  callid bigint NOT NULL,
+  l1id bigint NOT NULL,
+  FOREIGN KEY (callid) REFERENCES calls (callid) ON DELETE CASCADE ON UPDATE CASCADE,
+  FOREIGN KEY (l1id) REFERENCES l1_class (l1id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 --
@@ -235,15 +288,20 @@ CREATE OR REPLACE FUNCTION add_client(
 DECLARE
 	opid RECORD;
 BEGIN 
+/*
+ * Values casted to varchar(x) type explicitely to make sure that longer strings
+ * get truncated. Make sure the sizes correspond to the field size at all times! 
+ */
 INSERT INTO clients (firstname,lastname,title,gender,address,area,districtid,
 					phone1,phone2,housetype,dob,alone, medical_notes,
 					contact1name,contact1relationship,contact1address,contact1phone,
 					contact2name,contact2relationship, contact2address,contact2phone,
 					gpname,referrer,alerts,timeslot,addedby,modifiedby, groupid)
-VALUES ( $1,  $2,  $3,  $4,  $5,  $6,  $7,
-		 $8,  $9, $10, $11, $12, $13, $14, 
-		$15, $16, $17, $18, $19, $20, $21,
-		$22, $23, $24, $25, $26, $26, $27);
+VALUES ( $1::varchar(64),  $2::varchar(64),  $3,  $4,  $5::varchar(512),  $6::varchar(50),  $7,
+		 $8::varchar(32),  $9::varchar(32), $10, $11, $12, $13::varchar(2048), 
+		 $14::varchar(64), $15::varchar(128), $16::varchar(512), $17::varchar(32), 
+		 $18::varchar(64), $19::varchar(128), $20::varchar(512), $21::varchar(32),
+		$22, $23::varchar(32), $24::varchar(2048), $25, $26, $26, $27);
 
 END
 $$ LANGUAGE plpgsql;
@@ -255,6 +313,29 @@ BEGIN
 END
 $$ LANGUAGE plpgsql;
 CREATE TRIGGER client_insert AFTER INSERT ON clients FOR EACH ROW EXECUTE PROCEDURE client_timeslot_trigger();
+
+/*
+ * The function records new calls and gets call's classification recorded.
+ * Please, make sure you do it inside transaction!
+ */
+CREATE OR REPLACE FUNCTION record_call (clid BIGINT, call_chat TEXT, nxtcalltime TIMESTAMP, cfinished BOOLEAN, opid BIGINT) RETURNS BIGINT AS $$
+DECLARE
+	inserted_callid BIGINT;
+BEGIN
+	INSERT INTO calls (clientid, time, chat, call_finished, operatorid) VALUES ( clid, NOW(), call_chat, cfinished, opid);
+	SELECT currval('calls_callid_seq') INTO inserted_callid;
+	
+	IF cfinished = 't' THEN
+		UPDATE calls SET call_finished='t' WHERE clientid=clid;
+		DELETE FROM client_nextcalltime WHERE clientid=clid;
+	ELSE
+		DELETE FROM client_nextcalltime WHERE clientid=clid;
+		INSERT INTO client_nextcalltime (clientid,nextcalltime) VALUES (clid, nxtcalltime);
+	END IF;
+	
+	RETURN inserted_callid;
+END;
+$$ LANGUAGE plpgsql;
 
 CREATE OR REPLACE FUNCTION operator_delete_before_trigger() RETURNS TRIGGER AS $$ 
 BEGIN 

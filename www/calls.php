@@ -15,6 +15,8 @@ $settings = get_ca_settings();
  * Cleaning the input data
  */
 
+validateL1ClassificationList ( $_POST, $clean);
+
 if(isset($_POST['submit'])) {
 	$clean['submit'] = $_POST['submit'];
 
@@ -156,24 +158,14 @@ if ($clean['clientid'] and !isset($clean['submit'])) {
 		    <div align="left">
 			<textarea name="chat" cols="65" rows="4" wrap="physical"></textarea>
 			</div>
-		    <br><br>
-			<table width="100%">
-			<tr>
-			<td width="30%">
-			<b>Call Classification:</b>
-			</td>
-			<td>';
+		    <br>
+		    <b><div align="left" valign="top">Call Classification:</div></b>';
              
 	// classification  
-	getCombinedClassificationList();
+	drawLevel1ClassificationListPanel();
 
-	print '</td>
-			</tr>
-			<tr>
-			<td width="30%">
-			<b>Next Call at:</b>  
-			</td>
-			<td>';
+	print '<div align="left"><br><br>
+			<b>Next Call at:</b> ';
 	
 	/*
 	 * displaing nextcalltime make sense only if we operate
@@ -189,15 +181,10 @@ if ($clean['clientid'] and !isset($clean['submit'])) {
 
 	print '<input type="text" name="nextcalltime" size="6" maxlength="5" value="' . $nextcalltime . '" />
 			<font color="#FF0000" size="1" face="Arial, Helvetica, sans-serif">(24 hour format HH:MM)</font>
-			</td>
-			</tr>
-			<tr>
-			<td width="30%">
+			<br><br>
 			<input type="checkbox" name="call_finished">Call finished</input>
-			</td>
-			</tr>
-			</table>
 			</font>
+			</div>
 			<br><br>
 			
 			<div align="center">

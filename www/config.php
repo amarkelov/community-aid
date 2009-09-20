@@ -181,20 +181,6 @@ else {	// this part happens if we don't press submit
 		print ' <a href="/add_edit_districts.php">Add/Edit districts</a></font></td>
 	</tr>
 	<tr>
-		<td ALIGN="left"  width="20%" VALIGN="top">
-		<font face="verdana, arial, helvetica" size="2">
-		<b>Call Classification:</b>
-		</td>
-		
-		<td>
-		<font face="verdana, arial, helvetica" size="2">';
-             
-	// draw classification  
-	getCombinedClassificationList();
-		
-	print ' <a href="/add_edit_classifications.php">Add/Edit classifications</a></font></td>
-	</tr>
-	<tr>
 		<td ALIGN="left" width="20%" VALIGN="top">
 		<font face="verdana, arial, helvetica" size="2">
 		<b>Force PDF creation if the report consists of more than: </b>

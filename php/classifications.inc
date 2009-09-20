@@ -1,63 +1,164 @@
 <?php
 require_once("db.inc");
+require_once("functions.inc");
 require_once("messages.inc");
 
-function getMainClassificationList( &$arMainClassifications)
-{
-	$retval = true;
-	$arMainClassifications = array();
+function drawLevel1AndLevel2ClassificationListPanel( $callid = -1) {
+	$numofcolumns = 2;
+	$colindx = $numofcolumns;
+	$i1 = $i2 = 0;
+	$level1 = array();
+	$level2 = array();
+	$level12 = array();
+	$exlevel1 = array();	// if call was already classified, it will store the current L1
+	$exlevel2 = array();	// if call was already classified, it will store the current L2
 	
 	$dbConnect = dbconnect();
+	
+	if( ctype_digit($callid) and $callid > 0) {
+		$sql = "SELECT l1id FROM call_l1_class WHERE callid={$callid}";
+	    $result = pg_query( $dbConnect, $sql);
+	    if (!$result) {
+			$message  = 'Invalid query: ' . pg_result_error( $result) . "\n";
+			$message .= 'Whole query: ' . $sql;
+			printErrorMessage($message);
+	    }
+	    while( $calls_l1_class = pg_fetch_array($result)) {
+	    	$exlevel1[] = $calls_l1_class['l1id'];
+		}
 
-    $sql  = "SELECT mclass_id,mclass_name FROM call_mclass ORDER BY mclass_name";
+		$sql = "SELECT l2id FROM call_l2_class WHERE callid={$callid}";
+	    $result = pg_query( $dbConnect, $sql);
+	    if (!$result) {
+			$message  = 'Invalid query: ' . pg_result_error( $result) . "\n";
+			$message .= 'Whole query: ' . $sql;
+			printErrorMessage($message);
+	    }
+	    while( $calls_l2_class = pg_fetch_array($result)) {
+	    	$exlevel2[] = $calls_l2_class['l2id'];
+		}
+	}
+	
+	print '<table frame="border" width="100%"><tr>';
+	    
+    $sql  = "SELECT l1_class.l1id,l1name,l2id,l2name ";
+    $sql .= "FROM l1_class LEFT OUTER JOIN l2_class ON (l1_class.l1id=l2_class.l1id) ORDER BY l1_class.l1id";
     
     $result = pg_query( $dbConnect, $sql);
     if (!$result) {
 		$message  = 'Invalid query: ' . pg_result_error( $result) . "\n";
 		$message .= 'Whole query: ' . $sql;
 		printErrorMessage($message);
-		$retval=false;
     }
     while( $class = pg_fetch_array($result)) {
-		$arMainClassifications[$class['mclass_id']] = $class['mclass_name'];
+    	$level1[$class['l1id']] = $class['l1name'];
+    	$level2[$class['l2id']] = $class['l2name'];
+    	
+    	/* since not all L1 may have L2 classes, we need to check for empty lines */
+    	if( $class['l2id'] != "") {
+    		$level21[$class['l2id']] = $class['l1id'];
+    	}
     }
-    
+
     dbclose($dbConnect);
-    return $retval;
+    
+    // now is the time to draw it all
+    foreach( $level1 as $l1id => $l1name) {
+    	if( $colindx == 0) {
+    		print "</tr><tr>";
+    		$colindx = $numofcolumns;
+    	}
+    	
+    	print "<td valign=\"top\"><font face=\"Verdana, Arial, Helvetica, sans-serif\" size=\"3\">";
+    	
+    	if($l1id == 0) {
+			printf("<input onchange=\"uncheck_all_when_noissues(); document.forms[0].class_cb.checked=true;\"
+					type=\"checkbox\" id=\"L1_%d\" name=\"L1_%d\"", $l1id, $l1id);
+    	}
+    	else {
+    		printf("<input onchange=\"uncheck_noissues(); document.forms[0].class_cb.checked=true;\" 
+    				type=\"checkbox\" id=\"L1_%d\" name=\"L1_%d\"", $l1id, $l1id);
+    	}
+    	
+		if(in_array($l1id, $exlevel1)) {
+			print " checked";
+		}
+		printf(">%s", $l1name);
+		
+		// draw L2 subtable inside the cell
+		// first cell in the table is empty to create an offset
+		print '<table>';
+		foreach( $level21 as $l2id => $id) {
+			if( $id == $l1id) {
+				print '<tr><td valign="top" width="10%">&nbsp</td>
+						<td>
+						<font face="Verdana, Arial, Helvetica, sans-serif" size="2">';
+				printf("<input onchange=\"checkL1(this); document.forms[0].class_cb.checked=true;\" 
+						type=\"checkbox\" name=\"L1_%d_L2_%d\" id=\"L1_%d_L2_%d\"", $l1id, $l2id, $l1id, $l2id);
+				if(in_array($l2id, $exlevel2)) {
+					print " checked";
+				}
+				printf("> %s</td>", $level2[$l2id]);
+				
+				print '</tr>';
+			}
+		}
+		print '</table></td>';
+				
+		$colindx--;
+		
+    }
+
+	print '</tr></table>';
+	
 }
 
-function getSubClassificationList( &$arSubClassifications) {
-	$retval = true;
-	$arSubClassifications = array();
-	
-	$dbConnect = dbconnect();
-
-    $sql  = "SELECT sclass_id,sclass_name FROM call_sclass ORDER BY sclass_name";
-    
-    $result = pg_query( $dbConnect, $sql);
-    if (!$result) {
-		$message  = 'Invalid query: ' . pg_result_error( $result) . "\n";
-		$message .= 'Whole query: ' . $sql;
-		printErrorMessage($message);
-		$retval=false;
-    }
-    while( $class = pg_fetch_array($result)) {
-		$arSubClassifications[$class['sclass_id']] = $class['sclass_name'];
-    }
-    
-    dbclose($dbConnect);
-    return $retval;
+function printClassJavaScript() {
+	print '<script type="text/javascript">
+		<!-- hide it from old browsers or from those with JavaScript disabled
+		function uncheck_noissues() {
+			if(document.getElementById("L1_0").checked) {
+				document.getElementById("L1_0").checked = false;
+				return true;
+			}
+		}
+		
+		function uncheck_all_when_noissues() {
+			if(document.getElementById("L1_0").checked) {
+				for(i=1; i<document.forms[0].elements.length; ++i) {
+					document.forms[0].elements[i].checked = false;
+				}
+				return true;
+			}
+		}		
+		
+		function checkL1(cb)
+		{
+			var l1_name_pattern = /L[1-9]+_[1-9]+/;
+			var l1_name;
+			
+			if( (l1_name = l1_name_pattern.exec(cb.name)) != null) {
+				document.getElementById(l1_name[0]).checked = true;
+			}
+			uncheck_noissues();
+			
+			return true;
+		}
+		-->
+		</script>';
 }
 
-function getCombinedClassificationList()
-{
-	print '<select name="sclass_id" size="1">';
+
+function drawLevel1ClassificationListPanel() {
+	$numofcolumns = 2;
+	$colindx = $numofcolumns;
+	
+	print '<table frame="border" width="100%"><tr>';
 	
 	$dbConnect = dbconnect();
-
-    $sql  = "SELECT m.mclass_id,s.sclass_id,m.mclass_name,s.sclass_name";
-    $sql .= " FROM call_mclass AS m,call_sclass AS s";
-    $sql .= " WHERE m.mclass_id=s.mclass_id ORDER BY m.mclass_name";
+	
+    $sql  = "SELECT l1id,l1name";
+    $sql .= " FROM l1_class ORDER BY l1id";
     
     $result = pg_query( $dbConnect, $sql);
     if (!$result) {
@@ -66,12 +167,178 @@ function getCombinedClassificationList()
 		printErrorMessage($message);
     }
     while( $class = pg_fetch_array($result)) {
-		printf("<option value=\"%d\">%s -- %s</option>",
-				$class['sclass_id'],$class['mclass_name'],$class['sclass_name']);
+    	if( $colindx == 0) {
+    		print "</tr><tr>";
+    		$colindx = $numofcolumns;
+    	}
+    	
+    	if($class['l1id'] > 0) {
+			printf("<td><input onchange=\"uncheck_noissues()\" type=\"checkbox\" name=\"L1_%s\" id=\"L1_%s\" size=\"5\" maxlength=\"5\"> %s</td>",
+				$class['l1id'], $class['l1id'], $class['l1name']);
+    	}
+    	else {
+			printf("<td><input onchange=\"uncheck_all_when_noissues()\" type=\"checkbox\" name=\"L1_%s\" id=\"L1_%s\" size=\"5\" maxlength=\"5\"> %s</td>",
+				$class['l1id'], $class['l1id'], $class['l1name']);
+    	}
+		$colindx--;
+		
     }
-    print '</select>';
+    print '</tr></table>';
+	
+    dbclose($dbConnect);
+}
+
+function validateL1ClassificationList( &$arL1Classifications, &$clean) {
+	if( is_array( $arL1Classifications)) {
+		$arL1 = array();
+		
+		$dbConnect = dbconnect();
+		
+	    $sql  = "SELECT l1id FROM l1_class";
+	    
+	    $result = pg_query( $dbConnect, $sql);
+	    if (!$result) {
+			$message  = 'Invalid query: ' . pg_result_error( $result) . "\n";
+			$message .= 'Whole query: ' . $sql;
+			printErrorMessage($message);
+	    }
+	    while( $class = pg_fetch_array($result)) {
+	    	if( strtoupper( $arL1Classifications['L1_' . $class['l1id']]) == 'ON') {
+	    		$arL1[] = $class['l1id'];
+	    	}			
+	    }
+	    
+	    if( sizeof( $arL1) > 0) {
+	    	$clean['L1'] = $arL1;
+	    }
+		
+	    dbclose($dbConnect);
+	}	
+}
+
+function validateL2ClassificationList( &$post, &$clean) {
+	if( is_array( $post)) {
+		$arL2Classifications = array();
+		$arL2 = array();
+		
+		foreach( $post as $key => $value) {
+			if(ereg("L1_[1-9]_L2_([0-9]+)", $key, $reg)) {
+				$arL2Classifications[$reg[1]] = $value; 
+			}
+		}
+		
+		$dbConnect = dbconnect();
+		
+	    $sql  = "SELECT l2id FROM l2_class";
+	    
+	    $result = pg_query( $dbConnect, $sql);
+	    if (!$result) {
+			$message  = 'Invalid query: ' . pg_result_error( $result) . "\n";
+			$message .= 'Whole query: ' . $sql;
+			printErrorMessage($message);
+	    }
+	    while( $class = pg_fetch_array($result)) {
+	    	if( strtoupper( $arL2Classifications[$class['l2id']]) == 'ON') {
+	    		$arL2[] = $class['l2id'];
+	    	}			
+	    }
+	    
+	    if( sizeof( $arL2) > 0) {
+	    	$clean['L2'] = $arL2;
+	    }
+		
+	    dbclose($dbConnect);
+	}	
+}
+
+function getL1andL2ClassificationNamesList( &$arL1, &$arL2)
+{
+	$retval = "";
+	$i = 0;
+	$nrows = 0;
+	
+	$dbConnect = dbconnect();
+
+//    $sql  = "SELECT l1name FROM l1_class WHERE l1id in (" . $L1_class_id_list . ")";
+
+// --> fix the query
+  	$sql = "SELECT l1_class.l1id,l1name,l2id,l2name FROM l1_class LEFT OUTER JOIN l2_class ON (l1_class.l1id=l2_class.l1id) 
+  			WHERE l1_class.l1id in " . array2sqllist($arL1) . " and l2id in " . array2sqllist($arL2) . " ORDER BY l1_class.l1id";
+  	  
+    $result = pg_query( $dbConnect, $sql);
+    if (!$result) {
+		$message  = 'Invalid query: ' . pg_result_error( $result) . "\n";
+		$message .= 'Whole query: ' . $sql;
+		printErrorMessage($message);
+    }
+    else {
+    	$nrows = pg_num_rows($result);
+
+// ---> here is the place to fix.    	
+	    while( $class = pg_fetch_array($result)) {
+	    	$i++;
+	    	if( $i == $nrows) {
+	    		$retval .= sprintf("%s", $class['l1name']);
+	    	}
+	    	else {
+				$retval .= sprintf("%s,", $class['l1name']);
+	    	}
+	    }
+    }
     
     dbclose($dbConnect);
+	
+	return $retval;
+}
+
+/*
+ * SELECT l1_class.l1id,l1name,l2id,l2name FROM l1_class LEFT OUTER JOIN l2_class ON (l1_class.l1id=l2_class.l1id) WHERE l1_class.l1id in (4,5) and l2id in (15,30) ORDER BY l1_class.l1id;
+ */
+
+function classifyTheCall( $callid, &$arL1, &$arL2)
+{
+	$retval = true;
+	
+	if(ctype_digit($callid) and $callid > 0) {
+		$dbConnect = dbconnect();
+	
+		$sql  = "BEGIN;";
+
+		/* get rid of all that's there already */
+		$sql .= "DELETE FROM call_l1_class WHERE callid={$callid};";
+		$sql .= "DELETE FROM call_l2_class WHERE callid={$callid};";
+		
+		if(isset($arL1) and is_array($arL1) and sizeof($arL1) > 0) {
+			foreach( $arL1 as $l1id) {
+			    $sql .= "INSERT INTO call_l1_class (callid,l1id)
+						 VALUES ({$callid},  {$l1id});";
+			}
+		}
+		
+		if(isset($arL2) and is_array($arL2) and sizeof($arL2) > 0) {
+			foreach( $arL2 as $l2id) {
+			    $sql .= "INSERT INTO call_l2_class (callid,l2id)
+						 VALUES ({$callid},  {$l2id});";
+			}
+		}
+				
+		$sql .= "COMMIT";
+		
+	    $result = pg_query( $dbConnect, $sql);
+	    if (!$result) {
+			$message  = 'Invalid query: ' . pg_result_error( $result) . "\n";
+			$message .= 'Whole query: ' . $sql;
+			printErrorMessage($message);
+			$retval=false;
+	    }
+	    
+	    dbclose($dbConnect);
+	}
+	else {
+		$retval = false;
+	}
+		
+    return $retval;
 }
 
 function getCombinedClassificationItem( $sclass_id)
