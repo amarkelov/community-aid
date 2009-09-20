@@ -76,7 +76,11 @@ function displayLogin($page, $check4Admin, $quiet = FALSE){
 		</tr>
 		</table>
 		<input name="Submit" type="submit" value="Login" />
-		</form></div></tr></td></table></body></html>';
+		</form></div></tr></td></table>
+		<script type="text/javascript">
+		document.getElementById(\'loginname\').focus();
+		</script>
+		</body></html>';
 		print $out;
 		return true; //we need to exit code
 	}
