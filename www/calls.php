@@ -87,14 +87,8 @@ $clean['operatorid'] = $_SESSION['operatorid'];
  * Cleaning the input data (end)
  */
 
-if( (!isset($clean['submit']) and !isset($clean['clientid'])) or
-	(isset($clean['submit']) and isset($clean['clientid']))) {
-	// we only need to refresh pages when not working with a client!
-	printHeader( "Calls", 12, "printCallsJavaScript");
-}
-else {
-	printHeader( "Calls", 0, "printCallsJavaScript");
-}
+// no refresh for this page! AJAX is going to refresh the clients list
+printCallsHeader( "Calls", 12, "printCallsJavaScript");
 
 if ($settings['debug'] > 0) {
 	require_once("functions.inc");
@@ -156,7 +150,7 @@ if ($clean['clientid'] and !isset($clean['submit'])) {
 			<font face="Verdana, Arial, Helvetica, sans-serif" size="2">
 			Report:</div></b>
 		    <div align="left">
-			<textarea name="chat" cols="65" rows="4" wrap="physical"></textarea>
+			<textarea tabindex="1" name="chat" id="chat" cols="65" rows="4" wrap="physical"></textarea>
 			</div>
 		    <br>
 		    <b><div align="left" valign="top">Call Classification:</div></b>';
@@ -179,16 +173,16 @@ if ($clean['clientid'] and !isset($clean['submit'])) {
 	  }
 	}
 
-	print '<input type="text" name="nextcalltime" size="6" maxlength="5" value="' . $nextcalltime . '" />
+	print '<input type="text" tabindex="2" name="nextcalltime" size="6" maxlength="5" value="' . $nextcalltime . '" />
 			<font color="#FF0000" size="1" face="Arial, Helvetica, sans-serif">(24 hour format HH:MM)</font>
 			<br><br>
-			<input type="checkbox" name="call_finished">Call finished</input>
+			<input type="checkbox" tabindex="3" name="call_finished">Call finished</input>
 			</font>
 			</div>
 			<br><br>
 			
 			<div align="center">
-			<input type="submit" name="submit" value="Submit" />  
+			<input type="submit" tabindex="4" name="submit" value="Submit" />  
 			</div>
 			
 			<input type="hidden" name="clientid" value="' . $clean['clientid'] . '" />
@@ -204,7 +198,10 @@ if ($clean['clientid'] and !isset($clean['submit'])) {
 		drawCalls( $clean['clientid']);
 	} 
 	
-	print '</font></td></tr></table></form>';
+	print '</font></td></tr></table></form>
+			<script type="text/javascript">
+				document.getElementById(\'chat\').focus();
+			</script>';
 } // if ($clientid and !$submit)
 else {
 	$out = '<table width="100%" border="0" cellpadding="5">
@@ -235,7 +232,12 @@ else {
 			<font face="Verdana, Arial, Helvetica, sans-serif" size="2"><br/>';
 	print $out; 
 	
-	drawClientsList($clean['operator'], $clean['clientid'], $clean['floating_list']);
+//	
+//	drawClientsList($clean['operator'], $clean['clientid'], $clean['floating_list']);
+//
+//	Time for AJAX to care of list refresh
+	print '<div id="ClientList"></div>';
+	
 	print '</font></td></tr></table>';
 }
 
