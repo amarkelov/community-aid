@@ -128,6 +128,7 @@ function printClassJavaScript() {
 				for(i=1; i<document.forms[0].elements.length; ++i) {
 					document.forms[0].elements[i].checked = false;
 				}
+				document.getElementById("L1_0").checked = true;
 				return true;
 			}
 		}		
