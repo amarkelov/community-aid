@@ -197,7 +197,8 @@ DROP TABLE  days CASCADE;
 CREATE TABLE days (
   clientid bigint default NULL,
   dow int NOT NULL,
-  FOREIGN KEY (clientid) REFERENCES clients (clientid) ON DELETE CASCADE ON UPDATE CASCADE
+  FOREIGN KEY (clientid) REFERENCES clients (clientid) ON DELETE CASCADE ON UPDATE CASCADE,
+  UNIQUE (clientid, dow)
 );
 
 --
@@ -284,24 +285,27 @@ CREATE OR REPLACE FUNCTION add_client(
 	/*25 timeslot*/ time,
 	/*26 operatorid*/ bigint,
 	/*27 groupid*/ bigint
-) RETURNS void AS $$ 
+) RETURNS BIGINT AS $$ 
 DECLARE
-	opid RECORD;
+	inserted_clientid BIGINT;
 BEGIN 
-/*
- * Values casted to varchar(x) type explicitely to make sure that longer strings
- * get truncated. Make sure the sizes correspond to the field size at all times! 
- */
-INSERT INTO clients (firstname,lastname,title,gender,address,area,districtid,
-					phone1,phone2,housetype,dob,alone, medical_notes,
-					contact1name,contact1relationship,contact1address,contact1phone,
-					contact2name,contact2relationship, contact2address,contact2phone,
-					gpname,referrer,alerts,timeslot,addedby,modifiedby, groupid)
-VALUES ( $1::varchar(64),  $2::varchar(64),  $3,  $4,  $5::varchar(512),  $6::varchar(50),  $7,
-		 $8::varchar(32),  $9::varchar(32), $10, $11, $12, $13::varchar(2048), 
-		 $14::varchar(64), $15::varchar(128), $16::varchar(512), $17::varchar(32), 
-		 $18::varchar(64), $19::varchar(128), $20::varchar(512), $21::varchar(32),
-		$22, $23::varchar(32), $24::varchar(2048), $25, $26, $26, $27);
+	/*
+	 * Values casted to varchar(x) type explicitely to make sure that longer strings
+	 * get truncated. Make sure the sizes correspond to the field size at all times! 
+	 */
+	INSERT INTO clients (firstname,lastname,title,gender,address,area,districtid,
+						phone1,phone2,housetype,dob,alone, medical_notes,
+						contact1name,contact1relationship,contact1address,contact1phone,
+						contact2name,contact2relationship, contact2address,contact2phone,
+						gpname,referrer,alerts,timeslot,addedby,modifiedby, groupid)
+	VALUES ( $1::varchar(64),  $2::varchar(64),  $3,  $4,  $5::varchar(512),  $6::varchar(50),  $7,
+			 $8::varchar(32),  $9::varchar(32), $10, $11, $12, $13::varchar(2048), 
+			 $14::varchar(64), $15::varchar(128), $16::varchar(512), $17::varchar(32), 
+			 $18::varchar(64), $19::varchar(128), $20::varchar(512), $21::varchar(32),
+			$22, $23::varchar(32), $24::varchar(2048), $25, $26, $26, $27);
+	SELECT currval('clients_clientid_seq') INTO inserted_clientid;
+	
+	RETURN inserted_clientid;
 
 END
 $$ LANGUAGE plpgsql;
