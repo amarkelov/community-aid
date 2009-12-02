@@ -1,4 +1,23 @@
 <?php
+function printCallsHeaderWithAJAX( $pageTitle) {
+	$settings = array();
+	$settings = get_ca_settings();
+	
+	print '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" 
+			"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+			<html xmlns="http://www.w3.org/1999/xhtml">
+			<head>
+				<title>' . $pageTitle . ' -- '  . $settings['org'] . ' -- ' . $settings['location'] . '</title>
+				<meta http-equiv="expires" content="-1">
+				<meta http-equiv="Cache-Control" content="no-cache">
+				<script type="text/javascript" src="/js/calls.js"></script>';
+	
+	print '</head>
+			<body bgcolor="#BEC8FD" onload="process()">
+			<font face="Verdana, Arial, Helvetica, sans-serif">
+			<p>'; 
+}
+
 function drawCalls( $clientid) 
 {
 	$current_week_number = 0;
@@ -425,7 +444,7 @@ function printCallsJavaScript() {
 
 // Draw clients list
 // left part of the screen
-function drawClientsList($operator, $clientid, $floating_list=false)
+function drawClientsList($operator, $floating_list=false)
 {
 	$clients = array();		// array to store clientids and the rest
 	$calltime = array();	// array to store timeslots
@@ -437,23 +456,27 @@ function drawClientsList($operator, $clientid, $floating_list=false)
 	$nextcall = array();	// array to store nextcalls
 	$timeslot_done = array();	// to track if the timeslot call was made
 	
+	$today = getdate();
+	$todays_dow = $today['wday'];
+	
 	$dbConnect = dbconnect();
 	
-	$fs = 1; // font size
+	$fs = 2; // font size
 	
 	// getting client list first ...
     $sql  = "SELECT clientid,firstname,lastname,
 			TO_CHAR(timeslot, 'HH24:MI') AS timeslot
-			FROM clients WHERE (clientid IN (SELECT clientid FROM client2operator WHERE 
+			FROM clients WHERE ((clientid IN (SELECT clientid FROM client2operator WHERE 
 			operatorid=(SELECT operatorid FROM operators WHERE loginname='{$operator}')) AND active='t') ";
 
     // add floating list to the mix
     if( $floating_list) {
     	$sql .= " OR ( groupid=1 AND active='t')";
     }
-    
+
+    $sql .= ") AND clientid in (SELECT clientid FROM days WHERE dow={$todays_dow}) ";
     $sql .= " ORDER BY timeslot, lastname";
-    
+        
     $result = pg_query( $dbConnect, $sql);
     if (!$result) {
 		$message  = 'Invalid query: ' . pg_result_error( $result) . '<br>' . 'Query: ' . $sql;
@@ -467,7 +490,7 @@ function drawClientsList($operator, $clientid, $floating_list=false)
 
 	// getting unfinished calls and nextcalltime for it
 	$sql = "SELECT clientid,TO_CHAR(nextcalltime,'DD/MM/YYYY HH24:MI:SS') as nextcalltime
-			FROM client_nextcalltime WHERE clientid in 
+			FROM client_nextcalltime WHERE (clientid in 
 			(SELECT clientid FROM client2operator WHERE 
 			operatorid=(SELECT operatorid FROM operators WHERE loginname='{$operator}'))";
 
@@ -476,6 +499,8 @@ function drawClientsList($operator, $clientid, $floating_list=false)
     	$sql .= " OR clientid IN (SELECT clientid FROM clients WHERE groupid=1 AND active='t') ";
     }
  
+    $sql .= ")  AND clientid in (SELECT clientid FROM days WHERE dow={$todays_dow}) ";
+    
     $result = pg_query( $dbConnect, $sql);
     if (!$result) {
 		$message  = 'Invalid query: ' . pg_result_error( $result) . '\n';
@@ -489,7 +514,7 @@ function drawClientsList($operator, $clientid, $floating_list=false)
 	
 	// getting the timeslot_done flags for all the clients
 	$sql = "SELECT clientid,timeslot_done
-			FROM client_timeslot_call WHERE clientid in 
+			FROM client_timeslot_call WHERE ( clientid in 
 			(SELECT clientid FROM client2operator WHERE 
 			operatorid=(SELECT operatorid FROM operators WHERE loginname='{$operator}'))";
 
@@ -498,6 +523,8 @@ function drawClientsList($operator, $clientid, $floating_list=false)
     	$sql .= " OR clientid IN (SELECT clientid FROM clients WHERE groupid=1)";
     }
 
+    $sql .= ")  AND clientid in (SELECT clientid FROM days WHERE dow={$todays_dow}) ";
+    
     $result = pg_query( $dbConnect, $sql);
     if (!$result) {
 		$message  = 'Invalid query: ' . pg_result_error( $result) . '\n';
@@ -562,58 +589,60 @@ function drawClientsList($operator, $clientid, $floating_list=false)
 	asort( $calltime);
 
 	// print it all out ....
-	print("<table>");
+	$out = '<table>';
 
 	// redpasts first
 	foreach ( $redpastcalltime as $cid => $ts ) {
-		$out  = '<tr><td ALIGN="left" width="15%"><a href="' . $PHP_SELF . '?clientid=' . $cid . '">';
-		$out .= '<font size="$fs">';
+		$out .= '<tr><td ALIGN="left" width="15%"><a href="' . $PHP_SELF . '?clientid=' . $cid . '">';
+		$out .= '<font size="' . $fs . '">';
 		$out .= $clients[$cid] . '</a></font></td>';
-		$out .= '<td ALIGN="right" width="5%"><b><font color="#f11313">' . $redpastcalltime[$cid] . '</font></b></td>';
-		$out .= '<td><b><font color="#f11313">' . $redpastcalltimemsg[$cid] . '</font></b></td>';
+		$out .= '<td ALIGN="right" width="5%"><b><font color="#f11313" size="' . $fs . '">' . $redpastcalltime[$cid] . '</font></b></td>';
+		$out .= '<td><b><font color="#f11313" size="' . $fs . '">' . $redpastcalltimemsg[$cid] . '</font></b></td>';
 		
-	    print $out . '</tr>';
+	   	$out .= '</tr>';
 	}
 	
 	// reds then
 	foreach ( $redcalltime as $cid => $ts ) {
-		$out  = '<tr><td ALIGN="left" width="15%"><a href="' . $PHP_SELF . '?clientid=' . $cid . '">';
-		$out .= '<font size="$fs">';
+		$out .= '<tr><td ALIGN="left" width="15%"><a href="' . $PHP_SELF . '?clientid=' . $cid . '">';
+		$out .= '<font size="' . $fs . '">';
 		$out .= $clients[$cid] . '</a></font></td>';
-		$out .= '<td ALIGN="right" width="5%"><b><font color="#f11313">' . $redcalltime[$cid] . '</font></b></td>';
-		$out .= '<td><b><font color="#f11313">' . $redcalltimemsg[$cid] . '</font></b></td>';
+		$out .= '<td ALIGN="right" width="5%"><b><font color="#f11313" size="' . $fs . '">' . $redcalltime[$cid] . '</font></b></td>';
+		$out .= '<td><b><font color="#f11313" size="' . $fs . '">' . $redcalltimemsg[$cid] . '</font></b></td>';
 		
-	    print $out . '</tr>';
+		$out .= '</tr>';
 	}
 	
 	// normals then
 	foreach ( $calltime as $cid => $ts ) {
-		$out  = '<tr><td ALIGN="left" width="15%"><a href="' . $PHP_SELF . '?clientid=' . $cid;
+		$out .= '<tr><td ALIGN="left" width="15%"><a href="' . $PHP_SELF . '?clientid=' . $cid;
 	    if( $floating_list) {
 	    	$out .= '&floating=1';
 	    }
 		$out .= '">';
-		$out .= '<font size="$fs">';
+		$out .= '<font size="' . $fs . '">';
 		$out .= $clients[$cid] . '</a></font></td>';
 		$out .= '<td ALIGN="right" width="5%">' . $calltime[$cid] . '</td>';
 		$out .= '<td>&nbsp</td>';
 		
-	    print $out . '</tr>';
+	    $out .= '</tr>';
 	}
 	
-	// notimes first
+	// notimes the last
 	foreach ( $nocalltime as $cid => $ts ) {
-		$out  = '<tr><td ALIGN="left" width="15%"><a href="' . $PHP_SELF . '?clientid=' . $cid . '">';
-		$out .= '<font size="$fs">';
+		$out .= '<tr><td ALIGN="left" width="15%"><a href="' . $PHP_SELF . '?clientid=' . $cid . '">';
+		$out .= '<font size="' . $fs . '">';
 		$out .= $clients[$cid] . '</a></font></td>';
 		$out .= '<td ALIGN="right" width="5%">' . $nocalltime[$cid] . '</td>';
 		$out .= '<td>&nbsp</td>';
 		
-	    print $out . '</tr>';
+	    $out .= '</tr>';
 	}
 	
-	print("</table>");
+	$out .= '</table>';
 
+	print $out;
+	
 	dbclose($dbConnect);
 }
 
@@ -675,7 +704,8 @@ function recordTheCall( &$clean) {
 	$callid = 0;
 	
 	$dbConnect = dbconnect();
-	
+
+	$sql = "BEGIN;";
 	$sql .= sprintf( "SELECT record_call(%d::BIGINT, 
 										 '%s'::TEXT, 
 										 '%s'::TIMESTAMP, 
@@ -705,14 +735,14 @@ function recordTheCall( &$clean) {
 			$arL1 = array();
 			$arL1 = $clean['L1'];
 	
-			$sql = "BEGIN;";
+			$sql = "";
 			
 			foreach( $arL1 as $value) {
 				$sql .= sprintf( "INSERT INTO call_l1_class (callid, l1id) VALUES (%d,%d);",
 							$callid, $value); 
 			}
 			
-			$sql .= "COMMIT";
+			$sql .= "COMMIT;";
 			
 			$result = pg_query( $dbConnect, $sql);
 			if (!$result) {
