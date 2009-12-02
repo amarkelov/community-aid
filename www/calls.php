@@ -87,8 +87,13 @@ $clean['operatorid'] = $_SESSION['operatorid'];
  * Cleaning the input data (end)
  */
 
-// no refresh for this page! AJAX is going to refresh the clients list
-printCallsHeader( "Calls", 12, "printCallsJavaScript");
+if (!$clean['clientid'] and !isset($clean['submit'])) {
+	// no refresh for this page! AJAX is going to refresh the clients list
+	printCallsHeaderWithAJAX( "Calls");
+}
+else {
+	printHeader( "Calls", 0, "printCallsJavaScript");	
+}
 
 if ($settings['debug'] > 0) {
 	require_once("functions.inc");
@@ -217,14 +222,16 @@ else {
 				<a href="' . $_SERVER['PHP_SELF'] . '?floating=1">
 				Include clients from the floating list
 				</a>
-				</font></p>';
+				</font></p>
+				<input type="hidden" name="floating" id="floating" value="0" />';
 	}
 	else {
 		$out .= '<p><font size="2">
 				<a href="' . $_SERVER['PHP_SELF'] . '?floating=0">
 				Exclude clients from the floating list
 				</a>
-				</font></p>';
+				</font></p>
+				<input type="hidden" name="floating" id="floating" value="1" />';
 	}
 	
 	$out .= '</td></tr>
@@ -232,9 +239,6 @@ else {
 			<font face="Verdana, Arial, Helvetica, sans-serif" size="2"><br/>';
 	print $out; 
 	
-//	
-//	drawClientsList($clean['operator'], $clean['clientid'], $clean['floating_list']);
-//
 //	Time for AJAX to care of list refresh
 	print '<div id="ClientList"></div>';
 	
