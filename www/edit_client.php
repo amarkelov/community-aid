@@ -46,13 +46,13 @@ if(isset($_SESSION['operatorid'])) {
 	$clean['operatorid'] = $_SESSION['operatorid'];
 }
 
+verifyClientData( $_POST, $clean);
+
 if($settings['debug'] == 1){
 	print "<b>\$clean on entry:</b><br>";
 	print_r( $clean);
 	print "<p>";
 }
-
-verifyClientData( $_POST, $clean);
 
 /*
  * End of filtering input
