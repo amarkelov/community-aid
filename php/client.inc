@@ -57,6 +57,18 @@ function getClientData( &$clean) {
 	$clean['timeslot']				= htmlentities($myrow['timeslot'], ENT_QUOTES);
 	$clean['alerts']				= htmlentities($myrow['alerts'], ENT_QUOTES);
 	$clean['groupid']				= htmlentities($myrow['groupid'], ENT_QUOTES);
+
+	$sql = "SELECT dow FROM days WHERE clientid={$clean['clientid']}";
+	
+	$result = pg_query( $dbConnect, $sql);
+	if (!$result) {
+		$message  = "Invalid query: " . pg_result_error( $result) . "\n";
+		$message .= "Whole query: " . $sql . "\n";
+		$retval = false;
+	}
+	while( $myrow = pg_fetch_array($result)) {
+		$clean['dow'][$myrow['dow']] = true;
+	}
 	
 	dbclose($dbConnect);
 }
@@ -98,19 +110,13 @@ function addClient(&$clean) {
 	$retval = true;
 	$dbConnect = dbconnect();
     
-/*	$sql = sprintf("INSERT INTO clients (firstname,lastname,title,gender,address,area,districtid,
-			phone1,phone2,housetype,dob,alone, medical_notes,
-			contact1name,contact1relationship,contact1address,contact1phone,
-			contact2name,contact2relationship, contact2address,contact2phone,
-			gpname,referrer,alerts,timeslot,addedby,modifiedby, groupid)
-			VALUES ('%s', '%s', '%s', '%s', '%s', '%s', %d, '%s', '%s', '%s', '%s', '%s', '%s',
-			'%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s','%s', '%s', '%s', %d, %d, %d)",*/
-	$sql = sprintf("SELECT add_client('%s'::varchar, '%s'::varchar, '%s'::varchar,
+	$sql  = "BEGIN;";
+	$sql .= sprintf("SELECT add_client('%s'::varchar, '%s'::varchar, '%s'::varchar,
 			'%s'::varchar, '%s'::varchar, '%s'::varchar, %d::bigint, '%s'::varchar, 
 			'%s'::varchar, '%s'::varchar, '%s'::date, '%s'::boolean, '%s'::varchar,
 			'%s'::varchar, '%s'::varchar, '%s'::varchar, '%s'::varchar, '%s'::varchar,
 			'%s'::varchar, '%s'::varchar, '%s'::varchar, '%s'::varchar,'%s'::varchar,
-			'%s'::varchar, '%s'::time, %d::bigint, %d::bigint)",  
+			'%s'::varchar, '%s'::time, %d::bigint, %d::bigint) as new_clientid;",  
 			pg_escape_string( $clean['firstname']),
 			pg_escape_string( $clean['lastname']),
 			pg_escape_string( $clean['title']),
@@ -137,9 +143,8 @@ function addClient(&$clean) {
 			pg_escape_string( $clean['alerts']),
 			pg_escape_string( $clean['timeslot']),
 			pg_escape_string( $clean['operatorid']),
-/*			pg_escape_string( $clean['operatorid']),*/
 			pg_escape_string( $clean['groupid']));
-
+			
 	// run SQL against the DB
 	$result = pg_query( $dbConnect, $sql);
 	if (!$result) {
@@ -156,6 +161,30 @@ function addClient(&$clean) {
 			printErrorMessage( $message);
 			$retval = false;
 //		}
+	}
+	else {
+		/* 
+		 * add_client() function returns clientid of the newly added client
+		 * which we'll use below to get the 'call on' days added to the system
+		 */
+		$new_clientid = pg_fetch_result($result, 0, 'new_clientid');
+		
+		$sql = "";
+		
+		for($i=0; $i <7; $i++) {
+			if(isset($clean['dow'][$i])) {
+				$sql .= "INSERT INTO days (clientid, dow) VALUES ({$new_clientid}, {$i});";
+			}
+		}
+		
+		$sql .= "COMMIT;";
+						
+		$result = pg_query( $dbConnect, $sql);
+		if (!$result) {
+			$message  = 'Invalid query: ' . pg_result_error( $result) . '<br>' . 'Query: ' . $sql;
+			printErrorMessage( $message);
+			$retval = false;
+		}
 	}
 	
 	dbclose( $dbConnect);
@@ -337,7 +366,8 @@ function updateClient( &$clean) {
 
 	// here if no ID then editing  else adding
 	if ( $clean['clientid']) {
-	    $sql  = sprintf("UPDATE clients SET firstname='%s',
+		$sql = "BEGIN;";
+	    $sql  .= sprintf("UPDATE clients SET firstname='%s',
 		    lastname='%s',title='%s',gender ='%s',address='%s',area='%s',
 			phone1='%s',phone2='%s',dob='%s',gpname='%s',housetype='%s',
 			referrer='%s',alone='%s',medical_notes='%s',alerts='%s',
@@ -345,7 +375,7 @@ function updateClient( &$clean) {
 		    contact1address='%s',contact1phone='%s',
 			contact2name='%s',contact2relationship='%s',
 		    contact2address='%s',contact2phone='%s', 
-		    timeslot='%s',changenote='%s',districtid=%d,groupid=%d,modifiedby=%d WHERE clientid=%d",
+		    timeslot='%s',changenote='%s',districtid=%d,groupid=%d,modifiedby=%d WHERE clientid=%d;",
 			pg_escape_string( $clean['firstname']),
 			pg_escape_string( $clean['lastname']),
 			pg_escape_string( $clean['title']),
@@ -375,6 +405,16 @@ function updateClient( &$clean) {
 			pg_escape_string( $clean['groupid']),
 			pg_escape_string( $clean['operatorid']),
 			pg_escape_string( $clean['clientid']));
+		
+		$sql .= "DELETE FROM days WHERE clientid={$clean['clientid']};";
+	
+		for($i=0; $i <7; $i++) {
+			if(isset($clean['dow'][$i])) {
+				$sql .= "INSERT INTO days (clientid, dow) VALUES ({$clean['clientid']}, {$i});";
+			}
+		}
+		
+		$sql .= "COMMIT;";
 
 		$result = pg_query( $dbConnect, $sql);
 		if ( !$result) {
