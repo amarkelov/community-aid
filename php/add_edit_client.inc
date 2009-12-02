@@ -238,6 +238,22 @@ function verifyClientData( &$arClientData, &$clean) {
 	if(isset($arClientData['timeslot'])){
 		$clean['timeslot'] = verify_timeslot($arClientData['timeslot']);
 	}
+	
+	if(isset($arClientData['monday']) ) {
+		$clean['dow'][1] = true;
+	}
+	if(isset($arClientData['tuesday']) ) {
+		$clean['dow'][2] = true;
+	}
+	if(isset($arClientData['wednesday']) ) {
+		$clean['dow'][3] = true;
+	}
+	if(isset($arClientData['thursday']) ) {
+		$clean['dow'][4] = true;
+	}
+	if(isset($arClientData['friday']) ) {
+		$clean['dow'][5] = true;
+	}
 }
 
 function printAddEditClientJavaScript() 
@@ -332,18 +348,28 @@ function printAddEditClientJavaScript()
 			var empty_fields = "";
 			var errors = "";
 			var ret;
+			var dow_checked = false;
 
-/*			var days = [ f.monday.value, 
-						 f.tuesday.value, 
-						 f.wednesday.value, 
-						 f.thursday.value, 
-						 f.friday.value, 
-						 f.saturday.value, 
-						 f.sunday.value];
+			if( f.monday.checked) {
+				dow_checked = true;
+			}
+			if( f.tuesday.checked) {
+				dow_checked = true;
+			}
+			if( f.wednesday.checked) {
+				dow_checked = true;
+			}
+			if( f.thursday.checked) {
+				dow_checked = true;
+			}
+			if( f.friday.checked) {
+				dow_checked = true;
+			}
 			
-			if( !Array.find("on")) {
-				errors += "You must choose at least one day when the person will get a call!\n";
-			} */		
+			
+			if( !dow_checked) {
+				errors += "You must choose at least one day when the person will get a call on!\n";
+			} 		
 			
 		    // Loop through the elements of the form, looking for all Text and 
 		    // Textarea elements that do not have an "optional" property defined. 
@@ -922,22 +948,31 @@ function printAddEditClientTable( $clean, $edit = 0)
 		<td ALIGN="left" width="15%"  VALIGN="top">
 		</td>
 	</tr>
-	</TABLE>';
-/* -- started to add some calendar bits. not yet finished.
+	</TABLE>
+
 	<TABLE BORDER=0 WIDTH=100%>
 	<tr>
 		<td ALIGN="right" width="15%" VALIGN="top">
 		</td>
 	
 		<td ALIGN="center"  width="30%" VALIGN="top">
+		<font size="1" color="#FF0000">
+		<b> *</b>
+		</font>
 		<font face="verdana, arial, helvetica" size="-1">
 		<b>Call on:      </b>
 		</font>
+		<input type="checkbox" name="monday" size="5" maxlength="5"';
+		if(isset($clean['dow'][1])) {
+			print(" checked");
+		}
+		print '>
+		</input>
 		<font face="verdana, arial, helvetica" size="-1">
 		<b>Mon </b>
 		</font>
-		<input type="checkbox" name="monday" size="5" maxlength="5"';
-		if($clean['monday']) {
+		<input type="checkbox" name="tuesday" size="5" maxlength="5"';
+		if(isset($clean['dow'][2])) {
 			print(" checked");
 		}
 		print '>
@@ -945,8 +980,8 @@ function printAddEditClientTable( $clean, $edit = 0)
 		<font face="verdana, arial, helvetica" size="-1">
 		<b>Tue </b>
 		</font>
-		<input type="checkbox" name="tuesday" size="5" maxlength="5"';
-		if($clean['tuesday']) {
+		<input type="checkbox" name="wednesday" size="5" maxlength="5"';
+		if(isset($clean['dow'][3])) {
 			print(" checked");
 		}
 		print '>
@@ -954,8 +989,8 @@ function printAddEditClientTable( $clean, $edit = 0)
 		<font face="verdana, arial, helvetica" size="-1">
 		<b>Wed </b>
 		</font>
-		<input type="checkbox" name="wednesday" size="5" maxlength="5"';
-		if($clean['wednesday']) {
+		<input type="checkbox" name="thursday" size="5" maxlength="5"';
+		if(isset($clean['dow'][4])) {
 			print(" checked");
 		}
 		print '>
@@ -963,8 +998,8 @@ function printAddEditClientTable( $clean, $edit = 0)
 		<font face="verdana, arial, helvetica" size="-1">
 		<b>Thu </b>
 		</font>
-		<input type="checkbox" name="thursday" size="5" maxlength="5"';
-		if($clean['thursday']) {
+		<input type="checkbox" name="friday" size="5" maxlength="5"';
+		if(isset($clean['dow'][5])) {
 			print(" checked");
 		}
 		print '>
@@ -972,37 +1007,13 @@ function printAddEditClientTable( $clean, $edit = 0)
 		<font face="verdana, arial, helvetica" size="-1">
 		<b>Fri </b>
 		</font>
-		<input type="checkbox" name="friday" size="5" maxlength="5"';
-		if($clean['friday']) {
-			print(" checked");
-		}
-		print '>
-		</input>
-		<font face="verdana, arial, helvetica" size="-1">
-		<b>Sat </b>
-		</font>
-		<input type="checkbox" name="saturday" size="5" maxlength="5"';
-		if($clean['saturday']) {
-			print(" checked");
-		}
-		print '>
-		</input>
-		<font face="verdana, arial, helvetica" size="-1">
-		<b>Sun </b>
-		</font>
-		<input type="checkbox" name="sunday" size="5" maxlength="5"';
-		if($clean['sunday']) {
-			print(" checked");
-		}
-		print '>
-		</input>
 		</td>
 	
 		<td ALIGN="left" width="15%"  VALIGN="top">
 		</td>
 	</tr>
 	</TABLE>';
-*/		
+		
 	if( $edit) {
 		print '<table width="100%" border="0" cellspacing="4" cellpadding="2">
 		<tr>
