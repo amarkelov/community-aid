@@ -24,7 +24,9 @@ if($settings['debug'] == 1){
 /*
  * Cleaning the input data
  */
- 
+validateL1ClassificationList ( $_POST, $clean);
+validateL2ClassificationList ( $_POST, $clean);
+
 if(isset($_POST['report'])) {
 	$clean['report'] = $_POST['report'];
 }
@@ -50,9 +52,50 @@ if (isset($clean['report'])) {
     // (1) classification
     if(isset($_POST['class_cb'])) {
 		$multi = 1;
-		$sql .= "class= " . $clean['sclass_id'];
+		$L1_class_id_list = "";
+    	
+		$sql .= "callid in (select callid from call_l1_class where l1id in (";
+				
+    	/* handle call classification now */
+		if( isset($clean['L1']) && sizeof($clean['L1']) > 0) {
+			$arL1 = array();
+			$arL1 = $clean['L1'];
+	
+			for( $i=0; $i < sizeof($arL1); $i++) {
+				if($i == sizeof($arL1) - 1) {
+					$L1_class_id_list .= sprintf( "%d", $arL1[$i]);
+				}
+				else {
+					$L1_class_id_list .= sprintf( "%d,", $arL1[$i]);
+				} 
+			}
+		}
+
+		$sql .= $L1_class_id_list . ")) ";
+
+		/* if L2 chosen, add it to the mix */
+		if( isset($clean['L2']) && sizeof($clean['L2']) > 0) {
+			$arL2 = array();
+			$arL2 = $clean['L2'];
+			$L2_class_id_list = "";
+			$sql .= " AND callid in (select callid from call_l2_class where l2id in (";
+			
+	
+			for( $i=0; $i < sizeof($arL2); $i++) {
+				if($i == sizeof($arL2) - 1) {
+					$L2_class_id_list .= sprintf( "%d", $arL2[$i]);
+				}
+				else {
+					$L2_class_id_list .= sprintf( "%d,", $arL2[$i]);
+				} 
+			}
+			
+			$sql .= $L2_class_id_list . ")) ";
+		}
+		
+//		$sql .= "class= " . $clean['sclass_id'];
 		$no_where_clause = false;
-		$criteria['Classification'] = getCombinedClassificationItem( $clean['sclass_id']);
+		$criteria['Classification'] = getL1andL2ClassificationNamesList( $arL1, $arL2);
     }
     // (2) date
     if(isset($_POST['date_cb'])) {
@@ -127,13 +170,13 @@ if (isset($clean['report'])) {
 	if($settings['debug_sql_limit'] > 0) {
 		$sql .= " LIMIT " . $settings['debug_sql_limit'];
 	}
-	
+
 	if( !$no_where_clause) {
 		// check if the report is bigger than we allow per page
 		$sql_count .= $sql;
 		$records_found = setpagesenv( $sql_count, $big_report); 
 		
-		$sql_norm .= $sql;
+		$sql_norm .= $sql . " ORDER BY callid";
 
 		/* if we asked for count only */
 		if(isset($_POST['countonly_cb'])) {
