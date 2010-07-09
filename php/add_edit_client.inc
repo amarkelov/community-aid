@@ -948,72 +948,75 @@ function printAddEditClientTable( $clean, $edit = 0)
 		<td ALIGN="left" width="15%"  VALIGN="top">
 		</td>
 	</tr>
-	</TABLE>
-
-	<TABLE BORDER=0 WIDTH=100%>
-	<tr>
-		<td ALIGN="right" width="15%" VALIGN="top">
-		</td>
-	
-		<td ALIGN="center"  width="30%" VALIGN="top">
-		<font size="1" color="#FF0000">
-		<b> *</b>
-		</font>
-		<font face="verdana, arial, helvetica" size="-1">
-		<b>Call on:      </b>
-		</font>
-		<input type="checkbox" name="monday" size="5" maxlength="5"';
-		if(isset($clean['dow'][1])) {
-			print(" checked");
-		}
-		print '>
-		</input>
-		<font face="verdana, arial, helvetica" size="-1">
-		<b>Mon </b>
-		</font>
-		<input type="checkbox" name="tuesday" size="5" maxlength="5"';
-		if(isset($clean['dow'][2])) {
-			print(" checked");
-		}
-		print '>
-		</input>
-		<font face="verdana, arial, helvetica" size="-1">
-		<b>Tue </b>
-		</font>
-		<input type="checkbox" name="wednesday" size="5" maxlength="5"';
-		if(isset($clean['dow'][3])) {
-			print(" checked");
-		}
-		print '>
-		</input>
-		<font face="verdana, arial, helvetica" size="-1">
-		<b>Wed </b>
-		</font>
-		<input type="checkbox" name="thursday" size="5" maxlength="5"';
-		if(isset($clean['dow'][4])) {
-			print(" checked");
-		}
-		print '>
-		</input>
-		<font face="verdana, arial, helvetica" size="-1">
-		<b>Thu </b>
-		</font>
-		<input type="checkbox" name="friday" size="5" maxlength="5"';
-		if(isset($clean['dow'][5])) {
-			print(" checked");
-		}
-		print '>
-		</input>
-		<font face="verdana, arial, helvetica" size="-1">
-		<b>Fri </b>
-		</font>
-		</td>
-	
-		<td ALIGN="left" width="15%"  VALIGN="top">
-		</td>
-	</tr>
 	</TABLE>';
+
+	$settings = get_ca_settings();
+	if($settings['calendar_enabled']) {
+		print '<TABLE BORDER=0 WIDTH=100%>
+		<tr>
+			<td ALIGN="right" width="15%" VALIGN="top">
+			</td>
 		
+			<td ALIGN="center"  width="30%" VALIGN="top">
+			<font size="1" color="#FF0000">
+			<b> *</b>
+			</font>
+			<font face="verdana, arial, helvetica" size="-1">
+			<b>Call on:      </b>
+			</font>
+			<input type="checkbox" name="monday" size="5" maxlength="5"';
+			if(isset($clean['dow'][1])) {
+				print(" checked");
+			}
+			print '>
+			</input>
+			<font face="verdana, arial, helvetica" size="-1">
+			<b>Mon </b>
+			</font>
+			<input type="checkbox" name="tuesday" size="5" maxlength="5"';
+			if(isset($clean['dow'][2])) {
+				print(" checked");
+			}
+			print '>
+			</input>
+			<font face="verdana, arial, helvetica" size="-1">
+			<b>Tue </b>
+			</font>
+			<input type="checkbox" name="wednesday" size="5" maxlength="5"';
+			if(isset($clean['dow'][3])) {
+				print(" checked");
+			}
+			print '>
+			</input>
+			<font face="verdana, arial, helvetica" size="-1">
+			<b>Wed </b>
+			</font>
+			<input type="checkbox" name="thursday" size="5" maxlength="5"';
+			if(isset($clean['dow'][4])) {
+				print(" checked");
+			}
+			print '>
+			</input>
+			<font face="verdana, arial, helvetica" size="-1">
+			<b>Thu </b>
+			</font>
+			<input type="checkbox" name="friday" size="5" maxlength="5"';
+			if(isset($clean['dow'][5])) {
+				print(" checked");
+			}
+			print '>
+			</input>
+			<font face="verdana, arial, helvetica" size="-1">
+			<b>Fri </b>
+			</font>
+			</td>
+		
+			<td ALIGN="left" width="15%"  VALIGN="top">
+			</td>
+		</tr>
+		</TABLE>';
+	}
+			
 	if( $edit) {
 		print '<table width="100%" border="0" cellspacing="4" cellpadding="2">
 		<tr>
