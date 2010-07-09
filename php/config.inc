@@ -51,7 +51,14 @@ function get_ca_settings(){
 	if(!isset($settings['pghost'])) {
 		$settings['pghost'] = 'localhost';
 	}
-	
+
+	if($settings['calendar_enabled'] == 1) {
+		$settings['calendar_enabled'] = true;	
+	}
+	else {
+		$settings['calendar_enabled'] = false;	
+	}	
+
 	return $settings;
 }
 
