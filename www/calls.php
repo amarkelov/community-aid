@@ -87,12 +87,12 @@ $clean['operatorid'] = $_SESSION['operatorid'];
  * Cleaning the input data (end)
  */
 
-if (!$clean['clientid'] and !isset($clean['submit'])) {
-	// no refresh for this page! AJAX is going to refresh the clients list
-	printCallsHeaderWithAJAX( "Calls");
+if ($clean['clientid'] and !$clean['submit']) {
+	printCallsHeader( "Calls", 0, "printCallsJavaScript");	
 }
 else {
-	printHeader( "Calls", 0, "printCallsJavaScript");	
+	// no refresh for this page! AJAX is going to refresh the clients list
+	printCallsHeader( "Calls", 1);
 }
 
 if ($settings['debug'] > 0) {
