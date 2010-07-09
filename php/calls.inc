@@ -1,5 +1,5 @@
 <?php
-function printCallsHeaderWithAJAX( $pageTitle) {
+function printCallsHeader( $pageTitle, $ajax = 0, $javaScriptFuncName = NULL) {
 	$settings = array();
 	$settings = get_ca_settings();
 	
@@ -9,8 +9,15 @@ function printCallsHeaderWithAJAX( $pageTitle) {
 			<head>
 				<title>' . $pageTitle . ' -- '  . $settings['org'] . ' -- ' . $settings['location'] . '</title>
 				<meta http-equiv="expires" content="-1">
-				<meta http-equiv="Cache-Control" content="no-cache">
-				<script type="text/javascript" src="/js/calls.js"></script>';
+				<meta http-equiv="Cache-Control" content="no-cache">';
+	
+	if($ajax > 0) {
+		print '<script type="text/javascript" src="/js/calls.js"></script>';
+	}
+	
+	if( isset( $javaScriptFuncName)) {
+		$javaScriptFuncName();
+	}
 	
 	print '</head>
 			<body bgcolor="#BEC8FD" onload="process()">
