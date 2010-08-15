@@ -122,7 +122,7 @@ if (isset($clean['submit']) and $clean['clientid']) {
 if ($clean['clientid'] and !isset($clean['submit'])) {
 	getClientData( &$clean);	
 
-	$out = '<form onsubmit="return(vtslot(this.nextcalltime, this));" 
+	$out = '<form onsubmit="return(verifyCall(this.nextcalltime, this));" 
 			method="post" action="' . $_SERVER['PHP_SELF'] . ' " >
 			<table width="100%" border="0" cellpadding="5">
 			<tr><td>';
