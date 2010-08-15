@@ -142,7 +142,7 @@ else {
 	$out .= '<table width="100%" border="0" cellpadding="5">';
 	$out .= '<tr> 
 			    <td valign="top" width="2%">
-			    <input type="checkbox" name="noclass_cb"></input>
+			    <input type="checkbox" name="noclass_cb id="noclass_cb"></input>
 			    </td>
 			    <td valign="top" width="20%">
 			    <font face="Verdana, Arial, Helvetica, sans-serif" size="2">
@@ -155,7 +155,7 @@ else {
 			</tr>
 			<tr> 
 			    <td valign="top" width="2%">
-			    <input type="checkbox" name="exclnoissues_cb"></input>
+			    <input type="checkbox" name="exclnoissues_cb" id="exclnoissues_cb"></input>
 			    </td>
 			    <td valign="top" width="20%">
 			    <font face="Verdana, Arial, Helvetica, sans-serif" size="2">
@@ -169,7 +169,7 @@ else {
 	
 	print '<tr>
 			    <td valign="top" width="2%">
-			    <input type="checkbox" name="groupid_cb"></input>
+			    <input type="checkbox" name="groupid_cb" id="groupid_cb"></input>
 			    </td>
 			    <td valign="top" width="20%">
 			    <font face="Verdana, Arial, Helvetica, sans-serif" size="2">
