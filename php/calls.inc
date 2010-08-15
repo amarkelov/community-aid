@@ -131,10 +131,11 @@ function drawCallsForClassification( &$criteria, $limit=100)
 	
 
 	if( is_array( $criteria)) {
-	    $sql  = 'SELECT calls.callid as callid, calls.time as time,
-					calls.chat as chat,
-					operators.loginname as operator
-					FROM calls, operators
+	    $sql  = 'SELECT c.callid, time, chat, o.loginname
+					FROM calls c
+					INNER JOIN operators o on c.operatorid=o.operatorid
+					INNER JOIN call_l1_class l1 on c.callid=l1.callid 
+					INNER JOIN clients cl on c.clientid = cl.clientid 
 					WHERE ';
 							
 		if( isset($criteria['tperiod'])) {
@@ -166,7 +167,7 @@ function drawCallsForClassification( &$criteria, $limit=100)
 			if( $need_and) {
 				$sql .= ' AND ';
 			}
-			$sql .= ' callid NOT IN (SELECT callid from call_l1_class) ';
+			$sql .= ' c.callid NOT IN (SELECT callid from call_l2_class) ';
 			$need_and = true;
 		}
 		
@@ -174,7 +175,7 @@ function drawCallsForClassification( &$criteria, $limit=100)
 			if( $need_and) {
 				$sql .= ' AND ';
 			}
-			$sql .= ' callid NOT IN (SELECT callid from call_l1_class WHERE l1id=0) ';
+			$sql .= ' l1.l1id != 0 ';
 			$need_and = true;
 		}
 		
@@ -182,11 +183,11 @@ function drawCallsForClassification( &$criteria, $limit=100)
 			if( $need_and) {
 				$sql .= ' AND ';
 			}
-			$sql .= " calls.clientid IN (SELECT clientid FROM clients WHERE groupid = {$criteria['groupid']}) ";
+			$sql .= " groupid = {$criteria['groupid']} ";
 			$need_and = true;
 		}
 		
-		$sql .= ' AND calls.operatorid=operators.operatorid ORDER BY callid DESC ';
+		$sql .= ' GROUP by c.callid, c.time, c.chat, o.loginname ORDER BY callid DESC ';
 		
 		if( $limit > 0) {
 			$sql .= ' LIMIT ' . $limit;
@@ -443,6 +444,39 @@ function printCallsJavaScript() {
 			msg = "Time has to be of 24 hours format (HH:MM)!\n";
 			alert( msg);
 			return false;
+		}
+		
+		function verifyCall(time, form)
+		{
+			var classified = 0;
+			var vtslot_ok = false;
+			
+			if(!vtslot(time, form)) {
+				return false;
+			}
+			else {
+				vtslot_ok = true;
+			}
+			
+			// checking that at least one classification was chosen
+			for( i=0; i<8; ++i) {
+				if( document.getElementById("L1_" + i).checked) {
+					classified++;
+				}
+			}
+			
+			if( classified == 0) {
+				msg = "At least one classification category must be chosen!\n";
+				alert( msg);
+			}
+
+			// if both checks are good, we are good
+			if (vtslot_ok && classified > 0) {
+				return true;
+			}
+			
+			return false;
+			
 		}
 		-->
 		</script>';
@@ -761,7 +795,7 @@ function recordTheCall( &$clean) {
 	}
 		
 	dbclose( $dbConnect);
-	
+
 	return $retval;
 }
 
