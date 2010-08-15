@@ -190,6 +190,18 @@ CREATE TABLE call_l1_class (
 );
 
 --
+-- Table structure for table call_l2_class
+--
+
+DROP TABLE  call_l2_class CASCADE;
+CREATE TABLE call_l2_class (
+  callid bigint NOT NULL,
+  l2id bigint NOT NULL,
+  FOREIGN KEY (callid) REFERENCES calls (callid) ON DELETE CASCADE ON UPDATE CASCADE,
+  FOREIGN KEY (l2id) REFERENCES l2_class (l2id) ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+--
 -- Table structure for table days
 --
 
