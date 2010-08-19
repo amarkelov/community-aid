@@ -133,12 +133,26 @@ function drawCallsForClassification( &$criteria, $limit=100)
 	if( is_array( $criteria)) {
 	    $sql  = 'SELECT c.callid, time, chat, o.loginname
 					FROM calls c
-					INNER JOIN operators o on c.operatorid=o.operatorid
-					INNER JOIN call_l1_class l1 on c.callid=l1.callid 
-					INNER JOIN clients cl on c.clientid = cl.clientid 
-					WHERE ';
-							
+					LEFT OUTER JOIN operators o on c.operatorid=o.operatorid
+					LEFT OUTER JOIN call_l1_class l1 on c.callid=l1.callid 
+					LEFT OUTER JOIN clients cl on c.clientid = cl.clientid'; 
+
+		if( isset($criteria['noclass'])) {
+			$sql .= ' LEFT OUTER JOIN call_l2_class cl2 on c.callid = cl2.callid';
+		}
+
+		$sql .= ' WHERE ';
+			
+		if( isset($criteria['noclass'])) {
+			$sql .= ' l2id IS NULL ';
+			$need_and = true;
+		}
+		
 		if( isset($criteria['tperiod'])) {
+			if( $need_and) {
+				$sql .= ' AND ';
+			}
+			
 			switch ($criteria['tperiod']) {
 				case 'today':
 					$sql .= " time > (CURRENT_DATE + TIME '00:00') ";
@@ -163,19 +177,11 @@ function drawCallsForClassification( &$criteria, $limit=100)
 			$need_and = true;
 		}
 		
-		if( isset($criteria['noclass'])) {
-			if( $need_and) {
-				$sql .= ' AND ';
-			}
-			$sql .= ' c.callid NOT IN (SELECT callid from call_l2_class) ';
-			$need_and = true;
-		}
-		
 		if( isset($criteria['exclnoissues'])) {
 			if( $need_and) {
 				$sql .= ' AND ';
 			}
-			$sql .= ' l1.l1id != 0 ';
+			$sql .= ' l1.l1id > 0 ';
 			$need_and = true;
 		}
 		
@@ -194,7 +200,7 @@ function drawCallsForClassification( &$criteria, $limit=100)
 		}
 		
 		$dbConnect = dbconnect();
-			    
+			    		
 	    $result = pg_query( $dbConnect, $sql);
 	    if (!$result) {
 			$message  = 'Invalid query: ' . pg_result_error( $result) . "\n";
