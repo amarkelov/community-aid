@@ -173,7 +173,7 @@ function drawCallsForClassification( &$criteria, $limit=100)
 			if( $need_and) {
 				$sql .= ' AND ';
 			}
-			$sql .= " clientid = {$criteria['clientid']} ";
+			$sql .= " c.clientid = {$criteria['clientid']} ";
 			$need_and = true;
 		}
 		
