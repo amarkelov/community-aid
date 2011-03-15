@@ -168,12 +168,12 @@ CREATE TABLE calls (
   clientid bigint default NULL,
   time timestamp NOT NULL default CURRENT_TIMESTAMP,
   chat text,
-  class int default NULL,
+--  class int default NULL, -- no longer used. New deployments should not use it.
   operatorid bigint NOT NULL,
   call_finished boolean default 'f',
   PRIMARY KEY  (callid),
   FOREIGN KEY (clientid) REFERENCES clients (clientid) ON DELETE CASCADE ON UPDATE CASCADE,
-  FOREIGN KEY (class) REFERENCES call_sclass (sclass_id) ON UPDATE CASCADE,
+--  FOREIGN KEY (class) REFERENCES call_sclass (sclass_id) ON UPDATE CASCADE, -- no longer used. New deployments should not use it.
   FOREIGN KEY (operatorid) REFERENCES operators (operatorid) ON UPDATE CASCADE
 );
 
@@ -258,7 +258,7 @@ CREATE TABLE client_nextcalltime (
   UNIQUE (clientid)
 );
 
-CREATE INDEX calls_class_idx ON calls (class);
+-- CREATE INDEX calls_class_idx ON calls (class); -- no longer used. New deployments should not use it.
 CREATE INDEX calls_clientid_idx ON calls (clientid);
 CREATE INDEX calls_time_idx ON calls (time);
 CREATE INDEX clients_addedby_idx ON clients (addedby);
@@ -394,3 +394,18 @@ BEGIN
 END
 $$ LANGUAGE plpgsql;
 CREATE TRIGGER operator_update AFTER UPDATE ON operators FOR EACH ROW EXECUTE PROCEDURE operator_update_after_trigger();
+
+CREATE OR REPLACE VIEW clients_anonymous AS 
+	SELECT cl.clientid,extract(year FROM age(dob)) AS age,gender,timeslot,alone,medical_notes,alerts,housetype,active,
+	d.district_name,area,g.group_name from clients cl 
+	LEFT OUTER JOIN districts d ON cl.districtid=d.districtid
+	LEFT OUTER JOIN groups g ON cl.groupid=g.groupid
+	ORDER BY cl.clientid;
+
+CREATE OR REPLACE VIEW calls_report AS
+	SELECT callid,clientid,time,chat,call_finished,c.operatorid,o.fullname AS operator_name FROM calls AS c 
+	LEFT OUTER JOIN operators o ON c.operatorid=o.operatorid ORDER BY callid;
+
+create view cl1 as select callid,cl1.l1id,l1name from calls_report left outer join call_l1_class cl1 using (callid) left outer join l1_class l1 on cl1.l1id=l1.l1id;
+
+create view cl2 as select callid,cl2.l2id,l2name,l1id from calls_report left outer join call_l2_class cl2 using (callid) left outer join l2_class l2 on cl2.l2id=l2.l2id;

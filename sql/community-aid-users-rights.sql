@@ -64,14 +64,13 @@ GRANT SELECT,INSERT ON call_l2_class TO caoperator;
 
 GRANT SELECT ON call_mclass TO careport;
 GRANT SELECT ON call_sclass TO careport;
-GRANT SELECT ON calls TO careport;
+GRANT SELECT ON calls_report TO careport;
 GRANT SELECT ON days TO careport;
 GRANT SELECT ON client2operator TO careport;
-GRANT SELECT ON client_timeslot_call TO careport;
-GRANT SELECT ON clients TO careport;
+GRANT SELECT ON clients_anonymous TO careport;
 GRANT SELECT ON districts TO careport;
-GRANT SELECT ON operators TO careport;
 GRANT SELECT ON l1_class TO careport;
 GRANT SELECT ON l2_class TO careport;
 GRANT SELECT ON call_l2_class TO careport;
-
+GRANT SELECT ON cl1 TO careport;
+GRANT SELECT ON cl2 TO careport;
