@@ -60,4 +60,24 @@ function filter_phone_number($phone) {
 	return $filtered;
 }
 
+function array2string( $array) {
+	$key = 0;
+	$val = 0;
+	$list = "";
+	$i = 0;
+	
+	while( list($key, $val) = each($array)) {
+	    if( $i > 0) {
+			$list .= "," . $val;
+	    }
+	    else {
+	    	/* it's the first item */
+	    	$list = $val;
+	    }
+	    $i++;
+	}
+	
+	return $list;
+}
+
 ?>

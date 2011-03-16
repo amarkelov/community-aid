@@ -260,33 +260,67 @@ function getL1andL2ClassificationNamesList( &$arL1, &$arL2)
 	
 	$dbConnect = dbconnect();
 
-//    $sql  = "SELECT l1name FROM l1_class WHERE l1id in (" . $L1_class_id_list . ")";
-
-// --> fix the query
-  	$sql = "SELECT l1_class.l1id,l1name,l2id,l2name FROM l1_class LEFT OUTER JOIN l2_class ON (l1_class.l1id=l2_class.l1id) 
-  			WHERE l1_class.l1id in " . array2sqllist($arL1) . " and l2id in " . array2sqllist($arL2) . " ORDER BY l1_class.l1id";
-  	  
-    $result = pg_query( $dbConnect, $sql);
-    if (!$result) {
-		$message  = 'Invalid query: ' . pg_result_error( $result) . "\n";
-		$message .= 'Whole query: ' . $sql;
-		printErrorMessage($message);
-    }
-    else {
-    	$nrows = pg_num_rows($result);
-
-// ---> here is the place to fix.    	
-	    while( $class = pg_fetch_array($result)) {
-	    	$i++;
-	    	if( $i == $nrows) {
-	    		$retval .= sprintf("%s", $class['l1name']);
-	    	}
-	    	else {
-				$retval .= sprintf("%s,", $class['l1name']);
-	    	}
+	/* 
+	 * It will list L1 classifications first and if L2 array is not empty, it's listing
+	 * L2 ones in format L1 - L2.
+	 * Not ideal, but does the job.
+	 */
+	if( sizeof($arL1) == 0) {
+		return $retval;
+	}
+	else {
+		$sql = "SELECT l1name FROM l1_class WHERE l1_class.l1id in (" . array2string( $arL1) . ")";
+  		$sql .= " ORDER BY l1id";
+	  	    	
+	    $result = pg_query( $dbConnect, $sql);
+	    if (!$result) {
+			$message  = 'Invalid query: ' . pg_result_error( $result) . "\n";
+			$message .= 'Whole query: ' . $sql;
+			printErrorMessage($message);
 	    }
-    }
-    
+	    else {
+	    	$nrows = pg_num_rows($result);
+	
+			$i = 0;   	
+		    while( $class = pg_fetch_array($result)) {
+		    	$i++;
+		    	if( $i == $nrows) {
+		    		$retval .= sprintf("%s; ", $class['l1name']);
+		    	}
+		    	else {
+					$retval .= sprintf("%s, ", $class['l1name']);
+		    	}
+		    }
+	    }
+	
+		if( sizeof($arL2) != 0) {
+			$sql = "SELECT l1name,l2name FROM l2_class 
+						LEFT OUTER JOIN l1_class USING (l1id) 
+						WHERE l2id in (" . array2string($arL2) . ")  ORDER BY l1id";
+	    
+		    $result = pg_query( $dbConnect, $sql);
+		    if (!$result) {
+				$message  = 'Invalid query: ' . pg_result_error( $result) . "\n";
+				$message .= 'Whole query: ' . $sql;
+				printErrorMessage($message);
+		    }
+		    else {
+		    	$nrows = pg_num_rows($result);
+		
+				$i = 0;   	
+			    while( $class = pg_fetch_array($result)) {
+			    	$i++;
+			    	if( $i == $nrows) {
+			    		$retval .= sprintf("%s - %s", $class['l1name'],$class['l2name']);
+			    	}
+			    	else {
+						$retval .= sprintf("%s - %s, ", $class['l1name'],$class['l2name']);
+			    	}
+			    }
+		    }
+		}
+	}
+			
     dbclose($dbConnect);
 	
 	return $retval;
