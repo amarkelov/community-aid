@@ -71,15 +71,14 @@ if (isset($clean['report'])) {
 			}
 		}
 
-		$sql .= $L1_class_id_list . ")) ";
+		$sql .= $L1_class_id_list . ") ";
 
 		/* if L2 chosen, add it to the mix */
 		if( isset($clean['L2']) && sizeof($clean['L2']) > 0) {
 			$arL2 = array();
 			$arL2 = $clean['L2'];
 			$L2_class_id_list = "";
-			$sql .= " AND callid in (select callid from call_l2_class where l2id in (";
-			
+			$sql .= " UNION select callid from call_l2_class where l2id in ("; 			
 	
 			for( $i=0; $i < sizeof($arL2); $i++) {
 				if($i == sizeof($arL2) - 1) {
@@ -201,7 +200,7 @@ if (isset($clean['report'])) {
 				printErrorMessage( $message);
 			}
 			
-		    $out  = '<hr noshade>';
+			$out  = '<hr noshade>';
 		    $out .= '<font face="Verdana, Arial, Helvetica, sans-serif" size="2">';
 		    $out .= '<table width="100%" border="1" cellpadding="0" cellspacing="0">';
 		    $out .= '<tr bgcolor="#00FF00">';
