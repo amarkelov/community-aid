@@ -74,3 +74,6 @@ GRANT SELECT ON l2_class TO careport;
 GRANT SELECT ON call_l2_class TO careport;
 GRANT SELECT ON cl1 TO careport;
 GRANT SELECT ON cl2 TO careport;
+GRANT SELECT ON groups TO careport;
+GRANT SELECT ON group2operator TO careport;
+GRANT SELECT ON operators_report TO careport;
