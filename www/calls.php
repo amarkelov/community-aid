@@ -171,7 +171,7 @@ if ($clean['clientid'] and !isset($clean['submit'])) {
 	 * with a clientid
 	 */
 	if(!empty($clean['nextcalltime'])) {  
-	  if ( ereg( "([0-9]{2}):([0-9]{2})", $clean['nextcalltime'], $regs ) ) {
+	  if ( preg_match( "/([0-9]{2}):([0-9]{2})/", $clean['nextcalltime'], $regs ) ) {
 	    $nextcalltime  = "$regs[1]:$regs[2]";
 	  }else {
 	    $nextcalltime  = "Invalid time format: " . $clean['nextcalltime'];

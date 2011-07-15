@@ -63,7 +63,7 @@ function drawCalls( $clientid)
 		$time=$myrow["time"];
 	
 		$regs = 0;
-		if ( ereg( "([0-9]{4})-([0-9]{2})-([0-9]{2}) ([0-9]{2}):([0-9]{2}):([0-9]{2})", $time, $regs ) ) {
+		if ( preg_match( "/([0-9]{4})-([0-9]{2})-([0-9]{2}) ([0-9]{2}):([0-9]{2}):([0-9]{2})/", $time, $regs ) ) {
 		    $out="$regs[3]/$regs[2]/$regs[1] $regs[4]:$regs[5]";
 		    $current_week_number = date("W",mktime(0,0,0,$regs[2],$regs[3],$regs[1]));
 		}
@@ -224,7 +224,7 @@ function drawCallsForClassification( &$criteria, $limit=100)
 			$time=$myrow["time"];
 		
 			$regs = 0;
-			if ( ereg( "([0-9]{4})-([0-9]{2})-([0-9]{2}) ([0-9]{2}):([0-9]{2}):([0-9]{2})", $time, $regs ) ) {
+			if ( preg_match( "/([0-9]{4})-([0-9]{2})-([0-9]{2}) ([0-9]{2}):([0-9]{2}):([0-9]{2})/", $time, $regs ) ) {
 			    $out="$regs[3]/$regs[2]/$regs[1] $regs[4]:$regs[5]";
 			    $current_week_number = date("W",mktime(0,0,0,$regs[2],$regs[3],$regs[1]));
 			}
@@ -324,7 +324,7 @@ function drawClientDetails($clientid)
 				else {
 				    $phone2 = "N/A";
 				}
-				if ( ereg( "([0-9]{4})-([0-9]{2})-([0-9]{2})", $myrow["dob"], $regs ) ) {
+				if ( preg_match( "/([0-9]{4})-([0-9]{2})-([0-9]{2})/", $myrow["dob"], $regs ) ) {
 				    $dob = "$regs[3]/$regs[2]/$regs[1]";
 				}
 		       	else {
@@ -590,13 +590,17 @@ function drawClientsList($operator, $floating_list=false)
 	foreach( $calltime as $cid => $nctime) { // now go through it all and figure out the time....
 		$nct = -1;
 		if( isset($nextcall[$cid])) {
-			if( ereg( "([0-9]{2})/([0-9]{2})/([0-9]{4}) ([0-9]{2}):([0-9]{2}):([0-9]{2})", $nextcall[$cid], $regs )) {
+	    	/* 
+	    	 * I'm using # as the delimiter. The default one is / , but I would need to escape
+	    	 * the rest of / in date spec if I was to use the default delimiter.
+	    	 */
+			if( preg_match( "#([0-9]{2})/([0-9]{2})/([0-9]{4}) ([0-9]{2}):([0-9]{2}):([0-9]{2})#", $nextcall[$cid], $regs )) {
 				$nct = mktime($regs[4],$regs[5],$regs[6],$regs[2],$regs[1],$regs[3]); // nextcalltime
 			}
 		}
 
 		$regs = 0;
-		if( ereg( "([0-9]{2}):([0-9]{2})", $nctime, $regs )) {
+		if( preg_match( "/([0-9]{2}):([0-9]{2})/", $nctime, $regs )) {
 			$tms = mktime($regs[1], $regs[2], 0, date("m"), date("d"), date("Y")); // time slot
 		}
 		else {

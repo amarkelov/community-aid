@@ -53,7 +53,7 @@ function verify_timeslot($timeslot)
 }
 
 function filter_phone_number($phone) {
-	$filtered = ereg_replace( " |-", "", $phone);
+	$filtered = preg_replace( "/ |-/", "", $phone);
 	if(!ctype_digit($filtered)) {
 		$filtered = "N/A";	
 	}

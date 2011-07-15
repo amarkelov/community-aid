@@ -112,10 +112,14 @@ if (isset($clean['report'])) {
 				$criteria['Year'] = $_POST['year'];
 				break;
 		    case "dates":
-				if(ereg("([0-9]{2})/([0-9]{2})/([0-9]{4})", $_POST['date_from'], $regs)) {
+		    	/* 
+		    	 * I'm using # as the delimiter. The default one is / , but I would need to escape
+		    	 * the rest of / in date spec if I was to use the default delimiter.
+		    	 */
+		    	if(preg_match("#([0-9]{2})/([0-9]{2})/([0-9]{4})#", $_POST['date_from'], $regs)) {
 				    $df = "$regs[3]-$regs[2]-$regs[1] 00:00:00";
 				}
-				if(ereg("([0-9]{2})/([0-9]{2})/([0-9]{4})", $_POST['date_to'], $regs)) {
+				if(preg_match("#([0-9]{2})/([0-9]{2})/([0-9]{4})#", $_POST['date_to'], $regs)) {
 				    $dt = "$regs[3]-$regs[2]-$regs[1] 23:59:59";
 				}
 		

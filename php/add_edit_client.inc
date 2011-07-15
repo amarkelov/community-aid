@@ -81,7 +81,11 @@ function verifyClientData( &$arClientData, &$clean) {
 	
 	if(isset($arClientData['dob'])) {
 		$reg = 0;
-		if(ereg( "([0-3]{1}[0-9]{1})/([0-1]{1}[0-9]{1})/([1-2]{1}[0-9]{3})", $arClientData['dob'], $reg)) {
+		/* 
+    	 * I'm using # as the delimiter. The default one is / , but I would need to escape
+    	 * the rest of / in date spec if I was to use the default delimiter.
+    	 */
+		if(preg_match( "#([0-3]{1}[0-9]{1})/([0-1]{1}[0-9]{1})/([1-2]{1}[0-9]{3})#", $arClientData['dob'], $reg)) {
 			$clean['dob'] = $reg[3] . "-" . $reg[2] . "-" . $reg[1];
 		}
 	}
@@ -461,7 +465,11 @@ function printAddEditClientTable( $clean, $edit = 0)
 		<input type="Text" name="dob" onchange="return vdob(this);" value="';
 		    
 	if($clean['dob']) {
-		if( ereg( "([1-2]{1}[0-9]{3})-([0-1]{1}[0-9]{1})-([0-9]{2})", $clean['dob'], $reg)) {
+		/* 
+    	 * I'm using # as the delimiter. The default one is / , but I would need to escape
+    	 * the rest of / in date spec if I was to use the default delimiter.
+    	 */
+		if( preg_match( "#([1-2]{1}[0-9]{3})-([0-1]{1}[0-9]{1})-([0-9]{2})#", $clean['dob'], $reg)) {
 			print("$reg[3]/$reg[2]/$reg[1]");
 		}
 		else {

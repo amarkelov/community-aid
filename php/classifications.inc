@@ -223,7 +223,7 @@ function validateL2ClassificationList( &$post, &$clean) {
 		$arL2 = array();
 		
 		foreach( $post as $key => $value) {
-			if(ereg("L1_[1-9]_L2_([0-9]+)", $key, $reg)) {
+			if(preg_match("/L1_[1-9]_L2_([0-9]+)/", $key, $reg)) {
 				$arL2Classifications[$reg[1]] = $value; 
 			}
 		}
