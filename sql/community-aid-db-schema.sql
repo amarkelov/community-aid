@@ -402,10 +402,19 @@ CREATE OR REPLACE VIEW clients_anonymous AS
 	LEFT OUTER JOIN groups g ON cl.groupid=g.groupid
 	ORDER BY cl.clientid;
 
+CREATE OR REPLACE VIEW operators_report AS 
+	SELECT operatorid, fullname, deleted FROM operators
+	WHERE deleted=false
+	ORDER BY operatorid;
+	
 CREATE OR REPLACE VIEW calls_report AS
 	SELECT callid,clientid,time,chat,call_finished,c.operatorid,o.fullname AS operator_name FROM calls AS c 
 	LEFT OUTER JOIN operators o ON c.operatorid=o.operatorid ORDER BY callid;
 
-create view cl1 as select callid,cl1.l1id,l1name from calls_report left outer join call_l1_class cl1 using (callid) left outer join l1_class l1 on cl1.l1id=l1.l1id;
+CREATE OR REPLACE VIEW cl1 AS SELECT callid,cl1.l1id,l1name FROM calls_report 
+	LEFT OUTER JOIN call_l1_class cl1 USING (callid) 
+	LEFT OUTER JOIN l1_class l1 ON cl1.l1id=l1.l1id;
 
-create view cl2 as select callid,cl2.l2id,l2name,l1id from calls_report left outer join call_l2_class cl2 using (callid) left outer join l2_class l2 on cl2.l2id=l2.l2id;
+CREATE OR REPLACE VIEW cl2 AS SELECT callid,cl2.l2id,l2name,l1id FROM calls_report 
+	LEFT OUTER JOIN call_l2_class cl2 USING (callid) 
+	LEFT OUTER JOIN l2_class l2 ON cl2.l2id=l2.l2id;
