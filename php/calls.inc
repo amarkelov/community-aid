@@ -34,7 +34,6 @@ function drawCalls( $clientid)
 	
     $sql  = "SELECT calls.time as time,
 				calls.chat as chat,
-				calls.class as class,
 				operators.loginname as operator FROM calls, operators
 				WHERE clientid={$clientid} AND 
 				time > (NOW() - INTERVAL '3 WEEK') AND 
