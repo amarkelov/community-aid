@@ -112,7 +112,7 @@ function getGroupNamesAsDropDownList( $selectName = "groupid", $bNoFloatingList 
 	$arGroupNames = array();
 	
 	if( getGroupNames( $arGroupNames, $bNoFloatingList)) {
-		print '<select name="' . $selectName . '" onchange="document.forms[0].groupid_cb.checked=true;">';
+		print '<select name="' . $selectName . '" onchange="document.forms[0].groupid_cb.checked=true;" multiple>';
 		
 		foreach( $arGroupNames as $gid => $group_name) {
 			print '<option value="' . $gid . '">' . $group_name . '</option>';
@@ -172,10 +172,12 @@ function addGroupToOperator( $groupid, $operatorid) {
 	$sql = "BEGIN;";
 	$sql .= "DELETE FROM group2operator WHERE 
 				operatorid=" . pg_escape_string( $operatorid) . ";";
-	
-	$sql .= "INSERT INTO group2operator ( groupid, operatorid) " . 
-				" VALUES ("	. pg_escape_string( $groupid) .  ", " . pg_escape_string( $operatorid) . ");";
 
+	foreach( $groupid as $gid) {
+		$sql .= "INSERT INTO group2operator ( groupid, operatorid) " . 
+					" VALUES ("	. pg_escape_string( $gid) .  ", " . pg_escape_string( $operatorid) . ");";
+	}
+	
 	$sql .= "COMMIT";
 
 	$result = pg_query( $dbConnect, $sql);
