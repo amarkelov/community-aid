@@ -57,6 +57,29 @@ INSERT INTO call_sclass (mclass_id,sclass_name) VALUES (7,'Details');
 INSERT INTO districts VALUES (0,'Not defined or removed',NULL);
 
 --
+-- INSERT default data for table hseareas
+--
+
+INSERT INTO hseareas VALUES (0,'Not defined or removed',NULL);
+INSERT INTO hseareas VALUES (1,'LHO 1',NULL);
+INSERT INTO hseareas VALUES (2,'LHO 2',NULL);
+INSERT INTO hseareas VALUES (3,'LHO 3',NULL);
+INSERT INTO hseareas VALUES (4,'LHO 4',NULL);
+INSERT INTO hseareas VALUES (5,'LHO 5',NULL);
+INSERT INTO hseareas VALUES (6,'LHO 6',NULL);
+INSERT INTO hseareas VALUES (7,'LHO 7',NULL);
+INSERT INTO hseareas VALUES (8,'LHO 8',NULL);
+INSERT INTO hseareas VALUES (9,'LHO 9',NULL);
+INSERT INTO hseareas VALUES (10,'LHO 10',NULL);
+INSERT INTO hseareas VALUES (11,'LHO 11',NULL);
+INSERT INTO hseareas VALUES (12,'LHO 12',NULL);
+INSERT INTO hseareas VALUES (13,'LHO 13',NULL);
+INSERT INTO hseareas VALUES (14,'LHO 14',NULL);
+INSERT INTO hseareas VALUES (15,'LHO 15',NULL);
+INSERT INTO hseareas VALUES (16,'LHO 16',NULL);
+INSERT INTO hseareas VALUES (17,'LHO 17',NULL);
+
+--
 -- INSERT default data for table groups
 --
 

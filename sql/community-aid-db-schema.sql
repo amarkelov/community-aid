@@ -100,6 +100,19 @@ CREATE TABLE districts (
 );
 
 --
+-- Table structure for table hseareas
+--
+
+DROP TABLE  hseareas CASCADE;
+CREATE TABLE hseareas (
+  hseareaid bigserial,
+  hsearea_name varchar(128) NOT NULL,
+  comments varchar(256) default NULL,
+  PRIMARY KEY  (hseareaid),
+  UNIQUE (hsearea_name)
+);
+
+--
 -- Table structure for table groups
 --
 
@@ -149,12 +162,14 @@ CREATE TABLE clients (
   modifiedby bigint NOT NULL,
   changenote varchar(255) default NULL,
   districtid bigint NOT NULL,
+  hseareid bigint default 0,
   groupid bigint default 0,	
   PRIMARY KEY  (clientid),
   UNIQUE (firstname,lastname,address,dob),
   FOREIGN KEY (addedby) REFERENCES operators (operatorid) ON UPDATE CASCADE,
   FOREIGN KEY (modifiedby) REFERENCES operators (operatorid) ON UPDATE CASCADE,
   FOREIGN KEY (districtid) REFERENCES districts (districtid) ON UPDATE CASCADE,
+  FOREIGN KEY (hseareaid) REFERENCES hseareas (hseareaid) ON UPDATE CASCADE,
   FOREIGN KEY (groupid) REFERENCES groups (groupid) ON UPDATE CASCADE ON DELETE SET DEFAULT
 );
 

@@ -88,6 +88,10 @@ if($doWeExit == true){
 	<td valign="top">Create call reports by Classification, date, client name (no names are displayed in the resulted report!) and district</td>
 </tr>
 <tr>
+	<td valign="top"><a href='clients_by_hsearea.php'>List clients by HSE Area</a></td>
+	<td valign="top">Compile list of clients by HSE Area (client name, address)</td>
+</tr>
+<tr>
 	<td valign="top"><a href='config.php'>System configuration</a></td>
 	<td valign="top">Change system configuration parameters (i.e. page titles, database name, etc.). Please, make sure you know what you are doing
 	before you change any parameters on this screen! It's easy to render the system unusable, if parameters set wrong.</td>

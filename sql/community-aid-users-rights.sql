@@ -38,7 +38,10 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON districts TO caadmin;
 GRANT SELECT, INSERT, UPDATE, DELETE ON operators TO caadmin;
 GRANT SELECT, INSERT, UPDATE, DELETE ON groups TO caadmin;
 GRANT SELECT, INSERT, UPDATE, DELETE ON group2operator TO caadmin;
+GRANT SELECT,INSERT,UPDATE,DELETE ON call_l1_class TO caadmin;
 GRANT SELECT,INSERT,UPDATE,DELETE ON call_l2_class TO caadmin;
+GRANT SELECT, INSERT, UPDATE, DELETE ON hseareas TO caadmin;
+
 
 --
 -- GRANT rights to default operator user
@@ -56,6 +59,7 @@ GRANT SELECT ON districts TO caoperator;
 GRANT SELECT, UPDATE ON operators TO caoperator;
 GRANT SELECT ON l1_class TO caoperator;
 GRANT SELECT ON l2_class TO caoperator;
+GRANT SELECT,INSERT ON call_l1_class TO caoperator;
 GRANT SELECT,INSERT ON call_l2_class TO caoperator;
 
 --
