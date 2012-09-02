@@ -25,6 +25,7 @@ GRANT ALL ON l1_class_l1id_seq TO caadmin;
 GRANT SELECT, INSERT, UPDATE, DELETE ON l1_class TO caadmin;
 GRANT ALL ON l2_class_l2id_seq TO caadmin;
 GRANT SELECT, INSERT, UPDATE, DELETE ON l2_class TO caadmin;
+GRANT ALL ON hseareas_hseareaid_seq TO caadmin;
 
 GRANT SELECT, INSERT, UPDATE, DELETE ON call_mclass TO caadmin;
 GRANT SELECT, INSERT, UPDATE, DELETE ON call_sclass TO caadmin;
