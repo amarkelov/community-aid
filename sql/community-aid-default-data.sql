@@ -104,7 +104,6 @@ INSERT INTO l1_class (l1name) VALUES ('Falls/accidents');
 --
 
 INSERT INTO l2_class (l1id,l2name) VALUES ((SELECT l1id FROM l1_class WHERE l1name='Safety & Security'), 'Housing conditions');
-INSERT INTO l2_class (l1id,l2name) VALUES ((SELECT l1id FROM l1_class WHERE l1name='Safety & Security'), 'Housing conditions');
 INSERT INTO l2_class (l1id,l2name) VALUES ((SELECT l1id FROM l1_class WHERE l1name='Safety & Security'), 'Neighbourhood');
 INSERT INTO l2_class (l1id,l2name) VALUES ((SELECT l1id FROM l1_class WHERE l1name='Safety & Security'), 'Feelings of threat');
 INSERT INTO l2_class (l1id,l2name) VALUES ((SELECT l1id FROM l1_class WHERE l1name='Safety & Security'), 'Abuse');
