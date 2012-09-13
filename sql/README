@@ -6,25 +6,14 @@ To setup the database:
 1) as PostgreSQL user (usually postgres) run createdb command from the shell:
 
 createdb -E utf8 community-aid "Community-aid project database"
+createlang -d community-aid plpgsql
 
-2) install the database, using the file provided under sql subdirectory. 
-Login as PostgreSQL user (usually postgres) and run psql command.
+2) populate the database with initial data and users, using the files provided under sql subdirectory.
+ 
+Switch to PostgreSQL user (usually postgres) and run psql command.
 
-postgres@tux:~$ psql -d community-aid
-Welcome to psql 8.1.9, the PostgreSQL interactive terminal.
-
-Type:  \copyright for distribution terms
-       \h for help with SQL commands
-       \? for help with psql commands
-       \g or terminate with semicolon to execute query
-       \q to quit
-
-community-aid=#
-postgres@ca-server$ psql
-postgres=# \i /srv/community-aid/sql/community-aid-db-dump-clean.sql
-
-It should install clean database for your system. Make sure posgres user has 
-access to /srv/community-aid/sql/community-aid-db-dump-clean.sql. If you followed
-installation instructions, then it should not be a problem.
+postgres@ca-server$ psql -d community-aid -f /srv/rise/sql/community-aid-db-schema.sql
+postgres@ca-server$ psql -d community-aid -f /srv/rise/sql/community-aid-default-data.sql
+postgres@ca-server$ psql -d community-aid -f /srv/rise/sql/community-aid-users-rights.sql 
 
 The most up to date information can be found at http://community-aid.wiki.sourceforge.net
