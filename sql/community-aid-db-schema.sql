@@ -162,7 +162,7 @@ CREATE TABLE clients (
   modifiedby bigint NOT NULL,
   changenote varchar(255) default NULL,
   districtid bigint NOT NULL,
-  hseareid bigint default 0,
+  hseareaid bigint default 0,
   groupid bigint default 0,	
   PRIMARY KEY  (clientid),
   UNIQUE (firstname,lastname,address,dob),
