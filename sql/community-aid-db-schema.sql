@@ -318,9 +318,16 @@ DECLARE
 BEGIN 
 	/*
 	 * Values casted to varchar(x) type explicitely to make sure that longer strings
-	 * get truncated. Make sure the sizes correspond to the field size at all times! 
+	 * get truncated. Make sure the sizes correspond to the field size at all times!
+	 * 
+	 * trim function applied to firstname, lastname and address fields, so UNIQUE constrained
+	 * in clients table works as expected. (Ref. the case when a client was put on the system
+	 * twice bypassing the constrained, because a space was added to the end of address string)
+	 *  
 	 */
-	INSERT INTO clients (firstname,lastname,title,gender,address,area,districtid,
+	INSERT INTO clients (trim(both from firstname),
+						 trim(both from lastname),title,gender,
+						 trim(both from address),area,districtid,
 						phone1,phone2,housetype,dob,alone, medical_notes,
 						contact1name,contact1relationship,contact1address,contact1phone,
 						contact2name,contact2relationship, contact2address,contact2phone,
