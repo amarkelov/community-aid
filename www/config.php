@@ -55,6 +55,12 @@ if(isset( $_POST['pghost']) && ctype_print( $_POST['pghost'])) {
 if(isset( $_POST['pgport']) && ctype_digit( $_POST['pgport'])) {
 	$clean['pgport'] = $_POST['pgport'];
 }
+if(isset( $_POST['backup_command']) && ctype_print( $_POST['backup_command'])) {
+	$clean['backup_command'] = $_POST['backup_command'];
+}
+else {
+	$clean['backup_command'] = "/usr/bin/pg_dump -a --disable-triggers -U " . $_SERVER[Admin];
+}
 if(isset( $_POST['pdf_draw_cell_border']) && ctype_digit( $_POST['pdf_draw_cell_border'])) {
 	if($_POST['pdf_draw_cell_border'] > 0) {
 		$clean['pdf_draw_cell_border'] = 1;
@@ -131,7 +137,7 @@ else {	// this part happens if we don't press submit
 		</font>
 		</td>
 		<td>
-		<input type="Text" name="org" value="' . $settings['org'] . '" size="30" maxlength="30">
+		<input type="Text" name="org" value="' . $settings['org'] . '" size="30" maxlength="300">
 		</td>
 	</tr>
 	<tr>
