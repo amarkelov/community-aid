@@ -48,7 +48,7 @@ if( $clean['backup']) {
 	printMessage( 'Taking the database backup. Please wait.....');
 
 	$command  = $settings['backup_command'] . ' ' . $settings['database'] . ' | /bin/gzip -9 >';
-	$command .= $settings['backup_dir'] . '/' . 'community-aid-dataonly.';
+	$command .= $settings['backup_dir'] . '/' . $settings['database'] . '-dataonly.';
 	$command .= date('dmYHi') . '.sql.gz';
 	
 	exec( $command);
