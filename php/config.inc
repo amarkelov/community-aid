@@ -81,6 +81,11 @@ database = community-aid\t\t\t; name of the database
 pghost = localhost\t\t\t; host name of your database server
 pgport = 5432\t\t\t; port number the database server listens to
 
+;****************************
+; Database backup parameters
+;****************************
+backup_command = /usr/bin/pg_dump -a --disable-triggers -U caadmin
+		
 ;**************************
 ; PDF parameters
 ;**************************
@@ -123,6 +128,9 @@ debug_pdf = 0\t; debug_pdf set to 1 gives debug output at the bottom of
 		}
 		if(isset( $clean['pgport']) && ctype_digit( $clean['pgport'])) {
 			$newConfig .= "pgport = " . $clean['pgport'] . "\n";
+		}
+		if(isset( $clean['backup_command']) && ctype_print( $clean['backup_command'])) {
+			$newConfig .= "backup_command = " . $clean['backup_command'] . "\n";
 		}
 		if(isset( $clean['pdf_draw_cell_border']) && ctype_digit( $clean['pdf_draw_cell_border'])) {
 			if($clean['pdf_draw_cell_border'] > 0) {
