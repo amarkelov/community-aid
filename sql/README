@@ -7,6 +7,7 @@ To setup the database:
 
 createdb -E utf8 community-aid "Community-aid project database"
 createlang -d community-aid plpgsql
+psql -d community-aid "alter database community-aid set DateStyle='ISO,Euro'"
 
 2) populate the database with initial data and users, using the files provided under sql subdirectory.
  
