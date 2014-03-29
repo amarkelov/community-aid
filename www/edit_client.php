@@ -122,7 +122,7 @@ else {
 		// pull the list of active clients
 		$clients = array();
 		
-		if( getAllClients( $clients)) {
+		if( getClients( $clients, 0, ACTIVE_CLIENTS)) {
 			print '<form method="post" action="' . $_SERVER['PHP_SELF'] . '">
 					<font face="Verdana, Arial, Helvetica, sans-serif">
 					<div align="left">
