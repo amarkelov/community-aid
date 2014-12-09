@@ -74,6 +74,10 @@ org = Friendly Call Service\t\t; header option for organisation name
 location = Blanchardstown\t\t; header option for project location
 start_page=community-aid.php\t\t; identifies system's main page
 
+; 1 - yes
+; 0 - no
+calendar_enabled = 1
+
 ;****************************
 ; Database related parameters
 ;****************************
