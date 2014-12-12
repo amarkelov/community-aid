@@ -43,6 +43,13 @@ function getClientData( &$clean) {
 	$clean['housetype']				= htmlentities($myrow['housetype'], ENT_QUOTES);
 	$clean['dob']					= htmlentities($myrow['dob'], ENT_QUOTES);
 	$clean['alone']					= htmlentities($myrow['alone'], ENT_QUOTES);
+	// translating the value from the database into true or false
+	if($clean['alone'] == 't') {
+		$clean['alone'] = true;
+	}
+	else {
+		$clean['alone'] = false;
+	}
 	$clean['medical_notes']			= htmlentities($myrow['medical_notes'], ENT_QUOTES);
 	$clean['contact1name']			= htmlentities($myrow['contact1name'], ENT_QUOTES);
 	$clean['contact1relationship']	= htmlentities($myrow['contact1relationship'], ENT_QUOTES);
