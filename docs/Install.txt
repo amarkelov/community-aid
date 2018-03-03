@@ -1,2 +1,0 @@
-Detailed Installation manual can be found at 
-http://community-aid.wiki.sourceforge.net/Installation_manual
