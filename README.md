@@ -1,4 +1,4 @@
-## Synopsis
+# Synopsis
 
 The project began as volunteer effort to help local community call centre with their Linux server that run [GoodMorning project](http://www.goodmorningservice.co.uk) system developed in Glasgow I believe.
 
@@ -21,18 +21,18 @@ Unfortunately, I haven't had a chance to update the procedure since Debian 4 (my
 
 Originally the project was hosted on SourceForge. Once they restore the site, it may become available again.
 
-## Installation instructions
+# Installation instructions
 
 **Few notes before we begin**
 
-_The following instructions assume that we install local private network 192.168.0/24 with the server on 192.168.0.1 named kerry.
+_The following instructions assume that we install local private network 192.168.0/24 with the server on 192.168.0.1 named *kerry*.
 Client machines can be either Windows or Linux/UNIX. In either case I would advise you to use Mozilla/Firefox browser on client machines for better look of the pages. Internet Explorer is OK, but sometimes it does produce slightly different look.
 I assume you have at least basic Linux/UNIX skills. Although, I was trying to make it as detailed as possible.
 Instructions are based on Debian version 4 release 3, but there is no problem to get the same install on any Linux or BSD UNIX. I'll do instructions for FreeBSD later. Some things are a bit different there (RAID, user names, even directory layout is a bit different)._
 
-Installing on Debian Linux
+## Installing on Debian Linux
 
-###Step 1. OS installation and partitioning
+### Step 1. OS installation and partitioning
 
 Install minimum system. During the installation create a separate partition with mount point `/srv`. That is where we will hold all the files.
 
@@ -157,7 +157,7 @@ bash# apt-get install ssh
 
 Now is the time for the community-aid software installation.
 
-###Step 2. Installing community-aid software
+### Step 2. Installing community-aid software
 
 **2.1. Apache configuration**
 
@@ -282,7 +282,7 @@ And add the following cron task to `postgres` user cron list (the task will clea
 
 By now you are all set to go. Point your browser to https://<server_ip>/community-aid.php and after accepting SSL certificate you must see the login prompt of the system now.
 
-###Step 3. Security
+### Step 3. Security
 
 Security is very important when you deal with sensitive data. The system that you are installing is just one of those system that people would like to see as secure as possible. Regardless of the way you deploy the server, it's a good idea to configure a firewall on the system as well. You can use the following start/stop script for `iptables`. I have borrowed the script from Internet a while ago. I will try to find reference to the authors name and post it here.
 
@@ -596,7 +596,7 @@ bash# /etc/init.d/iptables reload
 
 You may want to read more on iptables and securing Debian in more details here.
 
-###Step 4. Time is important
+### Step 4. Time is important
 
 I would encourage you to setup NTP service on the system and make it the time keeper for your network. Nothing is good enough without correct time.
 The following instructions based on the NTP server and client configuration instructions.
@@ -660,7 +660,7 @@ ntpq> pe
  kerry.community .INIT.          16 u   59   64    0    0.000    0.000   0.000
 ```
 
-###Step 5. DNS and DHCP services
+### Step 5. DNS and DHCP services
 
 You are installing you network that has to be self-sufficient. You don't really want to go to every client machine and setup static IP addresses and keep track of it. Good idea is to setup Dynamic DNS service together with DHCP. That way your client machines (including the new one you add later) will be able to pick up IP addresses from the server. It will make your life that bit easier.
 The instructions below based upon the following article [http://www.debian-administration.org/articles/343](http://www.debian-administration.org/articles/343)
@@ -892,7 +892,7 @@ Now restart the DHCP server for the changes to take effect:
 bash# /etc/init.d/dhcp3-server restart
 ```
 
-**Step 6. Backup**
+### Step 6. Backup
 
 No server is good (or lasts long) without a good backup system in place. I prefer Amanda and here is the brief instructions how to set one up for your server. In this instruction I have server with internal DDS DAT-72 tape drive.
 
@@ -1213,7 +1213,7 @@ And finally, create cronjob for backup user to run `amdump` command as often as 
 
 Congratulations! Now you all set. Please, send me a note if the instructions are missing something or something is not clear enough and I'll gladly update the text above.
 
-## License
+# License
 
 ```
 Copyright (c) 2007, Community-Aid Project
