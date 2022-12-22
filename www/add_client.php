@@ -9,6 +9,7 @@ require_once("client.inc");
 
 $clean = array();
 $settings = get_ca_settings();
+$php_self = htmlspecialchars($_SERVER['PHP_SELF']);
 
 // Page Header ...
 printHeader( "Add Client", 0, "printAddEditClientJavaScript");
@@ -20,7 +21,7 @@ if ($settings['debug'] > 0) {
 }
 
 // START LOG IN CODE
-$doWeExit = displayLogin(basename($_SERVER['PHP_SELF']), true);
+$doWeExit = displayLogin(basename($php_self), true);
 if($doWeExit == true){
 	exit;
 }
@@ -29,7 +30,7 @@ if($doWeExit == true){
 /*
  * Start filtering input
  */
- 
+
 if(isset($_SESSION['operatorid'])) {
 	$clean['operatorid'] = $_SESSION['operatorid'];
 }
@@ -48,7 +49,7 @@ if($settings['debug'] == 1){
 /*
  * End of filtering input
  */
- 
+
 if ($clean['submit']) {
 	if( addClient($clean)) {
 		printMessage("Record Added!");
@@ -56,10 +57,10 @@ if ($clean['submit']) {
 	else {
 		printErrorMessage( 'Error occured while adding client!');
 	}
-	printMessage( '<a href="' . $_SERVER['PHP_SELF'] . '">Add another client</a>');
+	printMessage( '<a href="' . $php_self . '">Add another client</a>');
 } // if ($submit)
 else {
-	print '<form name="add_client" 
+	print '<form name="add_client"
 				onSubmit="
 				this.title.optional = true;
 				this.phone2.optional = true;
@@ -73,19 +74,19 @@ else {
 				this.alerts.optional = true;
 				this.referrer_other.optional = true;
 				return verify(this);"
-				method="post" 
-				action="' . $_SERVER['PHP_SELF'] . '">';
-	
+				method="post"
+				action="' . $php_self . '">';
+
 	printAddEditClientTable( $clean);
-	
+
 	print '<br>
-	
+
 	<div align="center">
 	<font face="Verdana, Arial, Helvetica, sans-serif">
 	<input type="Submit" name="submit" value="Add client">
 	</font>
 	</div>
-	
+
 	</form>
 	</body>
 	</html>';
