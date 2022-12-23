@@ -745,67 +745,78 @@ function setFirstCallDone( $clientid) {
 	}
 
 	dbclose( $dbConnect);
-	
+
 	return $retval;
 }
 
 function recordTheCall( &$clean) {
 	$retval = true;
 	$callid = 0;
-	
+
 	$dbConnect = dbconnect();
 
+    // begin transaction
 	$sql = "BEGIN;";
-	$sql .= sprintf( "SELECT record_call(%d::BIGINT, 
-										 '%s'::TEXT, 
-										 '%s'::TIMESTAMP, 
-										 '%s'::BOOLEAN, 
-										 %d::BIGINT) as callid;",
-					$clean['clientid'], 
-					pg_escape_string( $clean['chat']), 
-					pg_escape_string( strftime("%d/%m/%y %T", strtotime($clean['nextcalltime']))),
-					pg_escape_string( $clean['call_finished']), 
-					$_SESSION['operatorid']);
-			
+
 	$result = pg_query( $dbConnect, $sql);
 	if (!$result) {
 		$message  = 'Invalid query: ' . pg_result_error( $result) . '<br>' . 'Query: ' . $sql;
-		printErrorMessage( $message);
+		printErrorMessage($message);
 		$retval = false;
+        dbclose($dbConnect);
+        return $retval;
 	}
-	else {
-		/* 
-		 * record_call() function returns callid of the newly recorded call
-		 * which we'll use below to get the call's classification(s) recorded
-		 */
-		$callid = pg_fetch_result($result, 0, 'callid');
-		
-		/* handle call classification now */
-		if( isset($clean['L1']) && sizeof($clean['L1']) > 0 && $callid > 0) {
-			$arL1 = array();
-			$arL1 = $clean['L1'];
-	
-			$sql = "";
-			
-			foreach( $arL1 as $value) {
-				$sql .= sprintf( "INSERT INTO call_l1_class (callid, l1id) VALUES (%d,%d);",
-							$callid, $value); 
-			}
-			
-			$sql .= "COMMIT;";
-			
-			$result = pg_query( $dbConnect, $sql);
-			if (!$result) {
-				$message  = 'Invalid query: ' . pg_result_error( $result) . '<br>' . 'Query: ' . $sql;
-				printErrorMessage( $message);
-				$retval = false;
-			}
-		}
-	}
-		
+
+	$result = pg_query_params("SELECT record_call($1::BIGINT,
+										 $2::TEXT,
+										 $3::TIMESTAMP,
+										 $4::BOOLEAN,
+										 $5::BIGINT) as callid;",
+                               array(filter_var($clean['clientid'], FILTER_SANITIZE_NUMBER_INT),
+                                     pg_escape_string($clean['chat']),
+                                     pg_escape_string(strftime("%d/%m/%y %T", strtotime($clean['nextcalltime']))),
+                                     pg_escape_string($clean['call_finished']),
+                                     filter_var($_SESSION['operatorid'], FILTER_SANITIZE_NUMBER_INT)));
+
+
+    // record_call() function returns callid of the newly recorded call
+    // which we'll use below to get the call's classification(s) recorded
+    $callid = pg_fetch_result($result, 0, 'callid');
+
+    // handle call classification now
+    if( isset($clean['L1']) && sizeof($clean['L1']) > 0 && $callid > 0) {
+        $arL1 = array();
+        $arL1 = $clean['L1'];
+
+        $sql = "";
+
+        foreach( $arL1 as $value) {
+            if(!filter_var($value, FILTER_VALIDATE_INT)) {
+                printErrorMessage('Level 1 category ID is not an integer! Skipped.');
+                $retval = false;
+            }
+
+            $result = pg_query_params($dbConnect, "INSERT INTO call_l1_class (callid, l1id) VALUES ($1,$2);",
+                                      array($callid, $value));
+            if (!$result) {
+                $message  = 'Invalid query: ' . pg_result_error( $result) . '<br>' . 'Query: ' . $sql;
+                printErrorMessage( $message);
+                $retval = false;
+            }
+        }
+    }
+
+    // commit the transaction
+    $sql = "COMMIT;";
+    $result = pg_query( $dbConnect, $sql);
+    if (!$result) {
+        $message  = 'Invalid query: ' . pg_result_error( $result) . '<br>' . 'Query: ' . $sql;
+        printErrorMessage( $message);
+        $retval = false;
+    }
+
 	dbclose( $dbConnect);
 
 	return $retval;
 }
-
 ?>
