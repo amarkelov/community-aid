@@ -2,44 +2,44 @@
 function printCallsHeader( $pageTitle, $ajax = 0, $javaScriptFuncName = NULL) {
 	$settings = array();
 	$settings = get_ca_settings();
-	
-	print '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" 
+
+	print '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
 			"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 			<html xmlns="http://www.w3.org/1999/xhtml">
 			<head>
 				<title>' . $pageTitle . ' -- '  . $settings['org'] . ' -- ' . $settings['location'] . '</title>
 				<meta http-equiv="expires" content="-1">
 				<meta http-equiv="Cache-Control" content="no-cache">';
-	
+
 	if($ajax > 0) {
 		print '<script type="text/javascript" src="/js/calls.js"></script>';
 	}
-	
+
 	if( isset( $javaScriptFuncName)) {
 		$javaScriptFuncName();
 	}
-	
+
 	print '</head>
 			<body bgcolor="#BEC8FD" onload="process()">
 			<font face="Verdana, Arial, Helvetica, sans-serif">
-			<p>'; 
+			<p>';
 }
 
-function drawCalls( $clientid) 
+function drawCalls( $clientid)
 {
 	$current_week_number = 0;
 	$last_week_number = 0;
-	
+
 	$dbConnect = dbconnect();
-	
+
     $sql  = "SELECT calls.time as time,
 				calls.chat as chat,
 				operators.loginname as operator FROM calls, operators
-				WHERE clientid={$clientid} AND 
-				time > (NOW() - INTERVAL '3 WEEK') AND 
-				calls.operatorid=operators.operatorid 
+				WHERE clientid={$clientid} AND
+				time > (NOW() - INTERVAL '3 WEEK') AND
+				calls.operatorid=operators.operatorid
 				ORDER BY callid DESC ";
-    
+
     $result = pg_query( $dbConnect, $sql);
     if (!$result) {
 		$message  = 'Invalid query: ' . pg_result_error( $result) . "\n";
@@ -54,13 +54,13 @@ function drawCalls( $clientid)
 			<td><font face="Verdana, Arial, Helvetica, sans-serif" size="1"><b>Call details</td>
 			<td width="10%"><font size="1"><b>Operator</td>
 			</tr>';
-    
+
     $i=0; // need this to change cell bgcolor
 	$firstround = 1;
     while ($myrow = pg_fetch_array($result)) {
 		$i=$i + 1; // need this to change cell bgcolor
 		$time=$myrow["time"];
-	
+
 		$regs = 0;
 		if ( preg_match( "/([0-9]{4})-([0-9]{2})-([0-9]{2}) ([0-9]{2}):([0-9]{2}):([0-9]{2})/", $time, $regs ) ) {
 		    $out="$regs[3]/$regs[2]/$regs[1] $regs[4]:$regs[5]";
@@ -75,28 +75,28 @@ function drawCalls( $clientid)
 			$last_week_number = $current_week_number;
 			$firstround = 0;
 		}
-		
+
 		if($current_week_number < $last_week_number) {
 			print '<tr><td>&nbsp</td></tr>';
 			print '<tr><td><font face="Verdana, Arial, Helvetica, sans-serif" size="1"><b>Week ' . $current_week_number . '</font></td></tr>';
 			$last_week_number = $current_week_number;
 		}
-		
+
 		if($i % 2) {
 		    print('<tr bgcolor="#FFFFFF">');
 		}
 		else {
 		    print('<tr bgcolor="#DDDDDD">');
 		}
-	
+
 	// time column
 		print('<td width="20%"> <font face="Verdana, Arial, Helvetica, sans-serif" size="1" color="#FF0000">');
 		print $out;
 		print('</font>');
 	// chat column
 		print('</td><td><font face="Verdana, Arial, Helvetica, sans-serif" size="1" color="#0000FF">');
-		
-		if(!empty($myrow["chat"])) { 
+
+		if(!empty($myrow["chat"])) {
 		    print($myrow["chat"] );
 		}
 		else {
@@ -104,54 +104,54 @@ function drawCalls( $clientid)
 		}
 	// operator
 		print('</td><td width="10%"><font face="Verdana, Arial, Helvetica, sans-serif" size="1" color="#0000FF">');
-		
-		if(!empty($myrow["operator"])) { 
+
+		if(!empty($myrow["operator"])) {
 		    print($myrow["operator"] );
 		}
 		else {
 		    print("&nbsp");
 		}
-		    
+
 		print("</td></tr>");
 
     } // while
-    
+
     print("</table>");
 
 	dbclose($dbConnect);
 }
 
-function drawCallsForClassification( &$criteria, $limit=100) 
+function drawCallsForClassification( &$criteria, $limit=100)
 {
 	$current_week_number = 0;
 	$last_week_number = 0;
 	$sql = '';
 	$need_and = false;
-	
+
 
 	if( is_array( $criteria)) {
 	    $sql  = 'SELECT c.callid, time, chat, o.loginname
 					FROM calls c
 					LEFT OUTER JOIN operators o on c.operatorid=o.operatorid
-					LEFT OUTER JOIN call_l1_class l1 on c.callid=l1.callid 
-					LEFT OUTER JOIN clients cl on c.clientid = cl.clientid'; 
+					LEFT OUTER JOIN call_l1_class l1 on c.callid=l1.callid
+					LEFT OUTER JOIN clients cl on c.clientid = cl.clientid';
 
 		if( isset($criteria['noclass'])) {
 			$sql .= ' LEFT OUTER JOIN call_l2_class cl2 on c.callid = cl2.callid';
 		}
 
 		$sql .= ' WHERE ';
-			
+
 		if( isset($criteria['noclass'])) {
 			$sql .= ' l2id IS NULL ';
 			$need_and = true;
 		}
-		
+
 		if( isset($criteria['tperiod'])) {
 			if( $need_and) {
 				$sql .= ' AND ';
 			}
-			
+
 			switch ($criteria['tperiod']) {
 				case 'today':
 					$sql .= " time > (CURRENT_DATE + TIME '00:00') ";
@@ -167,7 +167,7 @@ function drawCallsForClassification( &$criteria, $limit=100)
 					break;
 			}
 		}
-		
+
 		if( isset($criteria['clientid']) and ctype_digit($criteria['clientid'])) {
 			if( $need_and) {
 				$sql .= ' AND ';
@@ -175,7 +175,7 @@ function drawCallsForClassification( &$criteria, $limit=100)
 			$sql .= " c.clientid = {$criteria['clientid']} ";
 			$need_and = true;
 		}
-		
+
 		if( isset($criteria['exclnoissues'])) {
 			if( $need_and) {
 				$sql .= ' AND ';
@@ -183,7 +183,7 @@ function drawCallsForClassification( &$criteria, $limit=100)
 			$sql .= ' l1.l1id > 0 ';
 			$need_and = true;
 		}
-		
+
 		if( isset($criteria['groupid'])) {
 			if( $need_and) {
 				$sql .= ' AND ';
@@ -191,22 +191,22 @@ function drawCallsForClassification( &$criteria, $limit=100)
 			$sql .= " groupid = {$criteria['groupid']} ";
 			$need_and = true;
 		}
-		
+
 		$sql .= ' GROUP by c.callid, c.time, c.chat, o.loginname ORDER BY callid DESC ';
-		
+
 		if( $limit > 0) {
 			$sql .= ' LIMIT ' . $limit;
 		}
-		
+
 		$dbConnect = dbconnect();
-			    		
+
 	    $result = pg_query( $dbConnect, $sql);
 	    if (!$result) {
 			$message  = 'Invalid query: ' . pg_result_error( $result) . "\n";
 			$message .= 'Whole query: ' . $sql;
 			printErrorMessage($message);
 	    }
-	
+
 	    print ("<hr noshade>");
 	    print('<table border="0" width="100%" cellspacing="0" cellpadding="0">');
 	    print '<tr>
@@ -215,13 +215,13 @@ function drawCallsForClassification( &$criteria, $limit=100)
 				<td><font face="verdana, arial, helvetica" size="1"><b>Call details</td>
 				<td width="10%"><font face="verdana, arial, helvetica" size="1"><b>Operator</td>
 				</tr>';
-	    
+
 	    $i=0; // need this to change cell bgcolor
 		$firstround = 1;
 	    while ($myrow = pg_fetch_array($result)) {
 			$i=$i + 1; // need this to change cell bgcolor
 			$time=$myrow["time"];
-		
+
 			$regs = 0;
 			if ( preg_match( "/([0-9]{4})-([0-9]{2})-([0-9]{2}) ([0-9]{2}):([0-9]{2}):([0-9]{2})/", $time, $regs ) ) {
 			    $out="$regs[3]/$regs[2]/$regs[1] $regs[4]:$regs[5]";
@@ -230,26 +230,26 @@ function drawCallsForClassification( &$criteria, $limit=100)
 			else {
 			    $out="Invalid date format: $time";
 			}
-	
-	
+
+
 			if( $firstround) {
 				$last_week_number = $current_week_number;
 				$firstround = 0;
 			}
-			
+
 			if($current_week_number < $last_week_number) {
 				print '<tr><td>&nbsp</td></tr>';
 				print '<tr><td><font face="Verdana, Arial, Helvetica, sans-serif" size="1"><b>Week ' . $current_week_number . '</font></td></tr>';
 				$last_week_number = $current_week_number;
 			}
-			
+
 			if($i % 2) {
 			    print('<tr bgcolor="#FFFFFF">');
 			}
 			else {
 			    print('<tr bgcolor="#DDDDDD">');
 			}
-		
+
 		// select
 			print '<td width="1%" valign="top" align="center">';
 			print '<input type="radio" name="callid" value="' . $myrow['callid'] . '"></input>';
@@ -260,8 +260,8 @@ function drawCallsForClassification( &$criteria, $limit=100)
 			print '</font>';
 		// chat column
 			print('</td><td><font face="verdana, arial, helvetica" size="1" color="#0000FF">');
-			
-			if(!empty($myrow["chat"])) { 
+
+			if(!empty($myrow["chat"])) {
 			    print($myrow["chat"] );
 			}
 			else {
@@ -269,20 +269,20 @@ function drawCallsForClassification( &$criteria, $limit=100)
 			}
 		// operator
 			print('</td><td width="10%"><font face="verdana, arial, helvetica" size="1" color="#0000FF">');
-			
-			if(!empty($myrow["operator"])) { 
+
+			if(!empty($myrow["operator"])) {
 			    print($myrow["operator"] );
 			}
 			else {
 			    print("&nbsp");
 			}
-			    
+
 			print("</td></tr>");
-	
+
 	    } // while
-	    
+
 	    print("</table>");
-	
+
 		dbclose($dbConnect);
 	}
 }
@@ -302,17 +302,17 @@ function drawClientDetails($clientid)
 					gpname,
 					TO_CHAR(timeslot, 'HH24:MI') as timeslot from clients
 					WHERE clientid='$clientid' AND active='1'";
-		
+
 		$result = pg_query( $dbConnect, $sql);
 		if (!$result) {
 		    $message  = 'Invalid query: ' . pg_result_error( $result) . "\n";
 		    $message .= 'Whole query: ' . $sql;
 		    printErrorMessage($message);
 		}
-		else {	
+		else {
 	   	    while ($myrow = pg_fetch_array($result)) {
 				if($myrow["phone1"]) {
-		        	    $phone1 = $myrow["phone1"]; 
+		        	    $phone1 = $myrow["phone1"];
 				}
 				else {
 				    $phone1 = "N/A";
@@ -328,7 +328,7 @@ function drawClientDetails($clientid)
 				}
 		       	else {
 				    $dob = "Invalid DOB";
-				} 
+				}
 				$area = $myrow['area'];
 
 				$contact1name = $myrow['contact1name'];
@@ -342,17 +342,17 @@ function drawClientDetails($clientid)
 				if(strlen(trim($contact2phone)) == 0) $contact2phone = 'N/A';
 
 				$contact2relationship = $myrow['contact2relationship'];
-				
+
 				$gpname = $myrow['gpname'];
 				if(strlen(trim($gpname)) == 0) $gpname = 'N/A';
-				
+
 				$timeslot = $myrow['timeslot'];
 				$medical_notes = $myrow["medical_notes"];
 		       	$alerts = $myrow["alerts"];
 		       	$alone = $myrow["alone"];
 		    }
 		}
-    }    
+    }
 
     $out  = '<table frame="border" width="100%">';
     $out .= '<tr>';
@@ -360,12 +360,12 @@ function drawClientDetails($clientid)
     $out .= "<td><font size=" . $fs . ">" . $phone1 . "</font></td>";
     $out .= "<td width=\"30%\"><font size=" . $fs ."><b>First Contact:</b></font></td>";
     $out .= "<td><font size=" . $fs . ">" . $contact1name . "</font></td>";
-    $out .= '</tr><tr>';        
+    $out .= '</tr><tr>';
     $out .= "<td width=\"30%\"><font size=" . $fs . "><b>Phone 2:</b></font></td>";
     $out .= "<td><font size=" . $fs . ">" . $phone2 . "</font></td>";
     $out .= "<td width=\"30%\"><font size=" . $fs ."><b>First Contact relationship:</b></font></td>";
     $out .= "<td><font size=" . $fs . ">" . $contact1relationship . "</font></td>";
-    $out .= '</tr><tr>';    
+    $out .= '</tr><tr>';
     $out .= "<td width=\"30%\"><font size=" . $fs . "><b>D.O.B. (DD/MM/YYYY):</b></font></td>";
     $out .= "<td><font size=" . $fs . ">" . $dob . "</font></td>";
     $out .= "<td width=\"30%\"><font size=" . $fs ."><b>First Contact phone:</b></font></td>";
@@ -375,14 +375,14 @@ function drawClientDetails($clientid)
     $out .= "<td><font size=" . $fs . ">" . $area . "</font></td>";
     $out .= "<td width=\"30%\"><font size=" . $fs ."><b>Second Contact:</b></font></td>";
     $out .= "<td><font size=" . $fs . ">" . $contact2name . "</font></td>";
-    $out .= '</tr><tr>';    
+    $out .= '</tr><tr>';
     $out .= "<td width=\"30%\"><font size=" . $fs . "><b>Time slot:</b></font></td>";
     $out .= "<td><font size=" . $fs . ">" . $timeslot . "</font></td>";
     $out .= "<td width=\"30%\"><font size=" . $fs ."><b>Second Contact relationship:</b></font></td>";
     $out .= "<td><font size=" . $fs . ">" . $contact2relationship . "</font></td>";
     $out .= '</tr><tr>';
     $out .= "<td width=\"30%\"><font size=" . $fs . "><b>Alone:</b></font></td>";
-    $out .= "<td><font size=" . $fs . ">"; 
+    $out .= "<td><font size=" . $fs . ">";
 		if( $alone = 't') {
     		$out .= "Yes";
 		}
@@ -401,7 +401,7 @@ function drawClientDetails($clientid)
     $out .= "<td width=\"30%\"><font size=" . $fs . "><b>Alerts:</b></font></td>";
     $out .= "<td><font size=" . $fs . ">" . $alerts . "</font></td>";
     $out .= '</tr></table>';
-    
+
     print "$out";
 
 	dbclose($dbConnect);
@@ -416,7 +416,7 @@ function printCallsJavaScript() {
 				return true;
 			}
 		}
-		
+
 		function uncheck_all_when_noissues() {
 			if(document.getElementById("L1_0").checked) {
 				for( i=1; i<8; ++i) {
@@ -425,7 +425,7 @@ function printCallsJavaScript() {
 				return true;
 			}
 		}
-		
+
 		function vtslot(time, form)
 		{
 			var ts = Array();
@@ -433,13 +433,13 @@ function printCallsJavaScript() {
 			var hour = Number(ts[0]);
 			var min = Number(ts[1]);
 
-			// if both hours and minutes are numeric and within the range => true		
+			// if both hours and minutes are numeric and within the range => true
 			if(!isNaN(hour) && !isNaN(min)) {
 			   if((hour>=0 && hour<=23) && (min>=0 && min<=59)) {
 			      return true;
 			   }
 			}
-			
+
 			// if the call is finished => true
 			if(form.call_finished.checked) {
 				return true;
@@ -450,26 +450,26 @@ function printCallsJavaScript() {
 			alert( msg);
 			return false;
 		}
-		
+
 		function verifyCall(time, form)
 		{
 			var classified = 0;
 			var vtslot_ok = false;
-			
+
 			if(!vtslot(time, form)) {
 				return false;
 			}
 			else {
 				vtslot_ok = true;
 			}
-			
+
 			// checking that at least one classification was chosen
 			for( i=0; i<8; ++i) {
 				if( document.getElementById("L1_" + i).checked) {
 					classified++;
 				}
 			}
-			
+
 			if( classified == 0) {
 				msg = "At least one classification category must be chosen!\n";
 				alert( msg);
@@ -479,9 +479,9 @@ function printCallsJavaScript() {
 			if (vtslot_ok && classified > 0) {
 				return true;
 			}
-			
+
 			return false;
-			
+
 		}
 		-->
 		</script>';
@@ -495,24 +495,24 @@ function drawClientsList($operator, $floating_list=false)
 	$clients = array();		// array to store clientids and the rest
 	$calltime = array();	// array to store timeslots
 	$nocalltime = array();	// array to store clientid's with no timeslot
-	$redcalltime = array();	// array to store timeslots that were missed 
+	$redcalltime = array();	// array to store timeslots that were missed
 	$redcalltimemsg = array(); // array to hold red messages to append to timeslots
-	$redpastcalltime = array();	// array to store timeslots that were missed from yesterday 
+	$redpastcalltime = array();	// array to store timeslots that were missed from yesterday
 	$redpastcalltimemsg = array(); // array to hold redpast messages to append to timeslots
 	$nextcall = array();	// array to store nextcalls
 	$timeslot_done = array();	// to track if the timeslot call was made
-	
+
 	$today = getdate();
 	$todays_dow = $today['wday'];
-	
+
 	$dbConnect = dbconnect();
-	
+
 	$fs = 2; // font size
-	
+
 	// getting client list first ...
     $sql  = "SELECT clientid,firstname,lastname,
 			TO_CHAR(timeslot, 'HH24:MI') AS timeslot
-			FROM clients WHERE ((clientid IN (SELECT clientid FROM client2operator WHERE 
+			FROM clients WHERE ((clientid IN (SELECT clientid FROM client2operator WHERE
 			operatorid=(SELECT operatorid FROM operators WHERE loginname='{$operator}')) AND active='t') ";
 
     // add floating list to the mix
@@ -522,7 +522,7 @@ function drawClientsList($operator, $floating_list=false)
 
     $sql .= ") AND clientid in (SELECT clientid FROM days WHERE dow={$todays_dow}) ";
     $sql .= " ORDER BY timeslot, lastname";
-        
+
     $result = pg_query( $dbConnect, $sql);
     if (!$result) {
 		$message  = 'Invalid query: ' . pg_result_error( $result) . '<br>' . 'Query: ' . $sql;
@@ -536,17 +536,17 @@ function drawClientsList($operator, $floating_list=false)
 
 	// getting unfinished calls and nextcalltime for it
 	$sql = "SELECT clientid,TO_CHAR(nextcalltime,'DD/MM/YYYY HH24:MI:SS') as nextcalltime
-			FROM client_nextcalltime WHERE (clientid in 
-			(SELECT clientid FROM client2operator WHERE 
+			FROM client_nextcalltime WHERE (clientid in
+			(SELECT clientid FROM client2operator WHERE
 			operatorid=(SELECT operatorid FROM operators WHERE loginname='{$operator}'))";
 
     // add floating list to the mix
     if( $floating_list) {
     	$sql .= " OR clientid IN (SELECT clientid FROM clients WHERE groupid=1 AND active='t') ";
     }
- 
+
     $sql .= ")  AND clientid in (SELECT clientid FROM days WHERE dow={$todays_dow}) ";
-    
+
     $result = pg_query( $dbConnect, $sql);
     if (!$result) {
 		$message  = 'Invalid query: ' . pg_result_error( $result) . '\n';
@@ -557,11 +557,11 @@ function drawClientsList($operator, $floating_list=false)
 	while ($myrow = pg_fetch_array($result)) {
 		$nextcall[$myrow['clientid']] = $myrow['nextcalltime'];
 	}
-	
+
 	// getting the timeslot_done flags for all the clients
 	$sql = "SELECT clientid,timeslot_done
-			FROM client_timeslot_call WHERE ( clientid in 
-			(SELECT clientid FROM client2operator WHERE 
+			FROM client_timeslot_call WHERE ( clientid in
+			(SELECT clientid FROM client2operator WHERE
 			operatorid=(SELECT operatorid FROM operators WHERE loginname='{$operator}'))";
 
     // add floating list to the mix
@@ -570,7 +570,7 @@ function drawClientsList($operator, $floating_list=false)
     }
 
     $sql .= ")  AND clientid in (SELECT clientid FROM days WHERE dow={$todays_dow}) ";
-    
+
     $result = pg_query( $dbConnect, $sql);
     if (!$result) {
 		$message  = 'Invalid query: ' . pg_result_error( $result) . '\n';
@@ -589,7 +589,7 @@ function drawClientsList($operator, $floating_list=false)
 	foreach( $calltime as $cid => $nctime) { // now go through it all and figure out the time....
 		$nct = -1;
 		if( isset($nextcall[$cid])) {
-	    	/* 
+	    	/*
 	    	 * I'm using # as the delimiter. The default one is / , but I would need to escape
 	    	 * the rest of / in date spec if I was to use the default delimiter.
 	    	 */
@@ -624,16 +624,16 @@ function drawClientsList($operator, $floating_list=false)
 		else if( $nct > $now) {
 			$calltime[$cid] = date( "H:i", $nct);
 		}
-		
+
 		/* now, those whose timeslot call was done by now */
 		else if( ($tms < $now || $tms > $now) && $timeslot_done[$cid] == 't') {
 			$nocalltime[$cid] = ''; // . 'timeslot: ' . date("Y-m-d H:i:s", $tms) . "; now: " . date("Y-m-d H:i:s", $now);
 			unset( $calltime[$cid]);
 		}
-		
-//		$calltime[$cid] .= '  --- nct: ' . date("Y-m-d H:i:s", $nct) . '; timeslot: ' . date("Y-m-d H:i:s", $tms) . '; ' . $nextcall[$cid] . '==' . $nct . "; now: " . date("Y-m-d H:i:s", $now); 
+
+//		$calltime[$cid] .= '  --- nct: ' . date("Y-m-d H:i:s", $nct) . '; timeslot: ' . date("Y-m-d H:i:s", $tms) . '; ' . $nextcall[$cid] . '==' . $nct . "; now: " . date("Y-m-d H:i:s", $now);
 	}
-    
+
 	// we need to sort the array now
 	asort( $redcalltime);
 	asort( $calltime);
@@ -648,10 +648,10 @@ function drawClientsList($operator, $floating_list=false)
 		$out .= $clients[$cid] . '</a></font></td>';
 		$out .= '<td ALIGN="right" width="5%"><b><font color="#f11313" size="' . $fs . '">' . $redpastcalltime[$cid] . '</font></b></td>';
 		$out .= '<td><b><font color="#f11313" size="' . $fs . '">' . $redpastcalltimemsg[$cid] . '</font></b></td>';
-		
+
 	   	$out .= '</tr>';
 	}
-	
+
 	// reds then
 	foreach ( $redcalltime as $cid => $ts ) {
 		$out .= '<tr><td ALIGN="left" width="15%"><a href="' . $PHP_SELF . '?clientid=' . $cid . '">';
@@ -659,10 +659,10 @@ function drawClientsList($operator, $floating_list=false)
 		$out .= $clients[$cid] . '</a></font></td>';
 		$out .= '<td ALIGN="right" width="5%"><b><font color="#f11313" size="' . $fs . '">' . $redcalltime[$cid] . '</font></b></td>';
 		$out .= '<td><b><font color="#f11313" size="' . $fs . '">' . $redcalltimemsg[$cid] . '</font></b></td>';
-		
+
 		$out .= '</tr>';
 	}
-	
+
 	// normals then
 	foreach ( $calltime as $cid => $ts ) {
 		$out .= '<tr><td ALIGN="left" width="15%"><a href="' . $PHP_SELF . '?clientid=' . $cid;
@@ -674,10 +674,10 @@ function drawClientsList($operator, $floating_list=false)
 		$out .= $clients[$cid] . '</a></font></td>';
 		$out .= '<td ALIGN="right" width="5%">' . $calltime[$cid] . '</td>';
 		$out .= '<td>&nbsp</td>';
-		
+
 	    $out .= '</tr>';
 	}
-	
+
 	// notimes the last
 	foreach ( $nocalltime as $cid => $ts ) {
 		$out .= '<tr><td ALIGN="left" width="15%"><a href="' . $PHP_SELF . '?clientid=' . $cid . '">';
@@ -685,34 +685,34 @@ function drawClientsList($operator, $floating_list=false)
 		$out .= $clients[$cid] . '</a></font></td>';
 		$out .= '<td ALIGN="right" width="5%">' . $nocalltime[$cid] . '</td>';
 		$out .= '<td>&nbsp</td>';
-		
+
 	    $out .= '</tr>';
 	}
-	
+
 	$out .= '</table>';
 
 	print $out;
-	
+
 	dbclose($dbConnect);
 }
 
 function getCallDetails( $callid, &$call) {
 	$retval = false;
-	
+
 	if( isset($callid) and ctype_digit($callid) and $callid > 0 and is_array($call)) {
 		$dbConnect = dbconnect();
-		
+
 		$sql = "SELECT  calls.callid,
 						clients.lastname,
 						clients.firstname,
 						calls.time,
 						calls.chat,
-						operators.loginname as opname 
-				FROM calls, clients, operators 
-				WHERE calls.clientid=clients.clientid 
+						operators.loginname as opname
+				FROM calls, clients, operators
+				WHERE calls.clientid=clients.clientid
 					AND operators.operatorid=calls.operatorid
 					AND callid=" . $callid;
-		
+
 		$result = pg_query( $dbConnect, $sql);
 		if (!$result) {
 			$message  = 'Invalid query: ' . pg_result_error( $result) . '<br>' . 'Query: ' . $sql;
@@ -722,7 +722,7 @@ function getCallDetails( $callid, &$call) {
 		else {
 			$call = pg_fetch_array($result);
 		}
-	
+
 		dbclose( $dbConnect);
 		return $call;
 	}
@@ -732,11 +732,11 @@ function getCallDetails( $callid, &$call) {
 
 function setFirstCallDone( $clientid) {
 	$retval = true;
-	
+
 	$dbConnect = dbconnect();
-	
+
 	$sql = "UPDATE client_timeslot_call SET timeslot_done='t' WHERE clientid=" . $clientid;
-	
+
 	$result = pg_query( $dbConnect, $sql);
 	if (!$result) {
 		$message  = 'Invalid query: ' . pg_result_error( $result) . '<br>' . 'Query: ' . $sql;
