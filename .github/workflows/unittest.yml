@@ -1,0 +1,16 @@
+name: unittest
+run-name: Unit test
+
+on: [push]
+
+jobs:
+  unit-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - uses: php-actions/composer@v6
+      - name: PHPUnit tests
+        uses: php-actions/phpunit@master
+        with:
+          args: --coverage-text tests
