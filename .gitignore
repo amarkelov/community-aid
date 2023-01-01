@@ -1,5 +1,10 @@
 .dccache
 .git
+.phpunit*
+phpunit*
+vendor
+composer.lock
 .*~
 #*
 ~*
+*~

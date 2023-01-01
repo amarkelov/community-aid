@@ -1,63 +1,63 @@
 <?php
-require_once("db.inc");
-require_once("messages.inc");
+require_once('db.inc');
+require_once('messages.inc');
 
-define(CONFIG_FILE, "../conf/community-aid.ini");
-define(BACKUP_DIR, $_SERVER[DOCUMENT_ROOT] . "/one-off-backups");
+define('CONFIG_FILE', dirname(dirname(__FILE__)) . '/conf/community-aid.ini');
+define('BACKUP_DIR', $_SERVER['DOCUMENT_ROOT'] . '/one-off-backups');
 
 function get_ca_settings(){
 	$settings = array();
-	
+
 	$settings = parse_ini_file(CONFIG_FILE);
-	
+
 	$settings['backup_dir'] = BACKUP_DIR;
-	
+
 	if(!isset($settings['force_pdf_when_more_than'])) {
-		$settings['force_pdf_when_more_than'] = 300;	
+		$settings['force_pdf_when_more_than'] = 300;
 	}
 
 	if(!isset($settings['start_page'])) {
-		$settings['start_page'] = 'community-aid.php';	
+		$settings['start_page'] = 'community-aid.php';
 	}
-	
+
 	if(isset($_SERVER['Operator'])) {
 		$settings['operator'] = $_SERVER['Operator'];
 	}
 	else {
 		$settings['operator'] = 'caoperator';
 	}
-	
+
 	if(isset($_SERVER['Operator_Password'])) {
 		$settings['operator_password'] = $_SERVER['Operator_Password'];
 	}
 	else {
 		$settings['operator_password'] = 'caoperatorpwd';
 	}
-	
+
 	if(isset($_SERVER['Admin'])) {
 		$settings['admin'] = $_SERVER['Admin'];
 	}
 	else {
 		$settings['admin'] = 'caadmin';
 	}
-	
+
 	if(isset($_SERVER['Admin_Password'])) {
 		$settings['admin_password'] = $_SERVER['Admin_Password'];
 	}
 	else {
 		$settings['admin_password'] = 'caadminpwd';
 	}
-	
+
 	if(!isset($settings['pghost'])) {
 		$settings['pghost'] = 'localhost';
 	}
 
 	if($settings['calendar_enabled'] == 1) {
-		$settings['calendar_enabled'] = true;	
+		$settings['calendar_enabled'] = true;
 	}
 	else {
-		$settings['calendar_enabled'] = false;	
-	}	
+		$settings['calendar_enabled'] = false;
+	}
 
 	return $settings;
 }
@@ -89,7 +89,7 @@ pgport = 5432\t\t\t; port number the database server listens to
 ; Database backup parameters
 ;****************************
 backup_command = /usr/bin/pg_dump -a --disable-triggers -U caadmin
-		
+
 ;**************************
 ; PDF parameters
 ;**************************
@@ -112,7 +112,7 @@ debug_pdf = 0\t; debug_pdf set to 1 gives debug output at the bottom of
 
 ;debug_sql_limit = 150\t; if you need a limited output, to save yourself
 \t\t\t; some time, set this to the number of records
-\t\t\t; you want to limit SELECT statement to.\n";	
+\t\t\t; you want to limit SELECT statement to.\n";
 	}
 	else {
 		if(isset( $clean['org']) && ctype_print( $clean['org'])) {
@@ -167,14 +167,14 @@ debug_pdf = 0\t; debug_pdf set to 1 gives debug output at the bottom of
 			$newConfig .= "debug_sql_limit = " . $clean['debug_sql_limit'] . "\n";
 		}
 	}
-	
+
 	// Let's make sure the file exists and is writable first.
 	if (is_writable( $inifile)) {
 	    if ( !$fh = fopen( $inifile, 'w')) {
 	         printErrorMessage('Cannot open file ' . $inifile . '!');
 	         $retval = false;
 	    }
-	
+
 	    // Write $somecontent to our opened file.
 	    if ( fwrite( $fh, $newConfig) === FALSE) {
 	        printErrorMessage('Cannot write to file ' . $inifile . '!');
@@ -182,12 +182,12 @@ debug_pdf = 0\t; debug_pdf set to 1 gives debug output at the bottom of
 	    }
 
 	    fclose( $fh);
-	
+
 	} else {
 	    printErrorMessage('File ' . $inifile . ' is not writable!');
 	    $retval = false;
 	}
-	
+
 	return $retval;
 }
 
