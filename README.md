@@ -1,3 +1,5 @@
+![unit test](https://github.com/amarkelov/community-aid/actions/workflows/unittest.yml/badge.svg)
+
 # Synopsis
 
 The project began as volunteer effort to help local community call centre with their Linux server that run [GoodMorning project](http://www.goodmorningservice.co.uk) system developed in Glasgow I believe.
