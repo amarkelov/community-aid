@@ -1,7 +1,5 @@
 <?php
-
-// pdf stuff begin
-require_once("fpdf.php");
+use Fpdf\Fpdf as FPDF;
 
 class PDF extends FPDF
 {
@@ -10,7 +8,7 @@ class PDF extends FPDF
 	var $criteria = array();
 	var $header = 0;
 	var $border = 0;
-		
+
 	//Page header
 	function Header()
 	{
@@ -20,7 +18,7 @@ class PDF extends FPDF
 			$this->Cell(0,5, $cr_key . ": " . $cr_value,0,1,'L');
 		}
 	    $this->Ln();
-		
+
 	    //Colors, line width and bold font
 	    $this->SetFillColor(17,40,200);
 	    $this->SetTextColor(255);
@@ -33,7 +31,7 @@ class PDF extends FPDF
 	        $this->Cell($w[$i],7,$this->header[$i],1,0,'C',1);
 	    $this->Ln();
 	}
-	
+
 	//Page footer
 	function Footer()
 	{
@@ -44,29 +42,29 @@ class PDF extends FPDF
 	    //Page number
 	    $this->Cell(0,10,'Page '.$this->PageNo().'/{nb}',0,0,'C');
 	}
-	
+
 	//Colored table
 	function ColoredTable($header,$query_result)
 	{
-	 /*   //Colors, line width and bold font
-	    $this->SetFillColor(17,40,200);
-	    $this->SetTextColor(255);
-	    $this->SetDrawColor(128,0,0);
-	    $this->SetLineWidth(.3);
-	    $this->SetFont('','B');*/
+	    // //Colors, line width and bold font
+	    // $this->SetFillColor(17,40,200);
+	    // $this->SetTextColor(255);
+	    // $this->SetDrawColor(128,0,0);
+	    // $this->SetLineWidth(.3);
+	    // $this->SetFont('','B');
 	    //Header
 	    $w=array(20,20,40,105);
-	/*    for($i=0;$i<count($header);$i++)
-	        $this->Cell($w[$i],7,$header[$i],1,0,'C',1);
-	    $this->Ln();*/
+	    // for($i=0;$i<count($header);$i++)
+	    //     $this->Cell($w[$i],7,$header[$i],1,0,'C',1);
+	    // $this->Ln();
 	    //Color and font restoration
 	    $this->SetFillColor(224,235,255);
 	    $this->SetTextColor(0);
 	    $this->SetFont('');
 	    //Data
 	    $fill=0;
-	
-	
+
+
 	    while( $row = pg_fetch_array($query_result))
 	    {
 	    	// call id
@@ -82,7 +80,4 @@ class PDF extends FPDF
 	    $this->Cell(array_sum($w),0,'','T');
 	}
 }
-
-
-// pdf ends
 ?>
