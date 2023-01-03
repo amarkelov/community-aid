@@ -5,7 +5,7 @@ RewriteRule (.*) https://%{HTTP_HOST}%{REQUEST_URI}
 <VirtualHost *:443>
 	ServerName	ca-server
 	ServerAdmin webmaster@ca-server
-	
+
 	DocumentRoot /srv/community-aid/www
 	<Directory />
 		Options FollowSymLinks
@@ -25,8 +25,7 @@ RewriteRule (.*) https://%{HTTP_HOST}%{REQUEST_URI}
 
 	Options -Indexes -FollowSymLinks
 	AllowOverride None
-	Order allow,deny
-	Allow from all
+        Require all granted
 	</Directory>
 
 	CustomLog /var/log/apache2/community-aid-access.log combined
