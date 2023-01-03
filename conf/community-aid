@@ -3,40 +3,38 @@ RewriteCond %{HTTPS} off
 RewriteRule (.*) https://%{HTTP_HOST}%{REQUEST_URI}
 
 <VirtualHost *:443>
-	ServerName	ca-server
-	ServerAdmin webmaster@ca-server
+    ServerName    ca-server
+    ServerAdmin webmaster@ca-server
+    DocumentRoot /srv/community-aid/www
 
-	DocumentRoot /srv/community-aid/www
-	<Directory />
-		Options FollowSymLinks
-		AllowOverride None
-		DirectoryIndex	community-aid.php
-	</Directory>
+    <Directory />
+        Options           FollowSymLinks
+        AllowOverride     None
+        DirectoryIndex    community-aid.php
+    </Directory>
 
-	SSLEngine		On
-	SSLCertificateFile	/etc/apache2/ssl/apache.pem
+    SSLEngine             On
+    SSLCertificateFile    /etc/apache2/ssl/apache.pem
 
-	SetENV   Operator          caoperator
-	SetENV   Operator_Password caoperator
-	SetENV   Admin				caadmin
-	SetENV   Admin_Password		caadmin
+    SetENV   Operator          caoperator
+    SetENV   Operator_Password caoperator
+    SetENV   Admin             caadmin
+    SetENV   Admin_Password    caadmin
 
-	<Directory "/srv/community-aid/www">
-
-	Options -Indexes -FollowSymLinks
-	AllowOverride None
+    <Directory "/srv/community-aid/www">
+        Options -Indexes -FollowSymLinks
+        AllowOverride None
         Require all granted
-	</Directory>
+    </Directory>
 
-	CustomLog /var/log/apache2/community-aid-access.log combined
-	ErrorLog /var/log/apache2/community-aid-error.log
+    CustomLog /var/log/apache2/community-aid-access.log combined
+    ErrorLog /var/log/apache2/community-aid-error.log
 
-	# Possible values include: debug, info, notice, warn, error, crit,
-	# alert, emerg.
-	LogLevel warn
+    # Possible values include: debug, info, notice, warn, error, crit,
+    # alert, emerg.
+    LogLevel warn
 
-	ServerSignature 	Off
-	HostnameLookups 	Off
-	UseCanonicalName 	Off
-
+    ServerSignature     Off
+    HostnameLookups     Off
+    UseCanonicalName    Off
 </VirtualHost>
