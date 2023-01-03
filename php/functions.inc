@@ -1,5 +1,5 @@
 <?php
-require_once(dirname(dirname(__FILE__)) . '/php/config.inc');
+require_once(dirname(__FILE__) . '/php/config.inc');
 
 $last_dow = 6;
 

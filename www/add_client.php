@@ -1,11 +1,11 @@
 <?php
 session_start();
 
-require_once("functions.inc");
-require_once("header.inc");
-require_once("login.inc");
-require_once("add_edit_client.inc");
-require_once("client.inc");
+require_once(dirname(dirname(__FILE__)) . "/php/functions.inc");
+require_once(dirname(dirname(__FILE__)) . "/php/header.inc");
+require_once(dirname(dirname(__FILE__)) . "/php/login.inc");
+require_once(dirname(dirname(__FILE__)) . "/php/add_edit_client.inc");
+require_once(dirname(dirname(__FILE__)) . "/php/client.inc");
 
 $clean = array();
 $settings = get_ca_settings();
@@ -16,7 +16,7 @@ printHeader( "Add Client", 0, "printAddEditClientJavaScript");
 
 // if debug flag is set, print the following info
 if ($settings['debug'] > 0) {
-	require_once("functions.inc");
+	require_once(dirname(dirname(__FILE__)) . "/php/functions.inc");
 	print_debug();
 }
 

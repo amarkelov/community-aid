@@ -1,7 +1,7 @@
 <?php
-require_once("db.inc");
-require_once("functions.inc");
-require_once("messages.inc");
+require_once(dirname(__FILE__) . "/db.inc");
+require_once(dirname(__FILE__) . "/functions.inc");
+require_once(dirname(__FILE__) . "/messages.inc");
 
 function drawLevel1AndLevel2ClassificationListPanel( $callid = -1) {
 	$numofcolumns = 2;

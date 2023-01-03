@@ -1,7 +1,7 @@
 <?php
 session_start();
 
-require_once("config.inc");
+require_once(dirname(dirname(__FILE__)) . "/php/config.inc");
 
 $_SESSION = array();
 session_destroy();

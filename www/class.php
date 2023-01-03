@@ -1,12 +1,12 @@
 <?php 
 session_start();
 
-require_once("login.inc");
-require_once("client.inc");
-require_once("groups.inc");
-require_once("calls.inc");
-require_once("classifications.inc");
-require_once("functions.inc");
+require_once(dirname(dirname(__FILE__)) . "/php/login.inc");
+require_once(dirname(dirname(__FILE__)) . "/php/client.inc");
+require_once(dirname(dirname(__FILE__)) . "/php/groups.inc");
+require_once(dirname(dirname(__FILE__)) . "/php/calls.inc");
+require_once(dirname(dirname(__FILE__)) . "/php/classifications.inc");
+require_once(dirname(dirname(__FILE__)) . "/php/functions.inc");
 
 $clean = array();
 $settings = get_ca_settings();
@@ -75,7 +75,7 @@ if(isset($_POST['submit']) or isset($_POST['submit_class'])) {
 printHeader( "Calls calssification", 0, "printClassJavaScript");
 
 if ($settings['debug'] > 0) {
-	require_once("functions.inc");
+	require_once(dirname(dirname(__FILE__)) . "/php/functions.inc");
 	print_debug( $clean, $settings);
 }
 

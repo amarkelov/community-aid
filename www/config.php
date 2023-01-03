@@ -1,8 +1,8 @@
 <?php
 session_start();
-require_once("login.inc");
-require_once("district.inc");
-require_once("classifications.inc");
+require_once(dirname(dirname(__FILE__)) . "/php/login.inc");
+require_once(dirname(dirname(__FILE__)) . "/php/district.inc");
+require_once(dirname(dirname(__FILE__)) . "/php/classifications.inc");
 
 $clean = array();
 $settings = get_ca_settings();
@@ -12,7 +12,7 @@ printHeader( "System Configuration", 0);
 
 // if debug flag is set, print the following info
 if ($settings['debug'] > 0) {
-	require_once("functions.inc");
+	require_once(dirname(dirname(__FILE__)) . "/php/functions.inc");
 	print_debug();
 }
 

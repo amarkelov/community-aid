@@ -1,7 +1,7 @@
 <?php
-require_once("db.inc");
-require_once("messages.inc");
-require_once("header.inc");
+require_once(dirname(__FILE__) . "/db.inc");
+require_once(dirname(__FILE__) . "/messages.inc");
+require_once(dirname(__FILE__) . "/header.inc");
 
 //THIS NEEDS TO BE SET
 function getTheSalt(){

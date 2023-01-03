@@ -1,5 +1,5 @@
 <?php
-require_once("db.inc");
+require_once(dirname(__FILE__) . "/db.inc");
 
 define(ACTIVE_CLIENTS, 2);
 define(INACTIVE_CLIENTS, 4);

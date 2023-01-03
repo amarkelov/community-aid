@@ -1,7 +1,7 @@
 <?php 
 session_start();
 
-require_once("login.inc");
+require_once(dirname(dirname(__FILE__)) . "/php/login.inc");
 
 $clean = array();
 $settings = get_ca_settings();
@@ -30,7 +30,7 @@ else {
 }
 
 if ($settings['debug'] > 0) {
-	require_once("functions.inc");
+	require_once(dirname(dirname(__FILE__)) . "/php/functions.inc");
 	print_debug( $clean, $settings);
 }
 

@@ -1,10 +1,10 @@
 <?php
 session_start();
 
-require_once("calls.inc");
-require_once("db.inc");
-require_once("config.inc");
-require_once("login.inc");
+require_once(dirname(dirname(__FILE__)) . "/php/calls.inc");
+require_once(dirname(dirname(__FILE__)) . "/php/db.inc");
+require_once(dirname(dirname(__FILE__)) . "/php/config.inc");
+require_once(dirname(dirname(__FILE__)) . "/php/login.inc");
 
 if( isset($_SESSION['s_username'])) {
 	/*

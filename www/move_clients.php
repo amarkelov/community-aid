@@ -1,7 +1,7 @@
 <?php
 session_start();
-require_once("login.inc");
-require_once("groups.inc");
+require_once(dirname(dirname(__FILE__)) . "/php/login.inc");
+require_once(dirname(dirname(__FILE__)) . "/php/groups.inc");
 
 $clean = array();
 $settings = get_ca_settings();
@@ -11,7 +11,7 @@ printHeader( "Move clients between groups", 0);
 
 // if debug flag is set, print the following info
 if ($settings['debug'] > 0) {
-	require_once("functions.inc");
+	require_once(dirname(dirname(__FILE__)) . "/php/functions.inc");
 	print_debug();
 }
 

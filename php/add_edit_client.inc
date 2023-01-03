@@ -1,6 +1,6 @@
 <?php
-require_once("district.inc");
-require_once("groups.inc");
+require_once(dirname(__FILE__) . "/district.inc");
+require_once(dirname(__FILE__) . "/groups.inc");
 
 function verifyClientData( &$arClientData, &$clean) {
 	$magic = get_magic_quotes_gpc();

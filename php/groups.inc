@@ -1,6 +1,6 @@
 <?php
-require_once("db.inc");
-require_once("messages.inc");
+require_once(dirname(__FILE__) . "/db.inc");
+require_once(dirname(__FILE__) . "/messages.inc");
 
 function addGroup( $arNewGroups) {
 	$retval = true;
