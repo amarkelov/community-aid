@@ -17,7 +17,7 @@ function printErrorMessage( $message) {
               'System error! Please, check system logs or contact your systems person' .
               '</font></b></p>';
     }
-    syslog(LOG_ERROR, $message);
+    syslog(LOG_ERR, $message);
     closelog();
 }
 ?>
