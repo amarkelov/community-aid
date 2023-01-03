@@ -20,8 +20,8 @@ if ($settings['debug'] > 0) {
 }
 
 // if set $_GET['f'] has the page URL the user came from
-if(isset($_GET['f']) && filter_var(_GET['f'], FILTER_SANITIZE_URL)) {
-    $return_to = filter_var(_GET['f'], FILTER_VALIDATE_URL, FILTER_FLAG_PATH_REQUIRED|FILTER_FLAG_HOST_REQUIRED);
+if(isset($_GET['f']) && filter_var($_GET['f'], FILTER_SANITIZE_URL)) {
+    $return_to = filter_var($_GET['f'], FILTER_VALIDATE_URL, FILTER_FLAG_PATH_REQUIRED);
     $hostname = parse_url($return_to, PHP_URL_HOST);
 
     if($hostname == $settings['server_name']) {
