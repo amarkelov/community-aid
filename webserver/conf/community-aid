@@ -15,6 +15,7 @@ RewriteRule (.*) https://%{HTTP_HOST}%{REQUEST_URI}
 
     SSLEngine             On
     SSLCertificateFile    /etc/apache2/ssl/apache.pem
+    SSLCertificateKeyFile /etc/apache2/ssl/apache.key
 
     SetENV   Operator          caoperator
     SetENV   Operator_Password caoperator
