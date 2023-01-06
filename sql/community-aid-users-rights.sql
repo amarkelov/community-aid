@@ -3,8 +3,7 @@
 --
 DROP USER IF EXISTS caadmin;
 DROP USER IF EXISTS caoperator;
-DROP USER IF EXISTS
-areport;
+DROP USER IF EXISTS careport;
 
 CREATE USER caadmin WITH ENCRYPTED PASSWORD 'caadmin';
 CREATE USER caoperator WITH ENCRYPTED PASSWORD 'caoperator';
