@@ -25,6 +25,45 @@ Originally the project was hosted on SourceForge. Once they restore the site, it
 
 # Installation instructions
 
+## Installing using Docker
+
+**Important note**
+_The setup described in this section is not suitable for production as-is. Please, consider securing the setup properly._
+
+Follow [Docker documentation](https://docs.docker.com/get-docker/) and install Docker for your platform.
+
+Pull the suorces from GitHub:
+
+```
+$ git clone https://github.com/amarkelov/community-aid.git
+```
+
+Build images:
+
+```
+$ docker build -t makeitsimple/community-aid-web-base:1.0 -f Dockerfile-web-base .
+$ docker build -t makeitsimple/community-aid-web:1.0 -f Dockerfile-web .
+$ docker build -t makeitsimple/community-aid-backend:1.0 -f Dockerfile-db .
+```
+
+Start up the system:
+
+```
+$ docker compose up -d
+[+] Running 2/2
+ ⠿ Container community-aid-db-1         Started 2.0s
+ ⠿ Container community-aid-webserver-1  Started 3.2s
+
+devuan@bcm2711:~/work/community-aid$ docker ps
+CONTAINER ID   IMAGE                                    COMMAND                  CREATED STATUS               PORTS                                           NAMES
+129f4322a4d5   makeitsimple/community-aid-web:1.0       "docker-php-entrypoi…"   6 seconds ago Up 2 seconds   80/tcp, 0.0.0.0:443->443/tcp, :::443->443/tcp   community-aid-webserver-1
+25b8e78c3788   makeitsimple/community-aid-backend:1.0   "docker-entrypoint.s…"   7 seconds ago Up 4 seconds   5432/tcp
+```
+
+You can now access it via browser at https://localhost:443/community-aid.php
+
+## Installing on baremetal
+
 **Few notes before we begin**
 
 _The following instructions assume that we install local private network 192.168.0/24 with the server on 192.168.0.1 named *kerry*.

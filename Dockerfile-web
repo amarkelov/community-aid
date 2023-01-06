@@ -1,0 +1,14 @@
+FROM makeitsimple/community-aid-web-base:1.0
+RUN mkdir -p /srv/community-aid
+COPY webserver /srv/community-aid
+RUN chmod -R o-rwx /srv/community-aid && \
+    chmod o+x /srv/community-aid && \
+    chmod o+x /srv/community-aid/conf && \
+    chgrp -R www-data /srv/community-aid/php && \
+    chgrp -R www-data /srv/community-aid/www && \
+    chgrp www-data /srv/community-aid/conf && \
+    chgrp www-data /srv/community-aid/conf/community-aid.ini && \
+    chmod g+w /srv/community-aid/conf/community-aid.ini && \
+    cp /srv/community-aid/conf/community-aid /etc/apache2/sites-available/community-aid.conf && \
+    ln -s /etc/apache2/sites-available/community-aid.conf /etc/apache2/sites-enabled/
+CMD ["/usr/sbin/apache2ctl", "-D", "FOREGROUND"]

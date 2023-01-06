@@ -1,0 +1,13 @@
+FROM php:apache
+RUN a2dissite 000-default && \
+    a2enmod rewrite && \
+    a2enmod ssl && \
+    apt-get update -y && \
+    apt install --no-install-recommends -y libpq-dev && \
+    apt install --no-install-recommends -y ssl-cert && \
+    mkdir /etc/apache2/ssl && \
+    make-ssl-cert generate-default-snakeoil --force-overwrite && \
+    cp /etc/ssl/certs/ssl-cert-snakeoil.pem /etc/apache2/ssl/apache.pem && \
+    cp /etc/ssl/private/ssl-cert-snakeoil.key /etc/apache2/ssl/apache.key && \
+    docker-php-ext-install pgsql
+CMD ["/usr/sbin/apache2ctl", "-D", "FOREGROUND"]

@@ -1,0 +1,26 @@
+# Basic Docker compose file
+#
+# DO NOT USE IN PRODUCTION AS-IS!
+#
+# Set POSTGRES_PASSWORD to something more secure than the default
+# and consider using secure storage for the password.
+#
+
+services:
+  db:
+    hostname: community-aid-db
+    image: makeitsimple/community-aid-backend:1.0
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: community-aid
+      POSTGRES_INITDB_ARGS: --encoding=utf8
+      POSTGRES_PASSWORD: password
+
+  webserver:
+    hostname: community-aid
+    image: makeitsimple/community-aid-web:1.0
+    restart: unless-stopped
+    depends_on:
+      - db
+    ports:
+      - 443:443
