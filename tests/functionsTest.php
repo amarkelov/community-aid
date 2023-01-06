@@ -1,6 +1,6 @@
 <?php
 declare(strict_types=1);
-require_once(dirname(dirname(__FILE__)) . '/php/functions.inc');
+require_once(dirname(dirname(__FILE__)) . '/webserver/php/functions.inc');
 use PHPUnit\Framework\TestCase;
 
 final class functionsTest extends TestCase
